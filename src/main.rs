@@ -1,4 +1,5 @@
 use std::io::{self, Write};
+use mona::run;
 
 fn main() {
     println!("Mona {}", env!("CARGO_PKG_VERSION"));
@@ -21,7 +22,16 @@ fn main() {
             break;
         }
 
-        // Interpreter code here :)
+        let result = run(&input_buf);
+
+        match result {
+            Ok(res) => {
+                println!("{:?}", res);
+            }
+            Err(err) => {
+                println!("{err}");
+            }
+        }
 
         input_buf = String::new();
     }

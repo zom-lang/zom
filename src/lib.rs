@@ -1,9 +1,18 @@
-use std::fmt;
 use std::error::Error;
+use std::fmt;
+
+use lexer::Lexer;
+use token::Token;
 
 pub mod lexer;
 pub mod token;
 
+pub fn run(text: &String) -> Result<Vec<Token>, IllegalCharError> {
+    let mut lexer = Lexer::new(&text[..]);
+    let tokens = lexer.make_tokens();
+
+    return tokens;
+}
 
 #[derive(Debug)]
 pub struct IllegalCharError {
@@ -12,8 +21,11 @@ pub struct IllegalCharError {
 }
 
 impl IllegalCharError {
-    pub fn new(details: String) -> IllegalCharError{
-        IllegalCharError { name: String::from("Illegal Character"), details}
+    pub fn new(details: String) -> IllegalCharError {
+        IllegalCharError {
+            name: String::from("Illegal Character"),
+            details,
+        }
     }
 }
 
