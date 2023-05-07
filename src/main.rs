@@ -1,3 +1,4 @@
+use mona::*;
 use std::io::{self, Write};
 
 fn main() {
@@ -5,7 +6,7 @@ fn main() {
 
     let mut input_buf = String::new();
     loop {
-        print!("~>> ");
+        print!("~> ");
         io::stdout().flush().unwrap();
 
         match io::stdin().read_line(&mut input_buf) {
@@ -17,12 +18,13 @@ fn main() {
         }
         input_buf = String::from(input_buf.trim());
 
-        println!("input_buf = `{}`", input_buf);
+        println!("{}", input_buf);
 
         if input_buf.starts_with("exit") {
-            println!("Goodbey !");
-            return;
+            break;
         }
+
         input_buf = String::new();
     }
+    println!("\n See you soon! ;)");
 }
