@@ -8,7 +8,7 @@ pub mod lexer;
 pub mod token;
 
 pub fn run(text: &String) -> Result<Vec<Token>, IllegalCharError> {
-    let mut lexer = Lexer::new(&text[..]);
+    let mut lexer = Lexer::new(text);
     let tokens = lexer.make_tokens();
 
     return tokens;

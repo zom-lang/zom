@@ -1,24 +1,26 @@
+use std::iter::Enumerate;
+use std::str::Chars;
+
 use crate::{token::Token, IllegalCharError};
 
 pub const DIGITS: &str = "0123456789";
 
 #[derive(Debug)]
-pub struct Lexer<'a> {
-    text: &'a str,
-    pos: isize, // position in the text
+pub struct Lexer<'a>{
+    text: String,
+    pos: usize, // position in the text
     current_char: Option<char>,
+    iter: Option<Enumerate<Chars<'a>>>,
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(text: &'a str) -> Lexer<'a> {
-        let mut lex = Lexer {
-            text,
-            pos: -1,
+    pub fn new(text: &String) -> Lexer {
+        Lexer {
+            text: text.to_string(),
+            pos: 0,
             current_char: None,
-        };
-        println!("CREATION OF THE LEXER");
-        lex.advance();
-        lex
+            iter: None
+        }
     }
 
     pub fn advance(&mut self) {
@@ -45,95 +47,40 @@ impl<'a> Lexer<'a> {
         self.current_char.unwrap()
     }
 
-    pub fn make_tokens(&mut self) -> Result<Vec<Token>, IllegalCharError> {
+    pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, IllegalCharError> {
         let mut tokens = Vec::new();
         
-        while self.current_char != None {
-            println!("      IN THE LOOOOOP: {:?} !!!!!! token list {:?}", self.current_char, tokens);
-            match &self.current_char.unwrap() {
-                ' ' => self.advance(),
-                '+' => {
-                    tokens.push(Token::Plus);
-                    self.advance();
+        self.iter = Some(self.text.chars().enumerate());
+
+        for (idx, ch) in self.iter.as_mut().unwrap() {
+            self.pos = idx;
+            match ch {
+                ' ' => {}
+                '0'..='9' | '.' => {
+                    todo!();
                 }
-                '-' => {
-                    tokens.push(Token::Minus);
-                    self.advance();
-                }
-                '*' => {
-                    tokens.push(Token::Mul);
-                    self.advance();
-                }
-                '/' => {
-                    tokens.push(Token::Mul);
-                    self.advance();
-                }
-                '(' => {
-                    tokens.push(Token::LParen);
-                    self.advance();
-                }
-                ')' => {
-                    tokens.push(Token::RParen);
-                    self.advance();
-                }
+                '+' => tokens.push(Token::Plus),
+                '-' => tokens.push(Token::Minus),
+                '*' => tokens.push(Token::Mul),
+                '/' => tokens.push(Token::Div),
+                '(' => tokens.push(Token::LParen),
+                ')' => tokens.push(Token::RParen),
                 _ => {
-                    if self.current_char.unwrap().is_numeric() {
-                        println!("C'est un nombre !");
-                        tokens.push(self.make_number());
-                        continue;
-                    }
-                    let char = self.current_char.unwrap();
-                    self.advance();
-                    return Err(IllegalCharError::new(format!("`{char}`")));
+                    return Err(IllegalCharError::new(format!("`{ch}`")));
                 }
             }
         }
-        /*
-        loop {
-            println!("IN THE LOOOOOP: {:?}", self.current_char);
-            match &self.current_char.unwrap() {
-                ' ' => self.advance(),
-                '+' => {
-                    tokens.push(Token::Plus);
-                    self.advance();
-                }
-                '-' => {
-                    tokens.push(Token::Minus);
-                    self.advance();
-                }
-                '*' => {
-                    tokens.push(Token::Mul);
-                    self.advance();
-                }
-                '/' => {
-                    tokens.push(Token::Mul);
-                    self.advance();
-                }
-                '(' => {
-                    tokens.push(Token::LParen);
-                    self.advance();
-                }
-                ')' => {
-                    tokens.push(Token::RParen);
-                    self.advance();
-                }
-                _ => {
-                    if self.current_char.unwrap().is_numeric() {
-                        println!("C'est un nombre !");
-                        tokens.push(self.make_number());
-                        continue;
-                    }
-                    let char = self.current_char.unwrap();
-                    self.advance();
-                    return Err(IllegalCharError::new(format!("`{char}`")));
-                }
-            }
-            if self.current_char != None {
-                break;
-            }
-        }*/
 
         Ok(tokens)
+    }
+
+    fn set_current_char(&mut self) {
+        for (i, c) in self.text.chars().enumerate() {
+            if i == self.pos {
+                self.current_char = Some(c);
+                return;
+            }
+        }
     }
 
     fn make_number(&mut self) -> Token {
@@ -141,51 +88,16 @@ impl<'a> Lexer<'a> {
         let mut dot_count = 0;
         let mut cur_char = self.current_char.unwrap();
         
-        while self.current_char != None && cur_char != ' ' && (cur_char.is_numeric() || cur_char == '.') {
-            self.advance();
-            println!("make number LOOP: {}", cur_char);
-            println!("while condition : {}", self.current_char != None && cur_char != ' ' && (cur_char.is_numeric() || cur_char == '.'));
-            if cur_char == '.' {
-                if dot_count == 1 {
-                    break;
-                }
-
-                dot_count += 1;
-                num_str.push('.');
-            }else {
-                println!("make number befor push str: {}", cur_char);
-                num_str.push(cur_char);
-                cur_char = self.current_char.unwrap();
-            }
-            println!("before self.advance();");
+        loop {
+            self.set_current_char();
             
         }
-        /*
-        loop {
-            println!("make number LOOP: {}", cur_char);
-            if cur_char == '.' {
-                if dot_count == 1 {
-                    break;
-                }
-
-                dot_count += 1;
-                num_str.push('.');
-            }else {
-                if !(self.current_char != None && cur_char != ' ' && (cur_char.is_numeric() || cur_char == '.')) {
-                    break;
-                }
-                println!("make number befor push str: {}", cur_char);
-                num_str.push(cur_char);
-                cur_char = self.current_char.unwrap();
-            }
-            println!("before self.advance();");
-            self.advance();
-        }*/
 
         if dot_count == 0 {
             println!("num_str = {num_str}");
             return Token::Int(num_str.parse().unwrap());
         }
+
         println!("num_str = {num_str}");
         return Token::Float(num_str.parse().unwrap());
     }
