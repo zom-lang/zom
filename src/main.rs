@@ -1,5 +1,6 @@
-use mona::*;
 use std::io::{self, Write};
+
+use mona::Token;
 
 fn main() {
     println!("Mona {}", env!("CARGO_PKG_VERSION"));
@@ -19,6 +20,10 @@ fn main() {
         input_buf = String::from(input_buf.trim());
 
         println!("{}", input_buf);
+
+        let tok: Token<&str, _> = Token::new("INT", Some(10));
+
+        println!("{}", tok);
 
         if input_buf.starts_with("exit") {
             break;

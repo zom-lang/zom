@@ -1,13 +1,22 @@
-use std::fmt::{self, Result};
+use std::fmt;
 
+#[derive(Debug)]
 pub struct Token<T, V> {
-    _type: T,
-    value: Box<V>,
+    type_: T,
+    value: Option<V>,
 }
 
-// impl<T, V> fmt::Display for Token<T, V> {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         // write!(f, "{}, {}", self._type, self.value)
-//
-//     }
-// }
+impl<T, V> Token<T, V> {
+    pub fn new(type_: T, value: Option<V>) -> Token<T, V> {
+        Token { type_, value }
+    }
+}
+
+impl<T: fmt::Display, V: fmt::Debug> fmt::Display for Token<T, V> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.value {
+            Some(val) => write!(f, "{}:{:?}", self.type_, val),
+            None => write!(f, "{}", self.type_),
+        }
+    }
+}
