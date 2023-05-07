@@ -1,34 +1,26 @@
 use std::fmt;
-// TT = Token Type
-pub const TT_INT: &str = "TT_INT";
-pub const TT_FLOAT: &str = "FLOAT";
-pub const TT_PLUS: &str = "PLUS";
-pub const TT_MINUS: &str = "MINUS";
-pub const TT_MUL: &str = "MUL";
-pub const TT_DIV: &str = "DIV";
-pub const TT_LPAREN: &str = "LPAREN";
-pub const TT_RPAREN: &str = "RPAREN";
 
 #[derive(Debug)]
-pub struct Token<V> {
-    type_: String,
-    value: Option<V>,
+pub enum Token {
+    Int(i32),
+    Float(f32),
+    Plus,
+    Minus,
+    Mul,
+    Div,
+    LParen,
+    RParen,
 }
 
-impl<V> Token<V> {
-    pub fn new(type_: &str, value: Option<V>) -> Token<V> {
-        Token {
-            type_: type_.to_string(),
-            value,
-        }
-    }
-}
-
-impl<V: fmt::Debug> fmt::Display for Token<V> {
+impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self.value {
-            Some(val) => write!(f, "{}:{:?}", self.type_, val),
-            None => write!(f, "{}", self.type_),
+        if let Token::Int(val) = &self {
+            println!("This is an int");
+            return write!(f, "Int:{}", val);
+        } else if let Token::Float(val) = &self {
+            println!("This is a float");
+            return write!(f, "Float:{}", val);
         }
+        write!(f, "{:?}", &self)
     }
 }

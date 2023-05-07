@@ -1,7 +1,5 @@
 use std::io::{self, Write};
 
-use mona::*;
-
 fn main() {
     println!("Mona {}", env!("CARGO_PKG_VERSION"));
 
@@ -18,21 +16,14 @@ fn main() {
             }
         }
         input_buf = String::from(input_buf.trim());
-        println!("{:?}", test::lol);
-        println!("{:?}", test::lol1);
-        println!("{}", input_buf);
 
         if input_buf.starts_with("exit") {
             break;
         }
 
+        // Interpreter code here :)
+
         input_buf = String::new();
     }
     println!("\n See you soon! ;)");
-}
-
-#[derive(Debug)]
-enum test {
-    lol,
-    lol1,
 }
