@@ -24,9 +24,6 @@ impl<'a> Lexer<'a> {
     }
 
     pub fn advance(&mut self) {
-        if self.pos == 0 {
-            self.pos += 1;
-        }
         self.pos += 1;
         if self.pos < self.text.len().try_into().unwrap() {
             let pos: usize = self.pos.try_into().unwrap();
@@ -57,7 +54,7 @@ impl<'a> Lexer<'a> {
             match ch {
                 ' ' => {}
                 '0'..='9' | '.' => {
-                    todo!();
+                    tokens.push(self.make_number());
                 }
                 '+' => tokens.push(Token::Plus),
                 '-' => tokens.push(Token::Minus),
@@ -83,22 +80,29 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn make_number(&mut self) -> Token {
+    pub fn make_number(&mut self) -> Token {
         let mut num_str = String::new();
         let mut dot_count = 0;
-        let mut cur_char = self.current_char.unwrap();
-        
-        loop {
-            self.set_current_char();
-            
-        }
 
+        self.set_current_char();
+    
+        while let Some(ch) = self.current_char {
+            if ch == '.' {
+                dot_count += 1;
+                if dot_count > 1 {
+                    break;
+                }
+            } else if !DIGITS.contains(ch) {
+                break;
+            } 
+            num_str.push(ch);
+            self.advance();
+        }
+    
         if dot_count == 0 {
-            println!("num_str = {num_str}");
-            return Token::Int(num_str.parse().unwrap());
+            Token::Int(num_str.parse().unwrap())
+        } else {
+            Token::Float(num_str.parse().unwrap())
         }
-
-        println!("num_str = {num_str}");
-        return Token::Float(num_str.parse().unwrap());
     }
 }
