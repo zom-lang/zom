@@ -6,7 +6,7 @@ use crate::{token::Token, IllegalCharError};
 pub const DIGITS: &str = "0123456789";
 
 #[derive(Debug)]
-pub struct Lexer<'a>{
+pub struct Lexer<'a> {
     text: String,
     pos: usize, // position in the text
     current_char: Option<char>,
@@ -19,21 +19,33 @@ impl<'a> Lexer<'a> {
             text: text.to_string(),
             pos: 0,
             current_char: None,
-            iter: None
+            iter: None,
         }
     }
 
-    pub fn advance(&mut self) {
+    fn advance(&mut self) {
         self.pos += 1;
         if self.pos < self.text.len().try_into().unwrap() {
             let pos: usize = self.pos.try_into().unwrap();
-            println!("  1 in advance(..), before {:?} idx {}, idx usize {}", self.current_char, self.pos, pos);
+            println!(
+                "  1 in advance(..), before {:?} idx {}, idx usize {}",
+                self.current_char, self.pos, pos
+            );
             self.current_char = self.text.chars().nth(pos);
-            println!("  1 in advance(..), after {:?} idx {}, idx usize {}", self.current_char, self.pos, pos);
+            println!(
+                "  1 in advance(..), after {:?} idx {}, idx usize {}",
+                self.current_char, self.pos, pos
+            );
         } else {
-            println!("  2 in advance(..), before {:?} idx {}", self.current_char, self.pos);
+            println!(
+                "  2 in advance(..), before {:?} idx {}",
+                self.current_char, self.pos
+            );
             self.current_char = None;
-            println!("  2 in advance(..), after {:?} idx {}", self.current_char, self.pos);
+            println!(
+                "  2 in advance(..), after {:?} idx {}",
+                self.current_char, self.pos
+            );
         };
     }
 
@@ -46,15 +58,18 @@ impl<'a> Lexer<'a> {
 
     pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, IllegalCharError> {
         let mut tokens = Vec::new();
-        
+
         self.iter = Some(self.text.chars().enumerate());
 
-        for (idx, ch) in self.iter.as_mut().unwrap() {
+        while let Some((mut idx, mut ch)) = self.iter.as_mut().unwrap().next() {
             self.pos = idx;
             match ch {
                 ' ' => {}
                 '0'..='9' | '.' => {
                     let (tok, new_pos) = Self::make_number(&self.text, &self.pos);
+                    for _ in 0..(new_pos.0 - 1) {
+                        (idx, ch) = self.iter.as_mut().unwrap().next().expect("ignore possibly running out bcuz simple example")
+                    }
                     tokens.push(tok);
                 }
                 '+' => tokens.push(Token::Plus),
@@ -72,10 +87,9 @@ impl<'a> Lexer<'a> {
         Ok(tokens)
     }
 
-    fn set_current_char(text: &String, pos: &usize) -> Option<char>{
+    fn set_current_char(text: &String, pos: &usize) -> Option<char> {
         // TODO: rewrite this function I think it's not very efficient ...
         for (i, c) in text.chars().enumerate() {
-            println!("&i = {} and pos = {}", &i, pos);
             if &i == pos {
                 return Some(c);
             }
@@ -87,12 +101,12 @@ impl<'a> Lexer<'a> {
     /// Token::Int(x) with x as an i32 or
     /// Token::Float(x) with x as an f32
     /// and usize is the lenght of the number
-    pub fn make_number(text: &String, pos: &usize) -> (Token, usize) {
+    pub fn make_number(text: &String, pos: &usize) -> (Token, (usize, char)) {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut pos: usize = pos.clone();
         let mut curr_char: Option<char> = Self::set_current_char(text, &pos);
-    
+
         while let Some(ch) = curr_char {
             if ch == '.' {
                 dot_count += 1;
@@ -101,16 +115,18 @@ impl<'a> Lexer<'a> {
                 }
             } else if !DIGITS.contains(ch) {
                 break;
-            } 
+            }
             num_str.push(ch);
             pos += 1;
             curr_char = Self::set_current_char(text, &pos);
         }
-    
+
+        curr_char = Self::set_current_char(text, &(pos - 1));
+
         if dot_count == 0 {
-            (Token::Int(num_str.parse().unwrap()), num_str.len())
+            (Token::Int(num_str.parse().unwrap()), (num_str.len(), curr_char.unwrap()))
         } else {
-            (Token::Float(num_str.parse().unwrap()), num_str.len())
+            (Token::Float(num_str.parse().unwrap()), (num_str.len(), curr_char.unwrap()))
         }
     }
 }

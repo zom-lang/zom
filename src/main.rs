@@ -1,5 +1,5 @@
-use std::io::{self, Write};
 use mona::run;
+use std::io::{self, Write};
 
 fn main() {
     println!("Mona {}", env!("CARGO_PKG_VERSION"));
