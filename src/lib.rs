@@ -48,6 +48,6 @@ impl Error for IllegalCharError {
 
 impl fmt::Display for IllegalCharError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ERR: {:?}, {}: {}", self.kind, self.name, self.details)
+        write!(f, "{} ({:?}): {}", self.name, self.kind, self.details)
     }
 }

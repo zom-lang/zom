@@ -39,6 +39,7 @@ impl<'a> Lexer<'a> {
         while let Some((mut _idx, mut _ch)) = self.iter.as_mut().unwrap().next() {
             self.pos = _idx;
             match _ch {
+                // TODO: include all other whitespaces
                 ' ' => {}
                 '0'..='9' | '.' => {
                     let (tok, new_pos) = Self::make_number(&self.text, &self.pos);
@@ -81,7 +82,7 @@ impl<'a> Lexer<'a> {
     /// Token::Int(x) with x as an i32 or
     /// Token::Float(x) with x as an f32
     /// and usize is the lenght of the number
-    pub fn make_number(text: &String, pos: &usize) -> (Token, (usize, char)) {
+    pub fn make_number(text: &str, pos: &usize) -> (Token, (usize, char)) {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut pos: usize = *pos;
