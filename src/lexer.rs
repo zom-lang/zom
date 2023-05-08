@@ -47,7 +47,7 @@ impl<'a> Lexer<'a> {
                             .as_mut()
                             .unwrap()
                             .next()
-                            .expect("ignore possibly running out bcuz simple example")
+                            .expect("ERR: running out of bounds")
                     }
                     tokens.push(tok);
                 }
