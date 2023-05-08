@@ -35,14 +35,14 @@ impl<'a> Lexer<'a> {
 
         self.iter = Some(self.text.chars().enumerate());
 
-        while let Some((mut idx, mut ch)) = self.iter.as_mut().unwrap().next() {
-            self.pos = idx;
-            match ch {
+        while let Some((mut _idx, mut _ch)) = self.iter.as_mut().unwrap().next() {
+            self.pos = _idx;
+            match _ch {
                 ' ' => {}
                 '0'..='9' | '.' => {
                     let (tok, new_pos) = Self::make_number(&self.text, &self.pos);
                     for _ in 0..(new_pos.0 - 1) {
-                        (idx, ch) = self
+                        (_idx, _ch) = self
                             .iter
                             .as_mut()
                             .unwrap()
@@ -58,7 +58,7 @@ impl<'a> Lexer<'a> {
                 '(' => tokens.push(Token::LParen),
                 ')' => tokens.push(Token::RParen),
                 _ => {
-                    return Err(IllegalCharError::new(format!("`{ch}`")));
+                    return Err(IllegalCharError::new(format!("`{_ch}`")));
                 }
             }
         }

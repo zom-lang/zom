@@ -14,9 +14,17 @@ pub fn run(text: &String) -> Result<Vec<Token>, IllegalCharError> {
 }
 
 #[derive(Debug)]
+enum ErrorKind {
+    Lexer,
+    // Parser,
+    // Interpreter,
+}
+
+#[derive(Debug)]
 pub struct IllegalCharError {
     name: String,
     details: String,
+    kind: ErrorKind,
 }
 
 impl IllegalCharError {
@@ -24,6 +32,7 @@ impl IllegalCharError {
         IllegalCharError {
             name: String::from("Illegal Character"),
             details,
+            kind: ErrorKind::Lexer,
         }
     }
 }
@@ -36,6 +45,6 @@ impl Error for IllegalCharError {
 
 impl fmt::Display for IllegalCharError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}: {}", self.name, self.details)
+        write!(f, "ERR: {:?}, {}: {}", self.kind, self.name, self.details)
     }
 }
