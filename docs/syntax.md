@@ -150,16 +150,19 @@ Examples :
 `a + b`, with priorities to the addition : `(a + b) * c`
 
 ### Addition
-You can perform addition with the plus symbol : `+`. ex: `a + b`
+You can perform addition with the plus character : `+`. ex: `a + b`
 
 ### Soustraction
-You can perform soustractions with the plus symbol : `-`.ex: `a - b`
+You can perform soustractions with the plus character : `-`.ex: `a - b`
 
 ### Multiplication
-You can perform multiplication with the plus symbol : `*`. ex: `a * b`
+You can perform multiplication with the plus character : `*`. ex: `a * b`
 
 ### Division
-You can perform division with the plus symbol : `/`. ex: `a / b`
+You can perform division with the plus character : `/`. ex: `a / b`
 
 ### Modulo
-You can perform modulo with the plus symbol : `%`. ex: `a % b`
+You can perform modulo with the plus character : `%`. ex: `a % b`
+
+### Power
+You can perform power with the circumflex character : `^`. ex: `a ^ b`
