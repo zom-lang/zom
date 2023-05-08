@@ -54,7 +54,8 @@ impl<'a> Lexer<'a> {
             match ch {
                 ' ' => {}
                 '0'..='9' | '.' => {
-                    tokens.push(self.make_number());
+                    let (tok, new_pos) = Self::make_number(&self.text, &self.pos);
+                    tokens.push(tok);
                 }
                 '+' => tokens.push(Token::Plus),
                 '-' => tokens.push(Token::Minus),
@@ -71,22 +72,28 @@ impl<'a> Lexer<'a> {
         Ok(tokens)
     }
 
-    fn set_current_char(&mut self) {
-        for (i, c) in self.text.chars().enumerate() {
-            if i == self.pos {
-                self.current_char = Some(c);
-                return;
+    fn set_current_char(text: &String, pos: &usize) -> Option<char>{
+        // TODO: rewrite this function I think it's not very efficient ...
+        for (i, c) in text.chars().enumerate() {
+            println!("&i = {} and pos = {}", &i, pos);
+            if &i == pos {
+                return Some(c);
             }
         }
+        None
     }
 
-    pub fn make_number(&mut self) -> Token {
+    /// This return a tuple (Token, usize) where Token is either
+    /// Token::Int(x) with x as an i32 or
+    /// Token::Float(x) with x as an f32
+    /// and usize is the lenght of the number
+    pub fn make_number(text: &String, pos: &usize) -> (Token, usize) {
         let mut num_str = String::new();
         let mut dot_count = 0;
-
-        self.set_current_char();
+        let mut pos: usize = pos.clone();
+        let mut curr_char: Option<char> = Self::set_current_char(text, &pos);
     
-        while let Some(ch) = self.current_char {
+        while let Some(ch) = curr_char {
             if ch == '.' {
                 dot_count += 1;
                 if dot_count > 1 {
@@ -96,13 +103,14 @@ impl<'a> Lexer<'a> {
                 break;
             } 
             num_str.push(ch);
-            self.advance();
+            pos += 1;
+            curr_char = Self::set_current_char(text, &pos);
         }
     
         if dot_count == 0 {
-            Token::Int(num_str.parse().unwrap())
+            (Token::Int(num_str.parse().unwrap()), num_str.len())
         } else {
-            Token::Float(num_str.parse().unwrap())
+            (Token::Float(num_str.parse().unwrap()), num_str.len())
         }
     }
 }
