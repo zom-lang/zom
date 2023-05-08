@@ -23,34 +23,8 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    fn advance(&mut self) {
-        self.pos += 1;
-        if self.pos < self.text.len().try_into().unwrap() {
-            let pos: usize = self.pos.try_into().unwrap();
-            println!(
-                "  1 in advance(..), before {:?} idx {}, idx usize {}",
-                self.current_char, self.pos, pos
-            );
-            self.current_char = self.text.chars().nth(pos);
-            println!(
-                "  1 in advance(..), after {:?} idx {}, idx usize {}",
-                self.current_char, self.pos, pos
-            );
-        } else {
-            println!(
-                "  2 in advance(..), before {:?} idx {}",
-                self.current_char, self.pos
-            );
-            self.current_char = None;
-            println!(
-                "  2 in advance(..), after {:?} idx {}",
-                self.current_char, self.pos
-            );
-        };
-    }
-
     pub fn get_current_char(&self) -> char {
-        if self.pos >= self.text.len().try_into().unwrap() {
+        if self.pos >= self.text.len() {
             return '\0';
         }
         self.current_char.unwrap()
@@ -68,7 +42,12 @@ impl<'a> Lexer<'a> {
                 '0'..='9' | '.' => {
                     let (tok, new_pos) = Self::make_number(&self.text, &self.pos);
                     for _ in 0..(new_pos.0 - 1) {
-                        (idx, ch) = self.iter.as_mut().unwrap().next().expect("ignore possibly running out bcuz simple example")
+                        (idx, ch) = self
+                            .iter
+                            .as_mut()
+                            .unwrap()
+                            .next()
+                            .expect("ignore possibly running out bcuz simple example")
                     }
                     tokens.push(tok);
                 }
@@ -104,7 +83,7 @@ impl<'a> Lexer<'a> {
     pub fn make_number(text: &String, pos: &usize) -> (Token, (usize, char)) {
         let mut num_str = String::new();
         let mut dot_count = 0;
-        let mut pos: usize = pos.clone();
+        let mut pos: usize = *pos;
         let mut curr_char: Option<char> = Self::set_current_char(text, &pos);
 
         while let Some(ch) = curr_char {
@@ -124,9 +103,15 @@ impl<'a> Lexer<'a> {
         curr_char = Self::set_current_char(text, &(pos - 1));
 
         if dot_count == 0 {
-            (Token::Int(num_str.parse().unwrap()), (num_str.len(), curr_char.unwrap()))
+            (
+                Token::Int(num_str.parse().unwrap()),
+                (num_str.len(), curr_char.unwrap()),
+            )
         } else {
-            (Token::Float(num_str.parse().unwrap()), (num_str.len(), curr_char.unwrap()))
+            (
+                Token::Float(num_str.parse().unwrap()),
+                (num_str.len(), curr_char.unwrap()),
+            )
         }
     }
 }
