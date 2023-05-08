@@ -1,5 +1,6 @@
 use std::iter::Enumerate;
 use std::str::Chars;
+use std::error::Error;
 
 use crate::{token::Token, IllegalCharError};
 
@@ -30,7 +31,7 @@ impl<'a> Lexer<'a> {
         self.current_char.unwrap()
     }
 
-    pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, IllegalCharError> {
+    pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Box<dyn Error>> {
         let mut tokens = Vec::new();
 
         self.iter = Some(self.text.chars().enumerate());
@@ -58,7 +59,7 @@ impl<'a> Lexer<'a> {
                 '(' => tokens.push(Token::LParen),
                 ')' => tokens.push(Token::RParen),
                 _ => {
-                    return Err(IllegalCharError::new(format!("`{_ch}`")));
+                    return Err(Box::new(IllegalCharError::new(format!("`{_ch}`"))));
                 }
             }
         }
@@ -66,10 +67,10 @@ impl<'a> Lexer<'a> {
         Ok(tokens)
     }
 
-    fn set_current_char(text: &String, pos: &usize) -> Option<char> {
+    fn set_current_char(text: &str, pos: usize) -> Option<char> {
         // TODO: rewrite this function I think it's not very efficient ...
         for (i, c) in text.chars().enumerate() {
-            if &i == pos {
+            if i == pos {
                 return Some(c);
             }
         }
@@ -84,7 +85,7 @@ impl<'a> Lexer<'a> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut pos: usize = *pos;
-        let mut curr_char: Option<char> = Self::set_current_char(text, &pos);
+        let mut curr_char: Option<char> = Self::set_current_char(text, pos);
 
         while let Some(ch) = curr_char {
             if ch == '.' {
@@ -97,10 +98,10 @@ impl<'a> Lexer<'a> {
             }
             num_str.push(ch);
             pos += 1;
-            curr_char = Self::set_current_char(text, &pos);
+            curr_char = Self::set_current_char(text, pos);
         }
 
-        curr_char = Self::set_current_char(text, &(pos - 1));
+        curr_char = Self::set_current_char(text, pos - 1);
 
         if dot_count == 0 {
             (

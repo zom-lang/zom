@@ -7,13 +7,16 @@ use token::Token;
 pub mod lexer;
 pub mod token;
 
-pub fn run(text: &String) -> Result<Vec<Token>, IllegalCharError> {
-    let mut lexer = Lexer::new(text);
+pub fn run(text: String) -> Result<Vec<Token>, Box<dyn Error>> {
+    if !text.is_ascii() {
+        return Err("mona does not support non-ascii characters.".to_owned())?;
+    }
+    let mut lexer = Lexer::new(&text);
 
     lexer.make_tokens()
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum ErrorKind {
     Lexer,
     // Parser,

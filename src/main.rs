@@ -22,14 +22,14 @@ fn main() {
             break;
         }
 
-        let result = run(&input_buf);
+        let result = run(input_buf);
 
         match result {
             Ok(res) => {
                 println!("{:?}", res);
             }
             Err(err) => {
-                println!("{err}");
+                eprintln!("ERR: {err}");
             }
         }
 
