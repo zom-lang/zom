@@ -6,7 +6,7 @@ In this file you will find the syntax / grammar of mona.
 
 - [ ] Variable
   - [ ] Declaration
-  - [ ] Change stored value
+  - [ ] Change refered value
   - [ ] Use
   - [ ] Primitive types
     - [ ] byte
@@ -22,6 +22,9 @@ In this file you will find the syntax / grammar of mona.
     - [ ] bool
     - [ ] char
     - [ ] string
+- [ ] Control flow
+  - [ ] Conditions operators
+  - [ ] If statement
 - [ ] Function
   - [ ] Declaration
   - [ ] Use
@@ -36,6 +39,8 @@ In this file you will find the syntax / grammar of mona.
 
 ## Variable
 
+A variable can have a `None` value beacue Mona uses a Reference Counting system and by default, if you don't initialize the variable, the variable will have a `None` value but therefore it's mandatory to specify its type. The `None` value is possible because the variable will refer to nothing.
+
 ### Declaration
 
 ```
@@ -47,7 +52,13 @@ let foo = 10;
 ```
 And that also declare a variable, with name `foo`, an `int` type (you'll see below why) and a stored value of `10`.
 
-### Change stored value
+```
+let foo: float;
+let bar: int = None;
+```
+This will declare a `foo` variable of type float and with a `None` value and `bar` is also a variable of type int and with a `None` value but in a more implicit way.
+
+### Change refered value
 
 ``` 
 foo = 20;
@@ -112,6 +123,131 @@ A char is initialized with an apostrophe and the char in between, like that : `'
 
 A string is initialized with a quotation mark and the string in between, like that : `"Hello, world!"`.
 
+## Control Flow
+
+The ability to run some code depending on whether a condition is true and to run some code repeatedly while a condition is true are basic building blocks in most programming languages. The most common constructs that let you control the flow of execution of Mona code are if expressions and loops.
+
+### Conditions operators
+
+Before starting, it's important to know condition operators to know how to use control flow.
+
+#### Equal, `==`
+
+The equals operator, of sign `==` is used when you want to check the equality of two objects, and if the objects are equal the operator return true. ex: `a == b`.
+
+#### Different, `!=`
+
+The different operator, of sign `!=` is used when you want to check the non-equality of two objects, and if the objects are not equal the operator return true. e.g.: `a =! b`.
+
+#### Less than, `<`
+
+The `less than` operator, of sign `<` is used when you want to check if the first object is strictly less than the second object, and if the first object is less than the second object, the operator return true. e.g.: `a < b`.
+
+#### More than, `>`
+
+The `more than` operator, of sign `>` is used when you want to check if the first object is strictly bigger than the second object, and if the first object is bigger than the second object, the operator return true. e.g.: `a > b`.
+
+#### Less than or equal to, `=<`
+
+The `less than or equal to` operator, of sign `=<` is used when you want to check if the first object is less than or equal to the second object, and if the first object is less than or equal to the second object, the operator return true. e.g.: `a =< b`.
+
+#### More than or equal to, `=>`
+
+The `more than or equal to` operator, of sign `=>` is used when you want to check if the first object is more than or equal to the second object, and if the first object is less than or equal to the second object, the operator return true. e.g.: `a => b`.
+
+
+### Multiple conditions
+
+If you want to perform multiple conditions in one condition, you can use the following operators to do it, instead of nesting conditions.
+
+> In the following exaples, `*condition*` refers a condition.
+
+#### Not, `!`
+
+The `not` operator can be used if you want to invert the result of a condition. e.g.: `!*condition*`.
+
+#### And, `&&`
+
+The `and` operator check if two conditions are both `true` and return `true`. e.g.: `*condition* && *condition*`.
+
+#### Or, `||`
+
+The `or` operator check if one or both of the conditions is true conditions and return `true`. e.g.: `*condition* || *condition*`.
+
+### If statement
+
+An `if` expression allows you to branch your code depending on conditions. You can provide a condition and then state, "If this condition is met, run this block of code. If this condition is not met, do not run this block of code but instead this one if it's true ..."
+
+You can state an `if` with the `if` keyword, followed by a condition, and then a block of code to execute like this :
+
+``` 
+if *condition* {
+  *code*
+}
+```
+`*condition*` refers to a boolean condition and `*code*` refers to the Mona code you want to perform if the condition is true.
+
+e.g.:
+```
+let foo: int = 14;
+
+if foo == 5472 {
+  // code here ...
+}
+```
+#### Else if
+
+If the condition was `false` you can use `else if` after an `if` statement and if the `if` statement after the else was met then the block of code will be executed. 
+
+You can state an `else if` with the `else if` keyword, followed by a condition, and then a block of code to execute like this :
+
+```
+if *condition* {
+  *code*
+}else if *condition* {
+  *code*
+}
+```
+
+You can add as many as you want `else if` statement after an `if` :
+```
+if *condition* {
+  *code*
+}elif *condition* {
+  *code*
+}elif *condition* {
+  *code*
+}elif *condition* {
+  *code*
+}
+```
+
+#### Else
+
+If the condition wasn't met in an `if` or an `else if`, you can use `else`. You can state an `else` with the `else` keyword, followed by the block of code to execute
+
+You can state an `else` with the `else` keyword, followed by a condition, and then a block of code to execute like this :
+
+```
+if *condition* {
+  *code*
+}else {
+  *code*
+}
+```
+
+or after a `elif` :
+
+```
+if *condition* {
+  *code*
+}elif *condition* {
+
+} else {
+  *code*
+}
+```
+
 ## Functions
 
 ### Declaration
@@ -150,19 +286,19 @@ Examples :
 `a + b`, with priorities to the addition : `(a + b) * c`
 
 ### Addition
-You can perform addition with the plus character : `+`. ex: `a + b`
+You can perform addition with the plus character : `+`. e.g.: `a + b`
 
 ### Soustraction
-You can perform soustractions with the plus character : `-`.ex: `a - b`
+You can perform soustractions with the minus character : `-`.e.g.: `a - b`
 
 ### Multiplication
-You can perform multiplication with the plus character : `*`. ex: `a * b`
+You can perform multiplication with the times character : `*`. e.g.: `a * b`
 
 ### Division
-You can perform division with the plus character : `/`. ex: `a / b`
+You can perform division with the divide character : `/`. e.g.: `a / b`
 
 ### Modulo
-You can perform modulo with the plus character : `%`. ex: `a % b`
+You can perform modulo with the percent character : `%`. e.g.: `a % b`
 
 ### Power
-You can perform power with the circumflex character : `^`. ex: `a ^ b`
+You can perform power with the circumflex character : `^`. e.g.: `a ^ b`
