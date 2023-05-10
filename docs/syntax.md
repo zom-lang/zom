@@ -1,6 +1,6 @@
 # Syntax of Mona Programming Language
 
-In this file you will find the syntax / grammar of mona.
+In this file you will find the syntax / grammar of Mona.
 <Details>
 <summary>Summary</summary>
 
