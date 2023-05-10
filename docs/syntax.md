@@ -2,7 +2,7 @@
 
 In this file you will find the syntax / grammar of mona.
 <Details>
-<summary>Todo</summary>
+<summary>Summary</summary>
 
 - [ ] Variable
   - [ ] Declaration
@@ -24,7 +24,10 @@ In this file you will find the syntax / grammar of mona.
     - [ ] string
 - [ ] Control flow
   - [ ] Conditions operators
+  - [ ] Multiple conditions in one
   - [ ] If statement
+    - [ ] Else if
+    - [ ] Else
 - [ ] Function
   - [ ] Declaration
   - [ ] Use
@@ -247,6 +250,8 @@ if *condition* {
   *code*
 }
 ```
+
+
 
 ## Functions
 
