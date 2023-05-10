@@ -9,7 +9,6 @@ fn main() {
         print!("~> ");
         io::stdout().flush().unwrap();
 
-
         match io::stdin().read_line(&mut input_buf) {
             Ok(_len) => {}
             Err(err) => {
@@ -24,21 +23,14 @@ fn main() {
             break;
         }
 
-        let result = run(input_buf);
+        let result = run("<stdin>".to_string(), input_buf);
 
         match result {
             Ok(res) => {
                 println!("{:?}", res);
             }
             Err(err) => {
-                match err.source() {
-                    Some(source) => {
-                        eprintln!("ERR: {source}: {err}");
-                    }
-                    None => {
-                        eprintln!("ERR: {err}");
-                    }
-                }
+                eprintln!("{}", err);
             }
         }
 

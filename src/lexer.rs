@@ -2,7 +2,9 @@ use std::{iter::Enumerate};
 use std::str::Chars;
 use std::error::Error;
 
-use crate::{token::Token, IllegalCharError};
+use crate::Position;
+use crate::token::Token;
+use crate::error::IllegalCharError;
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
@@ -10,15 +12,21 @@ pub struct Lexer<'a> {
     pos: usize, // position in the text
     current_char: Option<char>,
     iter: Option<Enumerate<Chars<'a>>>,
+    line: u32,
+    filename: String,
+    filetext: String,
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(text: &String) -> Lexer {
+    pub fn new(text: &String, filename: String) -> Lexer {
         Lexer {
             text: text.to_string(),
             pos: 0,
             current_char: None,
             iter: None,
+            line: 1,
+            filename,
+            filetext: text.to_string(),
         }
     }
 
@@ -65,7 +73,15 @@ impl<'a> Lexer<'a> {
                 '(' => tokens.push(Token::LParen),
                 ')' => tokens.push(Token::RParen),
                 _ => {
-                    return Err(Box::new(IllegalCharError::new(format!("`{_ch}`"))));
+                    return Err(Box::new(IllegalCharError::new(
+                        format!("`{_ch}`"), 
+                        Position::new(
+                            _idx as u32, 
+                            self.line, 
+                            _idx as u32, 
+                            self.filename.clone(), 
+                            self.filetext.clone(),
+                    ))));
                 }
             }
         }
