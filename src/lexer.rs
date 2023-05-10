@@ -1,4 +1,4 @@
-use std::iter::Enumerate;
+use std::{iter::Enumerate};
 use std::str::Chars;
 use std::error::Error;
 
@@ -42,7 +42,14 @@ impl<'a> Lexer<'a> {
                 // TODO: include all other whitespaces
                 ' ' => {}
                 '0'..='9' | '.' => {
-                    let (tok, new_pos) = Self::make_number(&self.text, &self.pos);
+                    let num = Self::make_number(&self.text, &self.pos);
+
+                    if let Err(err) = num {
+                        return Err(err);
+                    }
+
+                    let (tok, new_pos) = num.unwrap();
+
                     for _ in 0..(new_pos.0 - 1) {
                         (_idx, _ch) = self
                             .iter
@@ -82,7 +89,7 @@ impl<'a> Lexer<'a> {
     /// Token::Int(x) with x as an i32 or
     /// Token::Float(x) with x as an f32
     /// and usize is the lenght of the number
-    pub fn make_number(text: &str, pos: &usize) -> (Token, (usize, char)) {
+    pub fn make_number(text: &str, pos: &usize) -> Result<(Token, (usize, char)), Box<dyn Error>> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut pos: usize = *pos;
@@ -105,15 +112,25 @@ impl<'a> Lexer<'a> {
         curr_char = Self::set_current_char(text, pos - 1);
 
         if dot_count == 0 {
-            (
-                Token::Int(num_str.parse().unwrap()),
-                (num_str.len(), curr_char.unwrap()),
-            )
+            match num_str.parse() {
+                Ok(val) => {
+                    Ok((
+                        Token::Int(val),
+                        (num_str.len(), curr_char.unwrap()),
+                    ))
+                }
+                Err(err) => Err(Box::new(err))
+            }
         } else {
-            (
-                Token::Float(num_str.parse().unwrap()),
-                (num_str.len(), curr_char.unwrap()),
-            )
+            match num_str.parse() {
+                Ok(val) => {
+                    Ok((
+                        Token::Float(val),
+                        (num_str.len(), curr_char.unwrap()),
+                    ))
+                }
+                Err(err) => Err(Box::new(err))
+            }
         }
     }
 }

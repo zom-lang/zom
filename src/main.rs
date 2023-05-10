@@ -2,12 +2,13 @@ use mona::run;
 use std::io::{self, Write};
 
 fn main() {
-    println!("Mona {}", env!("CARGO_PKG_VERSION"));
+    println!("Mona {}, to exit enter `exit`", env!("CARGO_PKG_VERSION"));
 
     let mut input_buf = String::new();
     loop {
         print!("~> ");
         io::stdout().flush().unwrap();
+
 
         match io::stdin().read_line(&mut input_buf) {
             Ok(_len) => {}
@@ -18,6 +19,7 @@ fn main() {
         }
         input_buf = String::from(input_buf.trim());
 
+        //TODO: Add the possibility to safely quit mona with Ctrl + C.
         if input_buf.starts_with("exit") {
             break;
         }
@@ -29,7 +31,14 @@ fn main() {
                 println!("{:?}", res);
             }
             Err(err) => {
-                eprintln!("ERR: {err}");
+                match err.source() {
+                    Some(source) => {
+                        eprintln!("ERR: {source}: {err}");
+                    }
+                    None => {
+                        eprintln!("ERR: {err}");
+                    }
+                }
             }
         }
 
