@@ -51,3 +51,26 @@ impl fmt::Display for IllegalCharError {
         write!(f, "{} ({:?}): {}", self.name, self.kind, self.details)
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct Position {
+    index: u32,
+    line: u32,
+    column: u32,
+}
+
+impl Position {
+    pub fn new(index: u32, line: u32, column: u32) -> Position {
+        Position { index, line, column }
+    }
+
+    pub fn advance(&mut self, current_char: char) {
+        self.index  += 1;
+        self.column += 1;
+
+        if current_char == '\n' {
+            self.line += 1;
+            self.column = 0;
+        }
+    }
+}

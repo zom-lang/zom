@@ -4,8 +4,6 @@ use std::error::Error;
 
 use crate::{token::Token, IllegalCharError};
 
-pub const DIGITS: &str = "0123456789";
-
 #[derive(Debug)]
 pub struct Lexer<'a> {
     text: String,
@@ -101,7 +99,7 @@ impl<'a> Lexer<'a> {
                 if dot_count > 1 {
                     break;
                 }
-            } else if !DIGITS.contains(ch) {
+            } else if !ch.is_numeric() { 
                 break;
             }
             num_str.push(ch);
