@@ -2,7 +2,7 @@ use mona::run;
 use std::io::{self, Write};
 
 fn main() {
-    println!("Mona {}, to exit enter `exit`", env!("CARGO_PKG_VERSION"));
+    println!("Mona {}, to exit enter `.quit`", env!("CARGO_PKG_VERSION"));
 
     let mut input_buf = String::new();
     loop {
@@ -19,7 +19,7 @@ fn main() {
         input_buf = String::from(input_buf.trim());
 
         //TODO: Add the possibility to safely quit mona with Ctrl + C.
-        if input_buf.starts_with("exit") {
+        if input_buf.as_str() == ".quit" {
             break;
         }
 
