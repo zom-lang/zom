@@ -7,6 +7,7 @@ Mona is an interpreted programming language written in Rust.
 - [ ] Interpreter
 - [ ] Optimization and cleaning
 - [ ] Implement the docs ;)
+- [ ] a JIT with llvm ?
 
 ## License
 
