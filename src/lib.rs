@@ -6,6 +6,7 @@ use token::Token;
 pub mod lexer;
 pub mod token;
 pub mod error;
+pub mod parser;
 
 pub fn run(filename: String, text: String) -> Result<Vec<Token>, Box<dyn Error>> {
     let mut lexer = Lexer::new(&text, filename);
