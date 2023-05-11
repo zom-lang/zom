@@ -79,8 +79,8 @@ impl<'a> Lexer<'a> {
                             _idx as u32, 
                             self.line, 
                             _idx as u32, 
-                            self.filename.clone(), 
-                            self.filetext.clone(),
+                            self.filename.clone(), //TODO: Try to remove .clone()
+                            self.filetext.clone(), 
                     ))));
                 }
             }

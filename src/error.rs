@@ -14,7 +14,7 @@ pub enum ErrorKind {
 #[derive(Debug)]
 pub struct IllegalCharError {
     name: String,
-    details: String,
+    _details: String,
     kind: ErrorKind,
     position: Position,
 }
@@ -23,7 +23,7 @@ impl IllegalCharError {
     pub fn new(details: String, position: Position) -> IllegalCharError {
         IllegalCharError {
             name: String::from("Illegal Character"),
-            details,
+            _details: details,
             kind: ErrorKind::Lexer,
             position,
         }
@@ -59,20 +59,25 @@ fn num_str_fix_len(num: u32, len: usize) -> String {
     num_str.push_str(&num.to_string()[..]);
     num_str.push_str(&spaces(len_diff / 2));
     
+    if num_str.len() != len {
+        num_str.push(' ');
+    }
+
     num_str
 }
 
 impl fmt::Display for IllegalCharError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        //TODO: Support error messages with line digits bigger than 5 characters.
         writeln!(f, "Err: {:?}, in file `{}` at line {} :", self.kind, self.position.filename, self.position.line).unwrap();
         writeln!(f, " ... |").unwrap();
         writeln!(
             f,
             "{}| {}", 
             num_str_fix_len(self.position.line, 5), 
-            //self.position.filetext.split('\n').nth((self.position.line - 1) as usize).unwrap()
-            self.position.filetext.split('\n').nth(0).unwrap()
+            self.position.filetext.split('\n').nth((self.position.line - 1) as usize).unwrap()
         ).unwrap();
-        writeln!(f, " ... | {}^", spaces(self.position.column as usize))
+        writeln!(f, " ... | {}^", spaces(self.position.column as usize)).unwrap();
+        write!(f, "       {}{}", spaces(self.position.column as usize), self.name)
     }
 }

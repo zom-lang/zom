@@ -8,9 +8,6 @@ pub mod token;
 pub mod error;
 
 pub fn run(filename: String, text: String) -> Result<Vec<Token>, Box<dyn Error>> {
-    if !text.is_ascii() {
-        return Err("mona does not support non-ascii characters.".to_owned())?;
-    }
     let mut lexer = Lexer::new(&text, filename);
 
     lexer.make_tokens()

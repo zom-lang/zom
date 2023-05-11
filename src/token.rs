@@ -2,14 +2,16 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum Token {
-    Int(i32),
-    Float(f32),
     Plus,
     Minus,
     Mul,
     Div,
     LParen,
     RParen,
+
+    // Literals
+    Int(i32),
+    Float(f32),
 }
 
 impl fmt::Display for Token {
