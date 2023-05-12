@@ -16,28 +16,28 @@ fn main() {
             .short('v')
             .long("verbose")
             .action(ArgAction::SetTrue)
-            .help(r"Not quiet implement"),
+            .help("Not quiet implement"),
     )
     .arg(
         Arg::new("lexer")
             .short('l')
             .long("lexer")
             .action(ArgAction::SetTrue)
-            .help(r"Show result of the lexer"),
+            .help("Show result of the lexer"),
     )
     .arg(
         Arg::new("parser")
             .short('p')
             .long("parser")
             .action(ArgAction::SetTrue)
-            .help(r"Show the result of the parser"),
+            .help("Show the result of the parser"),
     )
     .arg(
         Arg::new("interpreter")
             .short('i')
             .long("interpreter")
             .action(ArgAction::SetTrue)
-            .help(r"Show the result of the interpreter")
+            .help("Show the result of the interpreter. By default, set to true.")
     )
     .get_matches();
 
