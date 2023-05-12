@@ -58,7 +58,7 @@ fn num_str_fix_len(num: u32, len: usize) -> String {
     num_str.push_str(&spaces(len_diff / 2));
     num_str.push_str(&num.to_string()[..]);
     num_str.push_str(&spaces(len_diff / 2));
-    
+
     if num_str.len() != len {
         num_str.push(' ');
     }
@@ -69,15 +69,30 @@ fn num_str_fix_len(num: u32, len: usize) -> String {
 impl fmt::Display for IllegalCharError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         //TODO: Support error messages with line digits bigger than 5 characters.
-        writeln!(f, "Err: {:?}, in file `{}` at line {} :", self.kind, self.position.filename, self.position.line).unwrap();
+        writeln!(
+            f,
+            "Err: {:?}, in file `{}` at line {} :",
+            self.kind, self.position.filename, self.position.line
+        )
+        .unwrap();
         writeln!(f, " ... |").unwrap();
         writeln!(
             f,
-            "{}| {}", 
-            num_str_fix_len(self.position.line, 5), 
-            self.position.filetext.split('\n').nth((self.position.line - 1) as usize).unwrap()
-        ).unwrap();
+            "{}| {}",
+            num_str_fix_len(self.position.line, 5),
+            self.position
+                .filetext
+                .split('\n')
+                .nth((self.position.line - 1) as usize)
+                .unwrap()
+        )
+        .unwrap();
         writeln!(f, " ... | {}^", spaces(self.position.column as usize)).unwrap();
-        write!(f, "       {}{}", spaces(self.position.column as usize), self.name)
+        write!(
+            f,
+            "       {}{}",
+            spaces(self.position.column as usize),
+            self.name
+        )
     }
 }

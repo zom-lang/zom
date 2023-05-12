@@ -1,10 +1,10 @@
-use std::{iter::Enumerate};
-use std::str::Chars;
 use std::error::Error;
+use std::iter::Enumerate;
+use std::str::Chars;
 
-use crate::Position;
-use crate::token::Token;
 use crate::error::IllegalCharError;
+use crate::token::Token;
+use crate::Position;
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
@@ -74,14 +74,15 @@ impl<'a> Lexer<'a> {
                 ')' => tokens.push(Token::RParen),
                 _ => {
                     return Err(Box::new(IllegalCharError::new(
-                        format!("`{_ch}`"), 
+                        format!("`{_ch}`"),
                         Position::new(
-                            _idx as u32, 
-                            self.line, 
-                            _idx as u32, 
+                            _idx as u32,
+                            self.line,
+                            _idx as u32,
                             self.filename.clone(), //TODO: Try to remove .clone()
-                            self.filetext.clone(), 
-                    ))));
+                            self.filetext.clone(),
+                        ),
+                    )));
                 }
             }
         }
@@ -115,7 +116,7 @@ impl<'a> Lexer<'a> {
                 if dot_count > 1 {
                     break;
                 }
-            } else if !ch.is_numeric() { 
+            } else if !ch.is_numeric() {
                 break;
             }
             num_str.push(ch);
@@ -127,23 +128,13 @@ impl<'a> Lexer<'a> {
 
         if dot_count == 0 {
             match num_str.parse() {
-                Ok(val) => {
-                    Ok((
-                        Token::Int(val),
-                        (num_str.len(), curr_char.unwrap()),
-                    ))
-                }
-                Err(err) => Err(Box::new(err))
+                Ok(val) => Ok((Token::Int(val), (num_str.len(), curr_char.unwrap()))),
+                Err(err) => Err(Box::new(err)),
             }
         } else {
             match num_str.parse() {
-                Ok(val) => {
-                    Ok((
-                        Token::Float(val),
-                        (num_str.len(), curr_char.unwrap()),
-                    ))
-                }
-                Err(err) => Err(Box::new(err))
+                Ok(val) => Ok((Token::Float(val), (num_str.len(), curr_char.unwrap()))),
+                Err(err) => Err(Box::new(err)),
             }
         }
     }

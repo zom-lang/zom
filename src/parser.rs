@@ -1,9 +1,7 @@
 use crate::Token;
 use std::fmt;
 
-pub trait Node: fmt::Display {
-    
-}
+pub trait Node: fmt::Display {}
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct NumberNode {
@@ -33,13 +31,21 @@ impl Node for BinOpNode {}
 
 impl BinOpNode {
     pub fn new(left_node: NumberNode, op_token: Token, right_node: NumberNode) -> BinOpNode {
-        BinOpNode { op_token, left_node, right_node }
+        BinOpNode {
+            op_token,
+            left_node,
+            right_node,
+        }
     }
 }
 
 impl fmt::Display for BinOpNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({}, {}, {})", self.right_node, self.op_token, self.left_node)
+        write!(
+            f,
+            "({}, {}, {})",
+            self.right_node, self.op_token, self.left_node
+        )
     }
 }
 
@@ -51,7 +57,11 @@ pub struct Parser {
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Parser {
-        let mut parser = Parser { tokens, tok_index: 0, current_tok: None };
+        let mut parser = Parser {
+            tokens,
+            tok_index: 0,
+            current_tok: None,
+        };
         parser.advance();
         parser
     }
@@ -73,20 +83,16 @@ impl Parser {
 
         if let Token::Int(_) = token {
             self.advance();
-            return Some(
-                NumberNode::new(token)
-            );
+            return Some(NumberNode::new(token));
         }
         if let Token::Float(_) = token {
             self.advance();
-            return Some(
-                NumberNode::new(token)
-            );
+            return Some(NumberNode::new(token));
         }
         return None;
     }
 
-    pub fn term(&mut self) -> Option<BinOpNode>{
+    pub fn term(&mut self) -> Option<BinOpNode> {
         let left = self.factor().unwrap();
         let mut bin_op = None;
 
