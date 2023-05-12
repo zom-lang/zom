@@ -1,11 +1,13 @@
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Token {
+    // Operators
     Plus,
     Minus,
     Mul,
     Div,
+
     LParen,
     RParen,
 
