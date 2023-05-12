@@ -76,7 +76,7 @@ impl Parser {
     }
 
     pub fn factor(&mut self) -> Option<NumberNode> {
-        if let None = self.current_tok {
+        if self.current_tok.is_none() {
             return None;
         }
         let token = self.current_tok.unwrap();
@@ -89,14 +89,14 @@ impl Parser {
             self.advance();
             return Some(NumberNode::new(token));
         }
-        return None;
+        None
     }
 
     pub fn term(&mut self) -> Option<BinOpNode> {
         let left = self.factor().unwrap();
         let mut bin_op = None;
 
-        if let None = self.current_tok {
+        if self.current_tok.is_none() {
             // return None;
         }
         let token = self.current_tok.unwrap();
@@ -108,7 +108,7 @@ impl Parser {
             bin_op = Some(BinOpNode::new(left, op_tok, right));
         }
 
-        return bin_op;
+        bin_op
     }
 
     pub fn expr(&self) {
