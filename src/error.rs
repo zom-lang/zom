@@ -3,7 +3,7 @@ use std::fmt;
 
 use crate::Position;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ErrorKind {
     Lexer,
     Parser,
@@ -11,7 +11,7 @@ pub enum ErrorKind {
     General,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct IllegalCharError {
     name: String,
     _details: String,
@@ -93,6 +93,71 @@ impl fmt::Display for IllegalCharError {
             "       {}{}",
             spaces(self.position.column as usize),
             self.name
+        )
+    }
+}
+
+// General Lexer Error
+
+#[derive(Debug, PartialEq)]
+pub struct GeneralError {
+    name: String,
+    details: String,
+    kind: ErrorKind,
+    position: Position,
+}
+
+impl GeneralError {
+    pub fn new(name: String, kind: ErrorKind, details: String, position: Position) -> GeneralError {
+        GeneralError {
+            name, // String::from("Parse Litteral Error")
+            details,
+            kind,
+            position,
+        }
+    }
+}
+
+impl Error for GeneralError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+}
+
+impl fmt::Display for GeneralError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        //TODO: Support error messages with line digits bigger than 5 characters.
+        writeln!(
+            f,
+            "Err: {:?}, in file `{}` at line {} :",
+            self.kind, self.position.filename, self.position.line
+        )
+        .unwrap();
+        writeln!(f, " ... |").unwrap();
+        writeln!(
+            f,
+            "{}| {}",
+            num_str_fix_len(self.position.line, 5),
+            self.position
+                .filetext
+                .split('\n')
+                .nth((self.position.line - 1) as usize)
+                .unwrap()
+        )
+        .unwrap();
+        writeln!(f, " ... | {}^", spaces(self.position.column as usize)).unwrap();
+        write!(
+            f,
+            "       {}{} :",
+            spaces(self.position.column as usize),
+            self.name
+        ).unwrap();
+        println!();
+        write!(
+            f,
+            "        {}{}",
+            spaces(self.position.column as usize),
+            self.details
         )
     }
 }

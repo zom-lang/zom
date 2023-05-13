@@ -2,7 +2,7 @@ use std::error::Error;
 use std::iter::Enumerate;
 use std::str::Chars;
 
-use crate::error::IllegalCharError;
+use crate::error::*;
 use crate::token::Token;
 use crate::Position;
 
@@ -48,7 +48,13 @@ impl<'a> Lexer<'a> {
                 // TODO: include all other whitespaces
                 ' ' => {}
                 '0'..='9' | '.' => {
-                    let num = Self::make_number(&self.text, self.pos);
+                    let num = Self::make_number(&self.text, self.pos, Position { 
+                        index: self.pos as u32, 
+                        line: self.line, 
+                        column: self.pos as u32, 
+                        filename: self.filename.clone(), 
+                        filetext: self.filetext.clone() 
+                    });
 
                     if let Err(err) = num {
                         return Err(err);
@@ -104,7 +110,7 @@ impl<'a> Lexer<'a> {
     /// Token::Int(x) with x as an i32 or
     /// Token::Float(x) with x as an f32
     /// and usize is the lenght of the number
-    pub fn make_number(text: &str, pos: usize) -> Result<(Token, (usize, char)), Box<dyn Error>> {
+    pub fn make_number(text: &str, pos: usize, position: Position) -> Result<(Token, (usize, char)), Box<dyn Error>> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut pos: usize = pos;
@@ -129,12 +135,20 @@ impl<'a> Lexer<'a> {
         if dot_count == 0 {
             match num_str.parse() {
                 Ok(val) => Ok((Token::Int(val), (num_str.len(), curr_char.unwrap()))),
-                Err(err) => Err(Box::new(err)),
+                Err(err) => Err(
+                    Box::new(
+                        GeneralError::new("Parse Int Error".to_string(), ErrorKind::Lexer, err.to_string() , position)
+                    )
+                ),
             }
         } else {
             match num_str.parse() {
                 Ok(val) => Ok((Token::Float(val), (num_str.len(), curr_char.unwrap()))),
-                Err(err) => Err(Box::new(err)),
+                Err(err) => Err(
+                    Box::new(
+                        GeneralError::new("Parse Float Error".to_string(), ErrorKind::Lexer, err.to_string() , position)
+                    )
+                ),
             }
         }
     }

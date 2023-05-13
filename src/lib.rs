@@ -55,7 +55,7 @@ pub fn run(filename: String, text: String) -> Result<RunnerResult, Box<dyn Error
     Ok(res)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Position {
     index: u32,
     line: u32,
