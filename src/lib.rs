@@ -18,7 +18,12 @@ pub struct Flags {
 
 impl Flags {
     pub fn new(lexer: bool, parser: bool, interpreter: bool, verbose: bool) -> Flags {
-        Flags { lexer, parser, interpreter, verbose }
+        Flags {
+            lexer,
+            parser,
+            interpreter,
+            verbose,
+        }
     }
 }
 
