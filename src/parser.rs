@@ -76,9 +76,7 @@ impl Parser {
     }
 
     pub fn factor(&mut self) -> Option<NumberNode> {
-        if self.current_tok.is_none() {
-            return None;
-        }
+        self.current_tok?;
         let token = self.current_tok.unwrap();
 
         if let Token::Int(_) = token {

@@ -29,7 +29,7 @@ pub struct RunnerResult {
 
 impl RunnerResult {
     pub fn new(lex_res: Option<Vec<Token>>) -> RunnerResult {
-        RunnerResult { lex_res: lex_res }
+        RunnerResult { lex_res }
     }
 
     pub fn print_res(&self, flags: Flags) {

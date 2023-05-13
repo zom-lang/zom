@@ -4,8 +4,6 @@ use std::io::{self, Write};
 use clap::{command, Arg, ArgAction};
 
 fn main() {
-    println!("Mona {}, to exit enter `.quit`", env!("CARGO_PKG_VERSION"));
-
     let matches = command!() // requires `cargo` feature
     .arg(
         Arg::new("file")
@@ -49,6 +47,7 @@ fn main() {
         !matches.get_flag("interpreter"), 
         matches.get_flag("verbose")
     );
+    println!("Mona {}, to exit enter `.quit`", env!("CARGO_PKG_VERSION"));
 
     if flags.verbose {
         print!(" Flags: ");
