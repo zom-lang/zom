@@ -24,7 +24,7 @@ In this file you will find the syntax / grammar of Mona.
     - [ ] string
 - [ ] Control flow
   - [ ] Conditions operators
-  - [ ] Multiple conditions in one
+  - [ ] Boolean Operations
   - [ ] If statement
     - [ ] Else if
     - [ ] Else
@@ -159,7 +159,7 @@ The `less than or equal to` operator, of sign `=<` is used when you want to chec
 The `more than or equal to` operator, of sign `=>` is used when you want to check if the first object is more than or equal to the second object, and if the first object is less than or equal to the second object, the operator return true. e.g.: `a => b`.
 
 
-### Multiple conditions
+### Boolean Operations
 
 If you want to perform multiple conditions in one condition, you can use the following operators to do it, instead of nesting conditions.
 
