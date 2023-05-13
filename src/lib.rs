@@ -8,10 +8,51 @@ pub mod lexer;
 pub mod parser;
 pub mod token;
 
-pub fn run(filename: String, text: String) -> Result<Vec<Token>, Box<dyn Error>> {
-    let mut lexer = Lexer::new(&text, filename);
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Flags {
+    pub lexer: bool,
+    pub parser: bool,
+    pub interpreter: bool,
+    pub verbose: bool,
+}
 
-    lexer.make_tokens()
+impl Flags {
+    pub fn new(lexer: bool, parser: bool, interpreter: bool, verbose: bool) -> Flags {
+        Flags {
+            lexer,
+            parser,
+            interpreter,
+            verbose,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct RunnerResult {
+    lex_res: Option<Vec<Token>>,
+}
+
+impl RunnerResult {
+    pub fn new(lex_res: Option<Vec<Token>>) -> RunnerResult {
+        RunnerResult { lex_res }
+    }
+
+    pub fn print_res(&self, flags: Flags) {
+        if flags.lexer {
+            if let Some(toks) = &self.lex_res {
+                println!("{:?}", toks);
+            }
+        }
+    }
+}
+
+pub fn run(filename: String, text: String) -> Result<RunnerResult, Box<dyn Error>> {
+    let mut lexer = Lexer::new(&text, filename);
+    let mut res = RunnerResult::new(None);
+
+    res.lex_res = Some(lexer.make_tokens()?);
+
+    Ok(res)
 }
 
 #[derive(Debug, Clone)]
