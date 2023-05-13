@@ -1,4 +1,4 @@
-use mona::run;
+use mona::{run, Flags};
 use std::io::{self, Write};
 
 use clap::{command, Arg, ArgAction};
@@ -41,21 +41,24 @@ fn main() {
     )
     .get_matches();
 
-    let lexer_flag = matches.get_flag("lexer");
-    let parser_flag = matches.get_flag("parser");
-    let verbose_flag = matches.get_flag("verbose");
-    let interpreter_flag = !matches.get_flag("interpreter");
     let file = matches.get_one::<String>("file");
 
-    if verbose_flag {
+    let flags = Flags::new(
+        matches.get_flag("lexer"), 
+        matches.get_flag("parser"), 
+        !matches.get_flag("interpreter"), 
+        matches.get_flag("verbose")
+    );
+
+    if flags.verbose {
         print!(" Flags: ");
-        if lexer_flag {
+        if flags.lexer {
             print!("Lexer,");
         }
-        if parser_flag {
+        if flags.parser {
             print!("Parser,");
         }
-        if interpreter_flag {
+        if flags.interpreter {
             print!("Interpreter,");
         }
         if file.is_some() {
@@ -87,7 +90,7 @@ fn main() {
 
         match result {
             Ok(res) => {
-                println!("{:?}", res);
+                res.print_res(flags);
             }
             Err(err) => {
                 eprintln!("{}", err);
