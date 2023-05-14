@@ -47,7 +47,7 @@ fn spaces(len: usize) -> String {
 }
 
 fn num_str_fix_len(num: u32, len: usize) -> String {
-    let mut num_str = String::with_capacity(num as usize);
+    let mut num_str = String::with_capacity(len as usize);
     let num_len = num.to_string().len();
 
     if num_len == len {
