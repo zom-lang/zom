@@ -50,7 +50,7 @@ pub fn run(filename: String, text: String) -> Result<RunnerResult, Box<dyn Error
 
     let tokens = lexer.make_tokens()?;
 
-    let mut parser = Parser::new(tokens.clone()); // TODO: Try removing this .clone()
+    let parser = Parser::new(tokens.clone()); // TODO: Try removing this .clone()
     println!("{:?}", parser);
 
     Ok(RunnerResult::new(tokens))
