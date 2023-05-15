@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use lexer::Lexer;
-use parser::Parser;
+use parser::{Parser, ParseNode};
 use token::Token;
 
 pub mod error;
@@ -30,18 +30,18 @@ impl Flags {
 
 #[derive(Debug, Clone)]
 pub struct RunnerResult {
-    lex_res: Vec<Token>,
+    lexed: Vec<Token>,
+    parsed: ParseNode,
 }
 
 impl RunnerResult {
-    pub fn new(lex_res: Vec<Token>) -> RunnerResult {
-        RunnerResult { lex_res }
+    pub fn new(lexed: Vec<Token>, parsed: ParseNode) -> RunnerResult {
+        RunnerResult { lexed, parsed }
     }
 
     pub fn print_res(&self, flags: Flags) {
-        if flags.lexer {
-            println!("{:?}", self.lex_res);
-        }
+        flags.lexer.then(|| println!("{:?}\n", self.lexed));
+        flags.parser.then(|| println!("{:#?}\n", self.parsed));
     }
 }
 
@@ -51,9 +51,9 @@ pub fn run(filename: String, text: String) -> Result<RunnerResult, Box<dyn Error
     let tokens = lexer.make_tokens()?;
 
     let parser = Parser::new(tokens.clone()); // TODO: Try removing this .clone()
-    println!("{:?}", parser);
+    let node_tree = parser.parse()?;
 
-    Ok(RunnerResult::new(tokens))
+    Ok(RunnerResult::new(tokens, node_tree))
 }
 
 #[derive(Debug, Clone, PartialEq)]
