@@ -4,6 +4,7 @@ use std::io::{self, Write};
 use clap::{command, Arg, ArgAction};
 
 fn main() {
+    
     let matches = command!() // requires `cargo` feature
         .arg(Arg::new("file").help("source file to be executed"))
         .arg(
@@ -38,13 +39,21 @@ fn main() {
 
     let file = matches.get_one::<String>("file");
 
-    let flags = Flags::new(
+    let mut flags = Flags::new(
         matches.get_flag("lexer"),
         matches.get_flag("parser"),
         !matches.get_flag("interpreter"),
         matches.get_flag("verbose"),
     );
     println!("Mona {}, to exit enter `.quit`", env!("CARGO_PKG_VERSION"));
+
+    cfg!(debug_assertions).then(|| {
+        println!("  You're in a debug binary, if it's not intentional, you should change.");
+        flags.lexer = true;
+        flags.parser = true;
+        flags.interpreter = true;
+        flags.verbose = true;
+    });
 
     if flags.verbose {
         print!(" Flags: ");
