@@ -79,8 +79,7 @@ impl Parser {
             .ok_or(String::from("Unexpected end of input, expected paren or number"))?;
         match c {
             &Token::Int(n) => {
-                let node = ParseNode::new(Token::Int(n));
-                Ok((node, pos + 1))
+                Ok((ParseNode::new(Token::Int(n)), pos + 1))
             }
             &Token::LParen => {
                 Self::parse_expr(tokens, pos + 1).and_then(|(node, next_pos)| {
