@@ -85,9 +85,7 @@ impl Parser {
                 Self::parse_expr(tokens, pos + 1).and_then(|(node, next_pos)| {
                     if let Some(&Token::RParen) = tokens.get(next_pos) {
                         // okay!
-                        let mut paren = ParseNode::new(Token::RParen);
-                        paren.children.push(node);
-                        Ok((paren, next_pos + 1))
+                        Ok((node, next_pos + 1))
                     } else {
                         Err(format!("Expected closing paren at {} but found {:?}",
                                     next_pos,
