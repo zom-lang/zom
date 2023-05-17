@@ -80,8 +80,6 @@ fn print_error(
         margin += (num_str_len - margin) + 2
     }
 
-    drop(num_str_len);
-
     writeln!(
         f,
         "Err: {:?}, in file `{}` at line {} :",
