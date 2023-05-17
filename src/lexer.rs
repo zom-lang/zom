@@ -46,8 +46,6 @@ impl<'a> Lexer<'a> {
         while let Some((mut _idx, mut _ch)) = self.iter.as_mut().unwrap().next() {
             self.pos = _idx;
             match _ch {
-                // TODO: include all other whitespaces
-                ' ' => {}
                 '0'..='9' | '.' => {
                     let num = Self::make_number(
                         &self.text,
@@ -84,6 +82,9 @@ impl<'a> Lexer<'a> {
                 '(' => tokens.push(Token::LParen),
                 ')' => tokens.push(Token::RParen),
                 _ => {
+                    if _ch.is_whitespace() {
+                        continue;
+                    }
                     return Err(Box::new(IllegalCharError::new(
                         Position::new(
                             _idx as u32,
