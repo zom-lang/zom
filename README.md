@@ -1,9 +1,9 @@
 # Mona
-Mona is an interpreted programming language written in Rust.
+Mona is an interpreted programming language written in Rust. Run Mona code with the REPL or passing a source file.
 
 ## Work to be done :
 - [x] Lexer
-- [ ] Parser
+- [x] Parser
 - [ ] Interpreter
 - [x] Make a good [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)
 - [ ] Optimization and cleaning
