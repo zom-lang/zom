@@ -4,6 +4,7 @@ version = "0.0.0-dev"
 edition = "2021"
 authors = ["Larsouille25"]
 description = "Mona is an interpreted programming language written in Rust. Run Mona code with the REPL or passing a source file."
+license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
