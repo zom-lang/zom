@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt;
 
-use crate::Position;
+pub mod lexer;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ErrorKind {
@@ -9,31 +9,6 @@ pub enum ErrorKind {
     Parser,
     Interpreter,
     General,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct IllegalCharError {
-    name: String,
-    _details: String,
-    kind: ErrorKind,
-    position: Position,
-}
-
-impl IllegalCharError {
-    pub fn new(details: String, position: Position) -> IllegalCharError {
-        IllegalCharError {
-            name: String::from("Illegal Character"),
-            _details: details,
-            kind: ErrorKind::Lexer,
-            position,
-        }
-    }
-}
-
-impl Error for IllegalCharError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        None
-    }
 }
 
 /// This function return spaces * len
@@ -113,15 +88,35 @@ fn print_error(
     write!(f, "")
 }
 
-impl fmt::Display for IllegalCharError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        print_error(
-            f,
-            &self.position,
-            &self.kind,
-            self.name.to_owned(),
-            String::new(),
-        )
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Position {
+    index: u32,
+    line: u32,
+    column: u32,
+    filename: String,
+    filetext: String,
+}
+
+impl Position {
+    pub fn new(index: u32, line: u32, column: u32, filename: String, filetext: String) -> Position {
+        Position {
+            index,
+            line,
+            column,
+            filename,
+            filetext,
+        }
+    }
+
+    pub fn advance(&mut self, current_char: char) {
+        self.index += 1;
+        self.column += 1;
+
+        if current_char == '\n' {
+            self.line += 1;
+            self.column = 0;
+        }
     }
 }
 

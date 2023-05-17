@@ -4,7 +4,8 @@ use std::str::Chars;
 
 use crate::error::*;
 use crate::token::Token;
-use crate::Position;
+use crate::error::Position;
+use crate::error::lexer::IllegalCharError;
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
@@ -51,13 +52,13 @@ impl<'a> Lexer<'a> {
                     let num = Self::make_number(
                         &self.text,
                         self.pos,
-                        Position {
-                            index: self.pos as u32,
-                            line: self.line,
-                            column: self.pos as u32,
-                            filename: self.filename.clone(),
-                            filetext: self.filetext.clone(),
-                        },
+                        Position::new(
+                            self.pos as u32, 
+                            self.line, 
+                            self.pos as u32, 
+                            self.filename.clone(), 
+                            self.filetext.clone()
+                        )
                     );
 
                     if let Err(err) = num {
@@ -84,7 +85,6 @@ impl<'a> Lexer<'a> {
                 ')' => tokens.push(Token::RParen),
                 _ => {
                     return Err(Box::new(IllegalCharError::new(
-                        format!("`{_ch}`"),
                         Position::new(
                             _idx as u32,
                             self.line,

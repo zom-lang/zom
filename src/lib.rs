@@ -55,34 +55,3 @@ pub fn run(filename: String, text: String) -> Result<RunnerResult, Box<dyn Error
 
     Ok(RunnerResult::new(tokens, node_tree))
 }
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Position {
-    index: u32,
-    line: u32,
-    column: u32,
-    filename: String,
-    filetext: String,
-}
-
-impl Position {
-    pub fn new(index: u32, line: u32, column: u32, filename: String, filetext: String) -> Position {
-        Position {
-            index,
-            line,
-            column,
-            filename,
-            filetext,
-        }
-    }
-
-    pub fn advance(&mut self, current_char: char) {
-        self.index += 1;
-        self.column += 1;
-
-        if current_char == '\n' {
-            self.line += 1;
-            self.column = 0;
-        }
-    }
-}
