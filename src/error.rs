@@ -46,17 +46,17 @@ fn spaces(len: usize) -> String {
     spaces_str
 }
 
-fn num_str_fix_len(num: u32, len: usize) -> String {
+fn str_fix_len(string: String, len: usize) -> String {
     let mut num_str = String::with_capacity(len);
-    let num_len = num.to_string().len();
+    let num_len = string.len();
 
     if num_len == len {
-        return num.to_string();
+        return string.to_string();
     }
 
     let len_diff = len - num_len;
     num_str.push_str(&spaces(len_diff / 2));
-    num_str.push_str(&num.to_string()[..]);
+    num_str.push_str(&string[..]);
     num_str.push_str(&spaces(len_diff / 2));
 
     if num_str.len() != len {
@@ -66,14 +66,21 @@ fn num_str_fix_len(num: u32, len: usize) -> String {
     num_str
 }
 
-pub fn print_error(
+fn print_error(
     f: &mut fmt::Formatter<'_>,
     position: &Position,
     kind: &ErrorKind,
     name: String,
     details: String,
 ) -> fmt::Result {
-    //TODO: Support error messages with line digits bigger than 5 characters.
+    let mut margin: usize = 5;
+    let num_str_len = position.line.to_string().len();
+    if num_str_len < margin {
+        margin += (margin - num_str_len) + 2
+    }
+
+    drop(num_str_len);
+
     writeln!(
         f,
         "Err: {:?}, in file `{}` at line {} :",
@@ -84,7 +91,7 @@ pub fn print_error(
     writeln!(
         f,
         "{}| {}",
-        num_str_fix_len(position.line, 5),
+        str_fix_len((position.line + 100_000_000 - 1).to_string(), margin), //remove `+ 100_000` after dev
         position
             .filetext
             .split('\n')
