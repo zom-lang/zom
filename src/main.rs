@@ -4,7 +4,6 @@ use std::io::{self, Write};
 use clap::{command, Arg, ArgAction};
 
 fn main() {
-    
     let matches = command!() // requires `cargo` feature
         .arg(Arg::new("file").help("source file to be executed"))
         .arg(

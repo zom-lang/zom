@@ -46,17 +46,17 @@ fn spaces(len: usize) -> String {
     spaces_str
 }
 
-fn num_str_fix_len(num: u32, len: usize) -> String {
-    let mut num_str = String::with_capacity(len as usize);
-    let num_len = num.to_string().len();
+fn str_fix_len(string: String, len: usize) -> String {
+    let mut num_str = String::with_capacity(len);
+    let num_len = string.len();
 
     if num_len == len {
-        return num.to_string();
+        return string.to_string();
     }
 
     let len_diff = len - num_len;
     num_str.push_str(&spaces(len_diff / 2));
-    num_str.push_str(&num.to_string()[..]);
+    num_str.push_str(&string[..]);
     num_str.push_str(&spaces(len_diff / 2));
 
     if num_str.len() != len {
@@ -66,33 +66,61 @@ fn num_str_fix_len(num: u32, len: usize) -> String {
     num_str
 }
 
+fn print_error(
+    f: &mut fmt::Formatter<'_>,
+    position: &Position,
+    kind: &ErrorKind,
+    name: String,
+    details: String,
+) -> fmt::Result {
+    let mut margin: usize = 5;
+    let num_str_len = position.line.to_string().len();
+    if num_str_len > margin {
+        println!("margin = {margin}");
+        margin += (num_str_len - margin) + 2
+    }
+
+    writeln!(
+        f,
+        "Err: {:?}, in file `{}` at line {} :",
+        kind, position.filename, position.line
+    )
+    .unwrap();
+    writeln!(f, "{}|", str_fix_len("...".to_string(), margin)).unwrap();
+    writeln!(
+        f,
+        "{}| {}",
+        str_fix_len(position.line.to_string(), margin),
+        position
+            .filetext
+            .split('\n')
+            .nth((position.line - 1) as usize)
+            .unwrap()
+    )
+    .unwrap();
+    writeln!(
+        f,
+        "{}| {}^",
+        str_fix_len("...".to_string(), margin),
+        spaces(position.column as usize)
+    )
+    .unwrap();
+    write!(f, "  {}{}", spaces(position.column as usize + margin), name).unwrap();
+    if !details.is_empty() {
+        println!();
+        return write!(f, "        {}{}", spaces(position.column as usize), details);
+    }
+    write!(f, "")
+}
+
 impl fmt::Display for IllegalCharError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        //TODO: Support error messages with line digits bigger than 5 characters.
-        writeln!(
+        print_error(
             f,
-            "Err: {:?}, in file `{}` at line {} :",
-            self.kind, self.position.filename, self.position.line
-        )
-        .unwrap();
-        writeln!(f, " ... |").unwrap();
-        writeln!(
-            f,
-            "{}| {}",
-            num_str_fix_len(self.position.line, 5),
-            self.position
-                .filetext
-                .split('\n')
-                .nth((self.position.line - 1) as usize)
-                .unwrap()
-        )
-        .unwrap();
-        writeln!(f, " ... | {}^", spaces(self.position.column as usize)).unwrap();
-        write!(
-            f,
-            "       {}{}",
-            spaces(self.position.column as usize),
-            self.name
+            &self.position,
+            &self.kind,
+            self.name.to_owned(),
+            String::new(),
         )
     }
 }
@@ -126,38 +154,12 @@ impl Error for GeneralError {
 
 impl fmt::Display for GeneralError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        //TODO: Support error messages with line digits bigger than 5 characters.
-        writeln!(
+        print_error(
             f,
-            "Err: {:?}, in file `{}` at line {} :",
-            self.kind, self.position.filename, self.position.line
-        )
-        .unwrap();
-        writeln!(f, " ... |").unwrap();
-        writeln!(
-            f,
-            "{}| {}",
-            num_str_fix_len(self.position.line, 5),
-            self.position
-                .filetext
-                .split('\n')
-                .nth((self.position.line - 1) as usize)
-                .unwrap()
-        )
-        .unwrap();
-        writeln!(f, " ... | {}^", spaces(self.position.column as usize)).unwrap();
-        write!(
-            f,
-            "       {}{} :",
-            spaces(self.position.column as usize),
-            self.name
-        ).unwrap();
-        println!();
-        write!(
-            f,
-            "        {}{}",
-            spaces(self.position.column as usize),
-            self.details
+            &self.position,
+            &self.kind,
+            self.name.to_string(),
+            self.details.to_string(),
         )
     }
 }
