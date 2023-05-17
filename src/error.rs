@@ -75,9 +75,12 @@ fn print_error(
 ) -> fmt::Result {
     let mut margin: usize = 5;
     let num_str_len = position.line.to_string().len();
-    if num_str_len < margin {
-        margin += (margin - num_str_len) + 2
+    println!("the num str : `{}` with len of {}", position.line.to_string(), num_str_len);
+    if num_str_len > margin {
+        println!("margin = {margin}");
+        margin += (num_str_len - margin) + 2
     }
+    println!("margin after = {margin}");
 
     drop(num_str_len);
 
@@ -87,11 +90,11 @@ fn print_error(
         kind, position.filename, position.line
     )
     .unwrap();
-    writeln!(f, " ... |").unwrap();
+    writeln!(f, "{}|", str_fix_len("...".to_string(), margin)).unwrap();
     writeln!(
         f,
         "{}| {}",
-        str_fix_len((position.line + 100_000_000 - 1).to_string(), margin), //remove `+ 100_000` after dev
+        str_fix_len(position.line.to_string(), margin),
         position
             .filetext
             .split('\n')
@@ -99,8 +102,8 @@ fn print_error(
             .unwrap()
     )
     .unwrap();
-    writeln!(f, " ... | {}^", spaces(position.column as usize)).unwrap();
-    write!(f, "       {}{}", spaces(position.column as usize), name).unwrap();
+    writeln!(f, "{}| {}^", str_fix_len("...".to_string(), margin) ,spaces(position.column as usize)).unwrap();
+    write!(f, "  {}{}", spaces(position.column as usize + margin), name).unwrap();
     if !details.is_empty() {
         println!();
         return write!(f, "        {}{}", spaces(position.column as usize), details);
