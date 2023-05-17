@@ -21,18 +21,21 @@ pub struct Parser {
 }
 
 impl Parser {
-    
     pub fn new(tokens: Vec<Token>) -> Parser {
-        Parser {
-            tokens,
-        }
+        Parser { tokens }
     }
 
-    pub fn parse(&self) -> Result<ParseNode, String> { // TODO: Change the String in the result by a proper Error struct
-        Self::parse_expr(&self.tokens, 0).and_then(|(n, i)| if i == self.tokens.len() {
-            Ok(n)
-        } else {
-            Err(format!("Expected end of input, found {:?} at {}", self.tokens[i], i))
+    pub fn parse(&self) -> Result<ParseNode, String> {
+        // TODO: Change the String in the result by a proper Error struct
+        Self::parse_expr(&self.tokens, 0).and_then(|(n, i)| {
+            if i == self.tokens.len() {
+                Ok(n)
+            } else {
+                Err(format!(
+                    "Expected end of input, found {:?} at {}",
+                    self.tokens[i], i
+                ))
+            }
         })
     }
 
@@ -75,29 +78,29 @@ impl Parser {
     }
 
     pub fn parse_term(tokens: &Vec<Token>, pos: usize) -> Result<(ParseNode, usize), String> {
-        let c: &Token = tokens.get(pos)
-            .ok_or(String::from("Unexpected end of input, expected paren or number"))?;
+        let c: &Token = tokens.get(pos).ok_or(String::from(
+            "Unexpected end of input, expected paren or number",
+        ))?;
         match *c {
-            Token::Int(n) => {
-                Ok((ParseNode::new(Token::Int(n)), pos + 1))
-            }
+            Token::Int(n) => Ok((ParseNode::new(Token::Int(n)), pos + 1)),
             Token::LParen => {
                 Self::parse_expr(tokens, pos + 1).and_then(|(node, next_pos)| {
                     if let Some(&Token::RParen) = tokens.get(next_pos) {
                         // okay!
                         Ok((node, next_pos + 1))
                     } else {
-                        Err(format!("Expected closing paren at {} but found {:?}",
-                                    next_pos,
-                                    tokens.get(next_pos)))
+                        Err(format!(
+                            "Expected closing paren at {} but found {:?}",
+                            next_pos,
+                            tokens.get(next_pos)
+                        ))
                     }
                 })
             }
-            _ => {
-                Err(format!("Unexpected token {:?}, expected paren or number", {
-                    c
-                }))
-            }
+            _ => Err(format!(
+                "Unexpected token {:?}, expected paren or number",
+                { c }
+            )),
         }
     }
 }

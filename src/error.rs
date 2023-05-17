@@ -66,7 +66,13 @@ fn num_str_fix_len(num: u32, len: usize) -> String {
     num_str
 }
 
-pub fn print_error(f: &mut fmt::Formatter<'_>, position: &Position, kind: &ErrorKind, name: String, details: String) -> fmt::Result {
+pub fn print_error(
+    f: &mut fmt::Formatter<'_>,
+    position: &Position,
+    kind: &ErrorKind,
+    name: String,
+    details: String,
+) -> fmt::Result {
     //TODO: Support error messages with line digits bigger than 5 characters.
     writeln!(
         f,
@@ -87,27 +93,23 @@ pub fn print_error(f: &mut fmt::Formatter<'_>, position: &Position, kind: &Error
     )
     .unwrap();
     writeln!(f, " ... | {}^", spaces(position.column as usize)).unwrap();
-    write!(
-        f,
-        "       {}{}",
-        spaces(position.column as usize),
-        name
-    ).unwrap();
+    write!(f, "       {}{}", spaces(position.column as usize), name).unwrap();
     if !details.is_empty() {
         println!();
-        return write!(
-            f,
-            "        {}{}",
-            spaces(position.column as usize),
-            details
-        )
+        return write!(f, "        {}{}", spaces(position.column as usize), details);
     }
     write!(f, "")
 }
 
 impl fmt::Display for IllegalCharError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        print_error(f, &self.position, &self.kind, self.name.to_owned(), String::new())
+        print_error(
+            f,
+            &self.position,
+            &self.kind,
+            self.name.to_owned(),
+            String::new(),
+        )
     }
 }
 
@@ -140,6 +142,12 @@ impl Error for GeneralError {
 
 impl fmt::Display for GeneralError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        print_error(f, &self.position, &self.kind, self.name.to_string(), self.details.to_string())
+        print_error(
+            f,
+            &self.position,
+            &self.kind,
+            self.name.to_string(),
+            self.details.to_string(),
+        )
     }
 }

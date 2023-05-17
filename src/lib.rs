@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use lexer::Lexer;
-use parser::{Parser, ParseNode};
+use parser::{ParseNode, Parser};
 use token::Token;
 
 pub mod error;
