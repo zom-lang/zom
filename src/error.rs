@@ -47,7 +47,7 @@ fn spaces(len: usize) -> String {
 }
 
 fn num_str_fix_len(num: u32, len: usize) -> String {
-    let mut num_str = String::with_capacity(len as usize);
+    let mut num_str = String::with_capacity(len);
     let num_len = num.to_string().len();
 
     if num_len == len {
@@ -93,7 +93,7 @@ pub fn print_error(f: &mut fmt::Formatter<'_>, position: &Position, kind: &Error
         spaces(position.column as usize),
         name
     ).unwrap();
-    if details.len() > 0 {
+    if !details.is_empty() {
         println!();
         return write!(
             f,

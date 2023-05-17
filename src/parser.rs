@@ -77,11 +77,11 @@ impl Parser {
     pub fn parse_term(tokens: &Vec<Token>, pos: usize) -> Result<(ParseNode, usize), String> {
         let c: &Token = tokens.get(pos)
             .ok_or(String::from("Unexpected end of input, expected paren or number"))?;
-        match c {
-            &Token::Int(n) => {
+        match *c {
+            Token::Int(n) => {
                 Ok((ParseNode::new(Token::Int(n)), pos + 1))
             }
-            &Token::LParen => {
+            Token::LParen => {
                 Self::parse_expr(tokens, pos + 1).and_then(|(node, next_pos)| {
                     if let Some(&Token::RParen) = tokens.get(next_pos) {
                         // okay!
