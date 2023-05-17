@@ -98,7 +98,13 @@ fn print_error(
             .unwrap()
     )
     .unwrap();
-    writeln!(f, "{}| {}^", str_fix_len("...".to_string(), margin) ,spaces(position.column as usize)).unwrap();
+    writeln!(
+        f,
+        "{}| {}^",
+        str_fix_len("...".to_string(), margin),
+        spaces(position.column as usize)
+    )
+    .unwrap();
     write!(f, "  {}{}", spaces(position.column as usize + margin), name).unwrap();
     if !details.is_empty() {
         println!();
