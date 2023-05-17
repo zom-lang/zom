@@ -75,12 +75,10 @@ fn print_error(
 ) -> fmt::Result {
     let mut margin: usize = 5;
     let num_str_len = position.line.to_string().len();
-    println!("the num str : `{}` with len of {}", position.line.to_string(), num_str_len);
     if num_str_len > margin {
         println!("margin = {margin}");
         margin += (num_str_len - margin) + 2
     }
-    println!("margin after = {margin}");
 
     drop(num_str_len);
 
