@@ -69,7 +69,7 @@ The ParseNode is the Mona AST and the vector is the vector that is passed to Mon
 - [x] Make a good [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)
 - [ ] a JIT with LLVM ?
 - [ ] Optimization and cleaning
-- [ ] A good error system for the parser and the interpreter / JIT -> [#4](https://github.com/Larsouille25/mona/issues/4)
+- [ ] A good error system for the parser and the interpreter / JIT -> https://github.com/Larsouille25/mona/issues/4
 - [ ] Implement the docs ;)
 
 ## License
