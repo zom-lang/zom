@@ -3,6 +3,9 @@ name: Rust
 
 on:
   push:
+    paths:
+      - '**.rs'
+      - '**.toml'
   pull_request:
 
 env:
@@ -18,9 +21,17 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
 
-
   build-and-test-windows:
     runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
+  
+  build-and-test-macos:
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
     - name: Build
