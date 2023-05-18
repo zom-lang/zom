@@ -36,10 +36,7 @@ pub struct LightPosition {
 
 impl LightPosition {
     pub fn new(line: usize, column: usize) -> LightPosition {
-        LightPosition { 
-            line, 
-            column 
-        }
+        LightPosition { line, column }
     }
 }
 
@@ -52,10 +49,10 @@ pub struct Token {
 
 impl Token {
     pub fn new(token: TokenType, pos_start: LightPosition, pos_end: LightPosition) -> Token {
-        Token { 
-            token, 
-            pos_start, 
-            pos_end 
+        Token {
+            token,
+            pos_start,
+            pos_end,
         }
     }
 

@@ -1,5 +1,5 @@
+use crate::token::{LightPosition, TokenType};
 use crate::Token;
-use crate::token::{TokenType, LightPosition};
 
 #[derive(Debug, Clone)]
 pub struct ParseNode {
@@ -98,7 +98,7 @@ impl Parser {
         let c: &Token = tokens.get(pos).ok_or(String::from(
             "Unexpected end of input, expected paren or number",
         ))?;
-        
+
         // Token::Int(n) => Ok((ParseNode::new(Token::Int(n)), pos + 1)),
         // Token::LParen => {
         //     Self::parse_expr(tokens, pos + 1).and_then(|(node, next_pos)| {
@@ -115,10 +115,13 @@ impl Parser {
         //     })
         // }
         match c.get_toktype() {
-            TokenType::Int(n) => Ok((ParseNode::new(Token::new(
-                TokenType::Int(n), 
-                LightPosition::new(1, pos + 1), 
-                LightPosition::new(1, pos + 1))), pos + 1
+            TokenType::Int(n) => Ok((
+                ParseNode::new(Token::new(
+                    TokenType::Int(n),
+                    LightPosition::new(1, pos + 1),
+                    LightPosition::new(1, pos + 1),
+                )),
+                pos + 1,
             )),
             TokenType::LParen => {
                 Self::parse_expr(tokens, pos + 1).and_then(|(node, next_pos)| {
@@ -137,7 +140,7 @@ impl Parser {
             _ => Err(format!(
                 "Unexpected token {:?}, expected paren or number",
                 { c }
-            ))
+            )),
         }
     }
 }

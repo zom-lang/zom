@@ -2,10 +2,10 @@ use std::error::Error;
 use std::iter::Enumerate;
 use std::str::Chars;
 
-use crate::error::*;
-use crate::token::{Token, TokenType, LightPosition};
-use crate::error::Position;
 use crate::error::lexer::IllegalCharError;
+use crate::error::Position;
+use crate::error::*;
+use crate::token::{LightPosition, Token, TokenType};
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
@@ -50,12 +50,12 @@ impl<'a> Lexer<'a> {
                         &self.text,
                         self.pos,
                         Position::new(
-                            self.pos as u32, 
-                            self.line, 
-                            self.pos as u32, 
-                            self.filename.clone(), 
-                            self.text.clone()
-                        )
+                            self.pos as u32,
+                            self.line,
+                            self.pos as u32,
+                            self.filename.clone(),
+                            self.text.clone(),
+                        ),
                     );
 
                     if let Err(err) = num {
@@ -74,25 +74,23 @@ impl<'a> Lexer<'a> {
                     }
                     tokens.push(tok);
                 }
-                '+' => tokens.push( Token::new(TokenType::Plus, cur_pos, cur_pos) ),
-                '-' => tokens.push( Token::new(TokenType::Minus, cur_pos, cur_pos) ),
-                '*' => tokens.push( Token::new(TokenType::Mul, cur_pos, cur_pos) ),
-                '/' => tokens.push( Token::new(TokenType::Div, cur_pos, cur_pos) ),
-                '(' => tokens.push( Token::new(TokenType::LParen, cur_pos, cur_pos) ),
-                ')' => tokens.push( Token::new(TokenType::RParen, cur_pos, cur_pos) ),
+                '+' => tokens.push(Token::new(TokenType::Plus, cur_pos, cur_pos)),
+                '-' => tokens.push(Token::new(TokenType::Minus, cur_pos, cur_pos)),
+                '*' => tokens.push(Token::new(TokenType::Mul, cur_pos, cur_pos)),
+                '/' => tokens.push(Token::new(TokenType::Div, cur_pos, cur_pos)),
+                '(' => tokens.push(Token::new(TokenType::LParen, cur_pos, cur_pos)),
+                ')' => tokens.push(Token::new(TokenType::RParen, cur_pos, cur_pos)),
                 _ => {
                     if _ch.is_whitespace() {
                         continue;
                     }
-                    return Err(Box::new(IllegalCharError::new(
-                        Position::new(
-                            _idx as u32,
-                            self.line,
-                            _idx as u32,
-                            self.filename.clone(), //TODO: Try to remove .clone()
-                            self.text.clone(),
-                        ),
-                    )));
+                    return Err(Box::new(IllegalCharError::new(Position::new(
+                        _idx as u32,
+                        self.line,
+                        _idx as u32,
+                        self.filename.clone(), //TODO: Try to remove .clone()
+                        self.text.clone(),
+                    ))));
                 }
             }
         }
@@ -144,11 +142,14 @@ impl<'a> Lexer<'a> {
             match num_str.parse() {
                 Ok(val) => Ok((
                     Token::new(
-                        TokenType::Int(val), 
-                        LightPosition::new(position.get_line(), position.get_column()), 
-                        LightPosition::new(position.get_line(), position.get_column() + num_str.len())
-                    ), 
-                    (num_str.len(), curr_char.unwrap())
+                        TokenType::Int(val),
+                        LightPosition::new(position.get_line(), position.get_column()),
+                        LightPosition::new(
+                            position.get_line(),
+                            position.get_column() + num_str.len(),
+                        ),
+                    ),
+                    (num_str.len(), curr_char.unwrap()),
                 )),
                 Err(err) => Err(Box::new(GeneralError::new(
                     "Parse Int Error".to_string(),
@@ -161,11 +162,14 @@ impl<'a> Lexer<'a> {
             match num_str.parse() {
                 Ok(val) => Ok((
                     Token::new(
-                        TokenType::Float(val), 
-                        LightPosition::new(position.get_line(), position.get_column()), 
-                        LightPosition::new(position.get_line(), position.get_column() + num_str.len())
-                    ), 
-                    (num_str.len(), curr_char.unwrap())
+                        TokenType::Float(val),
+                        LightPosition::new(position.get_line(), position.get_column()),
+                        LightPosition::new(
+                            position.get_line(),
+                            position.get_column() + num_str.len(),
+                        ),
+                    ),
+                    (num_str.len(), curr_char.unwrap()),
                 )),
                 Err(err) => Err(Box::new(GeneralError::new(
                     "Parse Float Error".to_string(),
