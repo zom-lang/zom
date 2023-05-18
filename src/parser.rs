@@ -83,6 +83,7 @@ impl Parser {
         ))?;
         match *c {
             Token::Int(n) => Ok((ParseNode::new(Token::Int(n)), pos + 1)),
+            Token::Float(n) => Ok((ParseNode::new(Token::Float(n)), pos + 1)),
             Token::LParen => {
                 Self::parse_expr(tokens, pos + 1).and_then(|(node, next_pos)| {
                     if let Some(&Token::RParen) = tokens.get(next_pos) {
