@@ -43,8 +43,7 @@ impl<'a> Lexer<'a> {
 
         while let Some((mut _idx, mut _ch)) = self.iter.as_mut().unwrap().next() {
             self.pos = _idx;
-            let mut cur_pos = LightPosition::new(self.line as usize, self.pos);
-            let mut next_pos = LightPosition::new((self.line + 1) as usize, self.pos + 1);
+            let cur_pos = LightPosition::new(self.line as usize, self.pos);
             match _ch {
                 '0'..='9' | '.' => {
                     let num = Self::make_number(
