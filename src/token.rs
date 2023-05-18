@@ -8,6 +8,7 @@ pub enum Token {
     Mul,
     Div,
 
+    // Separators
     LParen,
     RParen,
 
