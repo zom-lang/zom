@@ -71,6 +71,7 @@ The ParseNode is the Mona AST and the vector is the vector that is passed to Mon
 - [ ] Optimization and cleaning
 - [ ] A good error system for the parser and the interpreter / JIT -> https://github.com/Larsouille25/mona/issues/4
 - [ ] Implement the docs ;)
+- [ ] A AOT compiler ?!...
 
 ## License
 
