@@ -1,13 +1,13 @@
-use crate::Token;
+use crate::token::*;
 
 #[derive(Debug, Clone)]
 pub struct ParseNode {
     pub children: Vec<ParseNode>,
-    pub entry: Token,
+    pub entry: GrammarItem,
 }
 
 impl ParseNode {
-    pub fn new(entry: Token) -> ParseNode {
+    pub fn new(entry: GrammarItem) -> ParseNode {
         ParseNode {
             children: Vec::new(),
             entry,
@@ -17,29 +17,32 @@ impl ParseNode {
 
 pub fn print(tree: &ParseNode) -> String {
     match tree.entry {
-        Token::Plus => {
+        GrammarItem::Paren => {
+            format!("({})",
+                    print(tree.children.get(0).expect("parens need one child")))
+        }
+        GrammarItem::Sum => {
             let lhs = print(tree.children.get(0).expect("sums need two children"));
             let rhs = print(tree.children.get(1).expect("sums need two children"));
-            format!("({} + {})", lhs, rhs)
+            format!("{} + {}", lhs, rhs)
         }
-        Token::Minus => {
+        GrammarItem::Sub => {
             let lhs = print(tree.children.get(0).expect("sums need two children"));
             let rhs = print(tree.children.get(1).expect("sums need two children"));
-            format!("({} - {})", lhs, rhs)
+            format!("{} - {}", lhs, rhs)
         }
-        Token::Mul => {
+        GrammarItem::Product => {
             let lhs = print(tree.children.get(0).expect("products need two children"));
             let rhs = print(tree.children.get(1).expect("products need two children"));
-            format!("({} * {})", lhs, rhs)
+            format!("{} * {}", lhs, rhs)
         }
-        Token::Div => {
+        GrammarItem::Quotient => {
             let lhs = print(tree.children.get(0).expect("products need two children"));
             let rhs = print(tree.children.get(1).expect("products need two children"));
-            format!("({} / {})", lhs, rhs)
+            format!("{} / {}", lhs, rhs)
         }
-        Token::Int(n) => format!("{}", n),
-        Token::Float(n) => format!("{}", n),
-        _ => todo!(),
+        GrammarItem::Float(n) => format!("{}", n),
+        GrammarItem::Int(n) => format!("{}", n),
     }
 }
 
@@ -73,7 +76,7 @@ impl Parser {
         match c {
             Some(&Token::Plus | &Token::Minus) => {
                 // recurse on the expr
-                let mut sum = ParseNode::new(*c.unwrap());
+                let mut sum = ParseNode::new(GrammarItem::try_from(*c.unwrap())?);
                 sum.children.push(node_summand);
                 let (rhs, i) = Self::parse_expr(tokens, next_pos + 1)?;
                 sum.children.push(rhs);
@@ -92,7 +95,7 @@ impl Parser {
         match c {
             Some(&Token::Mul | &Token::Div) => {
                 // recurse on the summand
-                let mut product = ParseNode::new(*c.unwrap());
+                let mut product = ParseNode::new(GrammarItem::try_from(*c.unwrap())?);
                 product.children.push(node_term);
                 let (rhs, i) = Self::parse_summand(tokens, next_pos + 1)?;
                 product.children.push(rhs);
@@ -110,13 +113,15 @@ impl Parser {
             "Unexpected end of input, expected paren or number",
         ))?;
         match *c {
-            Token::Int(n) => Ok((ParseNode::new(Token::Int(n)), pos + 1)),
-            Token::Float(n) => Ok((ParseNode::new(Token::Float(n)), pos + 1)),
+            Token::Int(n) => Ok((ParseNode::new(GrammarItem::Int(n)), pos + 1)),
+            Token::Float(n) => Ok((ParseNode::new(GrammarItem::Float(n)), pos + 1)),
             Token::LParen => {
                 Self::parse_expr(tokens, pos + 1).and_then(|(node, next_pos)| {
                     if let Some(&Token::RParen) = tokens.get(next_pos) {
                         // okay!
-                        Ok((node, next_pos + 1))
+                        let mut paren = ParseNode::new(GrammarItem::Paren);
+                        paren.children.push(node);
+                        Ok((paren, next_pos + 1))
                     } else {
                         Err(format!(
                             "Expected closing paren at {} but found {:?}",

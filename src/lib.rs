@@ -45,10 +45,10 @@ impl RunnerResult {
     }
 
     pub fn print_res(&self, flags: Flags) {
-        flags.lexer.then(|| println!("{:?}\n", self.lexer_result));
+        flags.lexer.then(|| println!(" Lexer : \n{:?}\n", self.lexer_result));
         flags.parser.then(|| {
-            println!("{:#?}\n", self.parse_result);
-            println!("{}", print(&self.parse_result));
+            println!(" Parser : \n{:#?}\n", self.parse_result);
+            println!(" {}", print(&self.parse_result));
         });
     }
 }
