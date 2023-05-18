@@ -15,7 +15,6 @@ pub struct Lexer<'a> {
     iter: Option<Enumerate<Chars<'a>>>,
     line: u32,
     filename: String,
-    filetext: String,
 }
 
 impl<'a> Lexer<'a> {
@@ -27,7 +26,6 @@ impl<'a> Lexer<'a> {
             iter: None,
             line: 1,
             filename,
-            filetext: text.to_string(),
         }
     }
 
@@ -55,7 +53,7 @@ impl<'a> Lexer<'a> {
                             self.line, 
                             self.pos as u32, 
                             self.filename.clone(), 
-                            self.filetext.clone()
+                            self.text.clone()
                         )
                     );
 
@@ -91,7 +89,7 @@ impl<'a> Lexer<'a> {
                             self.line,
                             _idx as u32,
                             self.filename.clone(), //TODO: Try to remove .clone()
-                            self.filetext.clone(),
+                            self.text.clone(),
                         ),
                     )));
                 }
