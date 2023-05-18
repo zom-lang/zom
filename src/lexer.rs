@@ -3,7 +3,7 @@ use std::iter::Enumerate;
 use std::str::Chars;
 
 use crate::error::*;
-use crate::token::Token;
+use crate::token::{Token, TokenType, LightPosition};
 use crate::error::Position;
 use crate::error::lexer::IllegalCharError;
 
@@ -43,6 +43,8 @@ impl<'a> Lexer<'a> {
 
         while let Some((mut _idx, mut _ch)) = self.iter.as_mut().unwrap().next() {
             self.pos = _idx;
+            let mut cur_pos = LightPosition::new(self.line as usize, self.pos);
+            let mut next_pos = LightPosition::new((self.line + 1) as usize, self.pos + 1);
             match _ch {
                 '0'..='9' | '.' => {
                     let num = Self::make_number(
@@ -73,12 +75,12 @@ impl<'a> Lexer<'a> {
                     }
                     tokens.push(tok);
                 }
-                '+' => tokens.push(Token::Plus),
-                '-' => tokens.push(Token::Minus),
-                '*' => tokens.push(Token::Mul),
-                '/' => tokens.push(Token::Div),
-                '(' => tokens.push(Token::LParen),
-                ')' => tokens.push(Token::RParen),
+                '+' => tokens.push( Token::new(TokenType::Plus, cur_pos, cur_pos) ),
+                '-' => tokens.push( Token::new(TokenType::Minus, cur_pos, cur_pos) ),
+                '*' => tokens.push( Token::new(TokenType::Mul, cur_pos, cur_pos) ),
+                '/' => tokens.push( Token::new(TokenType::Div, cur_pos, cur_pos) ),
+                '(' => tokens.push( Token::new(TokenType::LParen, cur_pos, cur_pos) ),
+                ')' => tokens.push( Token::new(TokenType::RParen, cur_pos, cur_pos) ),
                 _ => {
                     if _ch.is_whitespace() {
                         continue;
@@ -141,7 +143,14 @@ impl<'a> Lexer<'a> {
 
         if dot_count == 0 {
             match num_str.parse() {
-                Ok(val) => Ok((Token::Int(val), (num_str.len(), curr_char.unwrap()))),
+                Ok(val) => Ok((
+                    Token::new(
+                        TokenType::Int(val), 
+                        LightPosition::new(position.get_line(), position.get_column()), 
+                        LightPosition::new(position.get_line(), position.get_column() + num_str.len())
+                    ), 
+                    (num_str.len(), curr_char.unwrap())
+                )),
                 Err(err) => Err(Box::new(GeneralError::new(
                     "Parse Int Error".to_string(),
                     ErrorKind::Lexer,
@@ -151,7 +160,14 @@ impl<'a> Lexer<'a> {
             }
         } else {
             match num_str.parse() {
-                Ok(val) => Ok((Token::Float(val), (num_str.len(), curr_char.unwrap()))),
+                Ok(val) => Ok((
+                    Token::new(
+                        TokenType::Float(val), 
+                        LightPosition::new(position.get_line(), position.get_column()), 
+                        LightPosition::new(position.get_line(), position.get_column() + num_str.len())
+                    ), 
+                    (num_str.len(), curr_char.unwrap())
+                )),
                 Err(err) => Err(Box::new(GeneralError::new(
                     "Parse Float Error".to_string(),
                     ErrorKind::Lexer,

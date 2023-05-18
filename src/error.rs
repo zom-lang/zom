@@ -118,6 +118,14 @@ impl Position {
             self.column = 0;
         }
     }
+
+    pub fn get_line(&self) -> usize {
+        self.line as usize
+    }
+
+    pub fn get_column(&self) -> usize {
+        self.column as usize
+    }
 }
 
 // General Lexer Error

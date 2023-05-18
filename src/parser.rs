@@ -1,4 +1,5 @@
 use crate::Token;
+use crate::token::{TokenType, LightPosition};
 
 #[derive(Debug, Clone)]
 pub struct ParseNode {
@@ -43,13 +44,21 @@ impl Parser {
         let (node_summand, next_pos) = Self::parse_summand(tokens, pos)?;
         let c = tokens.get(next_pos);
         match c {
-            Some(&Token::Plus | &Token::Minus) => {
-                // recurse on the expr
-                let mut sum = ParseNode::new(*c.unwrap());
-                sum.children.push(node_summand);
-                let (rhs, i) = Self::parse_expr(tokens, next_pos + 1)?;
-                sum.children.push(rhs);
-                Ok((sum, i))
+            Some(tok) => {
+                match tok.get_toktype() {
+                    TokenType::Plus | TokenType::Minus => {
+                        //recurse on the expr
+                        let mut sum = ParseNode::new(*c.unwrap());
+                        sum.children.push(node_summand);
+                        let (rhs, i) = Self::parse_expr(tokens, next_pos + 1)?;
+                        sum.children.push(rhs);
+                        Ok((sum, i))
+                    }
+                    _ => {
+                        // we have just the term production, nothing more.
+                        Ok((node_summand, next_pos))
+                    }
+                }
             }
             _ => {
                 // we have just the summand production, nothing more.
@@ -62,13 +71,21 @@ impl Parser {
         let (node_term, next_pos) = Self::parse_term(tokens, pos)?;
         let c = tokens.get(next_pos);
         match c {
-            Some(&Token::Mul | &Token::Div) => {
-                // recurse on the summand
-                let mut product = ParseNode::new(*c.unwrap());
-                product.children.push(node_term);
-                let (rhs, i) = Self::parse_summand(tokens, next_pos + 1)?;
-                product.children.push(rhs);
-                Ok((product, i))
+            Some(tok) => {
+                match tok.get_toktype() {
+                    TokenType::Mul | TokenType::Div => {
+                        // recurse on the summand
+                        let mut product = ParseNode::new(*c.unwrap());
+                        product.children.push(node_term);
+                        let (rhs, i) = Self::parse_summand(tokens, next_pos + 1)?;
+                        product.children.push(rhs);
+                        Ok((product, i))
+                    }
+                    _ => {
+                        // we have just the term production, nothing more.
+                        Ok((node_term, next_pos))
+                    }
+                }
             }
             _ => {
                 // we have just the term production, nothing more.
@@ -81,11 +98,31 @@ impl Parser {
         let c: &Token = tokens.get(pos).ok_or(String::from(
             "Unexpected end of input, expected paren or number",
         ))?;
-        match *c {
-            Token::Int(n) => Ok((ParseNode::new(Token::Int(n)), pos + 1)),
-            Token::LParen => {
+        
+        // Token::Int(n) => Ok((ParseNode::new(Token::Int(n)), pos + 1)),
+        // Token::LParen => {
+        //     Self::parse_expr(tokens, pos + 1).and_then(|(node, next_pos)| {
+        //         if let Some(&Token::RParen) = tokens.get(next_pos) {
+        //             // okay!
+        //             Ok((node, next_pos + 1))
+        //         } else {
+        //             Err(format!(
+        //                 "Expected closing paren at {} but found {:?}",
+        //                 next_pos,
+        //                 tokens.get(next_pos)
+        //             ))
+        //         }
+        //     })
+        // }
+        match c.get_toktype() {
+            TokenType::Int(n) => Ok((ParseNode::new(Token::new(
+                TokenType::Int(n), 
+                LightPosition::new(1, pos + 1), 
+                LightPosition::new(1, pos + 1))), pos + 1
+            )),
+            TokenType::LParen => {
                 Self::parse_expr(tokens, pos + 1).and_then(|(node, next_pos)| {
-                    if let Some(&Token::RParen) = tokens.get(next_pos) {
+                    if let Some(_val) = tokens.get(next_pos) {
                         // okay!
                         Ok((node, next_pos + 1))
                     } else {
@@ -100,7 +137,7 @@ impl Parser {
             _ => Err(format!(
                 "Unexpected token {:?}, expected paren or number",
                 { c }
-            )),
+            ))
         }
     }
 }
