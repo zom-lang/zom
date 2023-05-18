@@ -38,7 +38,10 @@ pub struct RunnerResult {
 
 impl RunnerResult {
     pub fn new(lexer_result: Vec<Token>, parse_result: ParseNode) -> RunnerResult {
-        RunnerResult { lexer_result, parse_result }
+        RunnerResult {
+            lexer_result,
+            parse_result,
+        }
     }
 
     pub fn print_res(&self, flags: Flags) {

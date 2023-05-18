@@ -2,10 +2,10 @@ use std::error::Error;
 use std::iter::Enumerate;
 use std::str::Chars;
 
+use crate::error::lexer::IllegalCharError;
+use crate::error::Position;
 use crate::error::*;
 use crate::token::Token;
-use crate::error::Position;
-use crate::error::lexer::IllegalCharError;
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
@@ -49,12 +49,12 @@ impl<'a> Lexer<'a> {
                         &self.text,
                         self.pos,
                         Position::new(
-                            self.pos as u32, 
-                            self.line, 
-                            self.pos as u32, 
-                            self.filename.clone(), 
-                            self.text.clone()
-                        )
+                            self.pos as u32,
+                            self.line,
+                            self.pos as u32,
+                            self.filename.clone(),
+                            self.text.clone(),
+                        ),
                     );
 
                     if let Err(err) = num {
@@ -83,15 +83,13 @@ impl<'a> Lexer<'a> {
                     if _ch.is_whitespace() {
                         continue;
                     }
-                    return Err(Box::new(IllegalCharError::new(
-                        Position::new(
-                            _idx as u32,
-                            self.line,
-                            _idx as u32,
-                            self.filename.clone(), //TODO: Try to remove .clone()
-                            self.text.clone(),
-                        ),
-                    )));
+                    return Err(Box::new(IllegalCharError::new(Position::new(
+                        _idx as u32,
+                        self.line,
+                        _idx as u32,
+                        self.filename.clone(), //TODO: Try to remove .clone()
+                        self.text.clone(),
+                    ))));
                 }
             }
         }

@@ -88,7 +88,6 @@ fn print_error(
     write!(f, "")
 }
 
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct Position {
     index: u32,
