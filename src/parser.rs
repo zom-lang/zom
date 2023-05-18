@@ -15,6 +15,34 @@ impl ParseNode {
     }
 }
 
+pub fn print(tree: &ParseNode) -> String {
+    match tree.entry {
+        Token::Plus => {
+            let lhs = print(tree.children.get(0).expect("sums need two children"));
+            let rhs = print(tree.children.get(1).expect("sums need two children"));
+            format!("({} + {})", lhs, rhs)
+        }
+        Token::Minus => {
+            let lhs = print(tree.children.get(0).expect("sums need two children"));
+            let rhs = print(tree.children.get(1).expect("sums need two children"));
+            format!("({} - {})", lhs, rhs)
+        }
+        Token::Mul => {
+            let lhs = print(tree.children.get(0).expect("products need two children"));
+            let rhs = print(tree.children.get(1).expect("products need two children"));
+            format!("({} * {})", lhs, rhs)
+        }
+        Token::Div => {
+            let lhs = print(tree.children.get(0).expect("products need two children"));
+            let rhs = print(tree.children.get(1).expect("products need two children"));
+            format!("({} / {})", lhs, rhs)
+        }
+        Token::Int(n) => format!("{}", n),
+        Token::Float(n) => format!("{}", n),
+        _ => todo!(),
+    }
+}
+
 #[derive(Debug)]
 pub struct Parser {
     tokens: Vec<Token>,

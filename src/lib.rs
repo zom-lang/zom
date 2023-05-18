@@ -4,6 +4,8 @@ use lexer::Lexer;
 use parser::{ParseNode, Parser};
 use token::Token;
 
+use crate::parser::print;
+
 pub mod error;
 pub mod lexer;
 pub mod parser;
@@ -30,18 +32,21 @@ impl Flags {
 
 #[derive(Debug, Clone)]
 pub struct RunnerResult {
-    lexed: Vec<Token>,
-    parsed: ParseNode,
+    lexer_result: Vec<Token>,
+    parse_result: ParseNode,
 }
 
 impl RunnerResult {
-    pub fn new(lexed: Vec<Token>, parsed: ParseNode) -> RunnerResult {
-        RunnerResult { lexed, parsed }
+    pub fn new(lexer_result: Vec<Token>, parse_result: ParseNode) -> RunnerResult {
+        RunnerResult { lexer_result, parse_result }
     }
 
     pub fn print_res(&self, flags: Flags) {
-        flags.lexer.then(|| println!("{:?}\n", self.lexed));
-        flags.parser.then(|| println!("{:#?}\n", self.parsed));
+        flags.lexer.then(|| println!("{:?}\n", self.lexer_result));
+        flags.parser.then(|| {
+            println!("{:#?}\n", self.parse_result);
+            println!("{}", print(&self.parse_result));
+        });
     }
 }
 
