@@ -1,6 +1,5 @@
 use std::error::Error;
 
-use error::{GeneralError, Position};
 use lexer::Lexer;
 use parser::{
     ParseNode, 
@@ -60,11 +59,10 @@ impl RunnerResult {
 pub fn run(filename: String, text: String) -> Result<RunnerResult, Box<dyn Error>> {
     let mut lexer = Lexer::new(&text, filename);
 
-    // let tokens = lexer.tokenize()?;
+    let tokens = lexer.make_tokens()?;
 
     // let parser = Parser::new(tokens.clone()); // TODO: Try removing this .clone()
     // let node_tree = parser.parse()?;
 
-    // Ok(RunnerResult::new(tokens, node_tree)
-    todo!()
+    Ok(RunnerResult::new(tokens, ParseNode::new(token::GrammarItem::Sum)))
 }

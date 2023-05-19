@@ -36,7 +36,174 @@ impl<'a> Lexer<'a> {
         self.current_char.unwrap()
     }
 
-    pub fn tokenize(&'a mut self) -> Result<Vec<Token>, Box<dyn Error>> {
-        todo!("will be the tokenize method in the lexer.");
+    pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Box<dyn Error>> {
+        let mut tokens = Vec::new();
+
+        self.iter = Some(self.text.chars().enumerate());
+
+        while let Some((mut _idx, mut _ch)) = self.iter.as_mut().unwrap().next() {
+            self.pos = _idx;
+            match _ch {
+                '0'..='9' | '.' | 'A'..='z'=> {
+                    let num = Self::make_number(
+                        &self.text,
+                        self.pos,
+                        Position::new(
+                            self.pos as u32,
+                            self.line,
+                            self.pos as u32,
+                            self.filename.clone(),
+                            self.text.clone(),
+                        ),
+                    )?;
+
+
+                    let (tok, new_pos) = num;
+
+                    for _ in 0..(new_pos.0 - 1) {
+                        (_idx, _ch) = self
+                            .iter
+                            .as_mut()
+                            .unwrap()
+                            .next()
+                            .expect("ERR: running out of bounds")
+                    }
+                    tokens.push(tok);
+                }
+                '+' => tokens.push(Token::Operator("+".to_string())),
+                '-' => tokens.push(Token::Operator("-".to_string())),
+                '*' => tokens.push(Token::Operator("*".to_string())),
+                '/' => tokens.push(Token::Operator("/".to_string())),
+                '(' => tokens.push(Token::OpenParen),
+                ')' => tokens.push(Token::CloseParen),
+                ';' => tokens.push(Token::Delimiter),
+                ',' => tokens.push(Token::Coma),
+                'A'..='z'  => {
+                    let word = Self::make_keyword(
+                        &self.text,
+                        self.pos
+                    )?;
+                    let (tok, new_pos) = word;
+                    for _ in 0..(new_pos.0 - 1) {
+                        (_idx, _ch) = self
+                            .iter
+                            .as_mut()
+                            .unwrap()
+                            .next()
+                            .expect("ERR: running out of bounds")
+                    }
+                    tokens.push(tok);
+                }
+                _ => {
+                    if _ch.is_whitespace() {
+                        continue;
+                    }
+                    
+                        
+                    return Err(Box::new(IllegalCharError::new(Position::new(
+                        _idx as u32,
+                        self.line,
+                        _idx as u32,
+                        self.filename.clone(), //TODO: Try to remove .clone()
+                        self.text.clone(),
+                    ))));
+                }
+            }
+        }
+
+        Ok(tokens)
+    }
+
+    fn set_current_char(text: &str, pos: usize) -> Option<char> {
+        // TODO: rewrite this function I think it's not very efficient ...
+        for (i, c) in text.chars().enumerate() {
+            if i == pos {
+                return Some(c);
+            }
+        }
+        None
+    }
+
+    /// This return a tuple (Token, usize) where Token is either
+    /// Token::Int(x) with x as an i32 or
+    /// Token::Float(x) with x as an f32
+    /// and usize is the lenght of the number
+    pub fn make_number(
+        text: &str,
+        pos: usize,
+        position: Position,
+    ) -> Result<(Token, (usize, char)), Box<dyn Error>> {
+        let mut num_str = String::new();
+        let mut dot_count = 0;
+        let mut pos: usize = pos;
+        let mut curr_char: Option<char> = Self::set_current_char(text, pos);
+
+        while let Some(ch) = curr_char {
+            if ch == '.' {
+                dot_count += 1;
+                if dot_count > 1 {
+                    break;
+                }
+            } else if !ch.is_numeric() {
+                break;
+            }
+            num_str.push(ch);
+            pos += 1;
+            curr_char = Self::set_current_char(text, pos);
+        }
+
+        curr_char = Self::set_current_char(text, pos - 1);
+
+        if dot_count == 0 {
+            match num_str.parse() {
+                Ok(val) => Ok((Token::Int(val), (num_str.len(), curr_char.unwrap()))),
+                Err(err) => Err(Box::new(GeneralError::new(
+                    "Parse Int Error".to_string(),
+                    ErrorKind::Lexer,
+                    err.to_string(),
+                    position,
+                ))),
+            }
+        } else {
+            match num_str.parse() {
+                Ok(val) => Ok((Token::Float(val), (num_str.len(), curr_char.unwrap()))),
+                Err(err) => Err(Box::new(GeneralError::new(
+                    "Parse Float Error".to_string(),
+                    ErrorKind::Lexer,
+                    err.to_string(),
+                    position,
+                ))),
+            }
+        }
+    }
+
+    /// This return a tuple (Token, usize) where Token is either
+    /// Token::Int(x) with x as an i32 or
+    /// Token::Float(x) with x as an f32
+    /// and usize is the lenght of the number
+    pub fn make_keyword(
+        text: &str,
+        pos: usize,
+    ) -> Result<(Token, (usize, char)), Box<dyn Error>> {
+        let mut key_str = String::new();
+        let mut pos: usize = pos;
+        let mut curr_char: Option<char> = Self::set_current_char(text, pos);
+
+        while let Some(ch) = curr_char {
+            if ch.is_whitespace() && !ch.is_alphanumeric() {
+                break;
+            }
+            key_str.push(ch);
+            pos += 1;
+            curr_char = Self::set_current_char(text, pos);
+        }
+
+        curr_char = Self::set_current_char(text, pos - 1);
+        
+        match key_str.as_str() {
+            "func" => Ok((Token::Func, (key_str.len(), curr_char.unwrap()))),
+            "extern" => Ok((Token::Extern, (key_str.len(), curr_char.unwrap()))),
+            _ => Ok((Token::Ident(key_str.clone()), (key_str.len(), curr_char.unwrap())))
+        }        
     }
 }
