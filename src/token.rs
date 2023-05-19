@@ -19,8 +19,8 @@ pub enum Token {
     Operator(String),
 
     // Separators
-    OpenParen,
-    CloseParen,
+    OpenParen, // means `open parentheis`
+    CloseParen,// means `close parentheis`
     Delimiter, // ` ; ` character
     Coma, // ` , ` character
 
