@@ -74,14 +74,14 @@ impl Parser {
         let (node_summand, next_pos) = Self::parse_summand(tokens, pos)?;
         let c = tokens.get(next_pos);
         match c {
-            Some(&Token::Plus | &Token::Minus) => {
-                // recurse on the expr
-                let mut sum = ParseNode::new(GrammarItem::try_from(*c.unwrap())?);
-                sum.children.push(node_summand);
-                let (rhs, i) = Self::parse_expr(tokens, next_pos + 1)?;
-                sum.children.push(rhs);
-                Ok((sum, i))
-            }
+            // Some(&Token::Plus | &Token::Minus) => {
+            //     // recurse on the expr
+            //     let mut sum = ParseNode::new(GrammarItem::try_from(*c.unwrap())?);
+            //     sum.children.push(node_summand);
+            //     let (rhs, i) = Self::parse_expr(tokens, next_pos + 1)?;
+            //     sum.children.push(rhs);
+            //     Ok((sum, i))
+            // }
             _ => {
                 // we have just the summand production, nothing more.
                 Ok((node_summand, next_pos))
@@ -93,14 +93,14 @@ impl Parser {
         let (node_term, next_pos) = Self::parse_term(tokens, pos)?;
         let c = tokens.get(next_pos);
         match c {
-            Some(&Token::Mul | &Token::Div) => {
-                // recurse on the summand
-                let mut product = ParseNode::new(GrammarItem::try_from(*c.unwrap())?);
-                product.children.push(node_term);
-                let (rhs, i) = Self::parse_summand(tokens, next_pos + 1)?;
-                product.children.push(rhs);
-                Ok((product, i))
-            }
+            // Some(&Token::Mul | &Token::Div) => {
+            //     // recurse on the summand
+            //     let mut product = ParseNode::new(GrammarItem::try_from(*c.unwrap())?);
+            //     product.children.push(node_term);
+            //     let (rhs, i) = Self::parse_summand(tokens, next_pos + 1)?;
+            //     product.children.push(rhs);
+            //     Ok((product, i))
+            // }
             _ => {
                 // we have just the term production, nothing more.
                 Ok((node_term, next_pos))
@@ -115,9 +115,9 @@ impl Parser {
         match *c {
             Token::Int(n) => Ok((ParseNode::new(GrammarItem::Int(n)), pos + 1)),
             Token::Float(n) => Ok((ParseNode::new(GrammarItem::Float(n)), pos + 1)),
-            Token::LParen => {
+            Token::OpenParen => {
                 Self::parse_expr(tokens, pos + 1).and_then(|(node, next_pos)| {
-                    if let Some(&Token::RParen) = tokens.get(next_pos) {
+                    if let Some(&Token::CloseParen) = tokens.get(next_pos) {
                         // okay!
                         let mut paren = ParseNode::new(GrammarItem::Paren);
                         paren.children.push(node);

@@ -1,20 +1,39 @@
 use std::fmt;
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+pub use Token::{
+    Operator,
+    OpenParen,
+    CloseParen,
+    Delimiter,
+    Coma,
+    Int,
+    Float,
+    Func,
+    Extern,
+    Ident,
+};
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     // Operators
-    Plus,
-    Minus,
-    Mul,
-    Div,
+    Operator(String),
 
     // Separators
-    LParen,
-    RParen,
+    OpenParen,
+    CloseParen,
+    Delimiter, // ` ; ` character
+    Coma, // ` , ` character
 
     // Literals
     Int(i32),
     Float(f32),
+
+    // Keywords
+    Func,
+    Extern,
+
+    // Identifier
+    Ident(String) // Identifier is a alphanumeric string
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -31,21 +50,26 @@ pub enum GrammarItem {
 }
 
 impl TryFrom<Token> for GrammarItem {
-    type Error = &'static str;
+    type Error = String;
 
     fn try_from(value: Token) -> Result<Self, Self::Error> {
         match value {
-            Token::Plus => Ok(Self::Sum),
-            Token::Minus => Ok(Self::Sub),
-            Token::Mul => Ok(Self::Product),
-            Token::Div => Ok(Self::Quotient),
+            Token::Operator(c) => {
+                match c.as_str() {
+                    "+" => Ok(Self::Sum),
+                    "-" => Ok(Self::Sub),
+                    "*" => Ok(Self::Product),
+                    "/" => Ok(Self::Quotient),
+                    _ => Err(format!("The `{c}` is not an operator!"))
+                }
+            },
 
-            Token::LParen | Token::RParen => Ok(Self::Paren),
+            Token::OpenParen | Token::CloseParen => Ok(Self::Paren),
 
             Token::Int(v) => Ok(Self::Int(v)),
             Token::Float(v) => Ok(Self::Float(v)),
 
-            // _ => Err("Not implemented yet.")
+            _ => Err("Not implemented yet.".to_string())
         }
     }
 }

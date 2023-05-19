@@ -73,12 +73,12 @@ impl<'a> Lexer<'a> {
                     }
                     tokens.push(tok);
                 }
-                '+' => tokens.push(Token::Plus),
-                '-' => tokens.push(Token::Minus),
-                '*' => tokens.push(Token::Mul),
-                '/' => tokens.push(Token::Div),
-                '(' => tokens.push(Token::LParen),
-                ')' => tokens.push(Token::RParen),
+                '+' => tokens.push(Token::Operator("+".to_string())),
+                '-' => tokens.push(Token::Operator("-".to_string())),
+                '*' => tokens.push(Token::Operator("*".to_string())),
+                '/' => tokens.push(Token::Operator("/".to_string())),
+                '(' => tokens.push(Token::OpenParen),
+                ')' => tokens.push(Token::CloseParen),
                 _ => {
                     if _ch.is_whitespace() {
                         continue;
