@@ -1,10 +1,14 @@
 use std::error::Error;
 
+use error::{GeneralError, Position};
 use lexer::Lexer;
-use parser::{ParseNode, Parser};
+use parser::{
+    ParseNode, 
+    // Parser
+};
 use token::Token;
 
-use crate::parser::print;
+// use crate::parser::print;
 
 pub mod error;
 pub mod lexer;
@@ -48,7 +52,7 @@ impl RunnerResult {
         flags.lexer.then(|| println!(" Lexer : \n{:?}\n", self.lexer_result));
         flags.parser.then(|| {
             println!(" Parser : \n{:#?}\n", self.parse_result);
-            println!(" {}", print(&self.parse_result));
+            // println!(" {}", print(&self.parse_result));
         });
     }
 }
@@ -56,10 +60,11 @@ impl RunnerResult {
 pub fn run(filename: String, text: String) -> Result<RunnerResult, Box<dyn Error>> {
     let mut lexer = Lexer::new(&text, filename);
 
-    let tokens = lexer.make_tokens()?;
+    // let tokens = lexer.tokenize()?;
 
-    let parser = Parser::new(tokens.clone()); // TODO: Try removing this .clone()
-    let node_tree = parser.parse()?;
+    // let parser = Parser::new(tokens.clone()); // TODO: Try removing this .clone()
+    // let node_tree = parser.parse()?;
 
-    Ok(RunnerResult::new(tokens, node_tree))
+    // Ok(RunnerResult::new(tokens, node_tree)
+    todo!()
 }
