@@ -35,7 +35,7 @@ fn main() {
         matches.get_flag("parser"),
         matches.get_flag("verbose"),
     );
-    println!("Mona {}, to exit enter `.quit`", env!("CARGO_PKG_VERSION"));
+    println!("Mona v{}, to exit enter `.quit`", env!("CARGO_PKG_VERSION"));
 
     cfg!(debug_assertions).then(|| {
         println!("  You're in a debug binary, if it's not intentional, you should change.");
