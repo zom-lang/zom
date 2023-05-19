@@ -77,6 +77,8 @@ pub fn main_loop(flags: Flags) {
         loop {
             let mut lexer = Lexer::new(&input, "<stdin>".to_string());
             let lexer_result = lexer.make_tokens();
+            
+            input.clear(); 
 
             let tokens = match lexer_result {
                 Ok(toks) => toks,
