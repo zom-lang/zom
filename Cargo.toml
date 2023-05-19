@@ -1,6 +1,6 @@
 [package]
 name = "mona"
-version = "0.0.0-dev"
+version = "0.1.0"
 edition = "2021"
 authors = ["Larsouille25"]
 description = "Mona is an interpreted programming language written in Rust. Run Mona code with the REPL or passing a source file."
