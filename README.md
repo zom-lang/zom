@@ -7,7 +7,7 @@ It's not fully implemented yet, but you can use it. After compiling Mona, run it
 
 ```
 $ ./mona
-Mona 0.0.0-dev, to exit enter `.quit`
+Mona 0.1.0-alpha, to exit enter `.quit`
 ~> 
 ``` 
 Type anything you want, if there is an error it'll show you like that for lexing errors: 
@@ -15,52 +15,51 @@ Type anything you want, if there is an error it'll show you like that for lexing
 ```
 Err: Lexer, in file `<stdin>` at line 1 :
  ... |
-  1  | 1 + 2 * a
+  1  | 1 + 2 * $
  ... |         ^
                Illegal Character
 ```
-Just keep in mind that for the moment, Mona can only lexer numbers and math operators like `+` `-` `/` `*`.
 
-By default when you type nothing shows up, it's normal you need to enable flags. By typing `./mona --help`, you will see a bunch of flags, by default the interpreter flag is enabled but if you want to see the result of the lexer add `-l` to the command, and if you want to also see the result of the parser you just need to add `-p`. The command will look like that `./mona -lp`.
+By default when you type nothing shows up, it's normal you need to enable flags. By typing `./mona --help`, you will see a bunch of flags, if you want to see the result of the lexer add `-l` to the command, and if you want to also see the result of the parser you just need to add `-p`. The command will look like that `./mona -lp`.
 
 e.g:
 
 ```
 $ ./mona
-Mona 0.0.0-dev, to exit enter `.quit`
+Mona 0.1.0-alpha, to exit enter `.quit`
 ~> (2 + 8) * 4
-[LParen, Int(2), Plus, Int(8), RParen, Mul, Int(4)]
+ Lexer : 
+[OpenParen, Int(2), Operator("+"), Int(8), CloseParen, Operator("*"), Int(4)]
 
-ParseNode {
-    children: [
-        ParseNode {
-            children: [
-                ParseNode {
-                    children: [],
-                    entry: Int(
+ Parser : 
+[
+    FunctionNode(
+        Function {
+            prototype: Prototype {
+                name: "",
+                args: [],
+            },
+            body: BinaryExpr(
+                "*",
+                BinaryExpr(
+                    "+",
+                    LiteralExpr(
                         2,
                     ),
-                },
-                ParseNode {
-                    children: [],
-                    entry: Int(
+                    LiteralExpr(
                         8,
                     ),
-                },
-            ],
-            entry: Plus,
-        },
-        ParseNode {
-            children: [],
-            entry: Int(
-                4,
+                ),
+                LiteralExpr(
+                    4,
+                ),
             ),
         },
-    ],
-    entry: Mul,
-}
+    ),
+]
+
 ```
-The ParseNode is the Mona AST and the vector is the vector that is passed to Mona
+The slice is the Mona AST and the vector is the vector that is passed to the parser of Mona.
 
 ## Work to be done :
 - [x] Lexer
