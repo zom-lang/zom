@@ -120,7 +120,7 @@ impl<'a> Lexer<'a> {
                 if dot_count > 1 {
                     break;
                 }
-            } else if ch.is_whitespace() {
+            } else if ch.is_whitespace() || Self::is_special_char(&ch) {
                 break;
             } else if !ch.is_numeric() {
                 is_numeric = false;
@@ -147,5 +147,19 @@ impl<'a> Lexer<'a> {
         };
 
         val
+    }
+
+    fn is_special_char(char: &char) -> bool {
+        match char {
+            '+' => true,
+            '-' => true,
+            '*' => true,
+            '/' => true,
+            '(' => true,
+            ')' => true,
+            ';' => true,
+            ',' => true,
+            _ => false
+        }
     }
 }
