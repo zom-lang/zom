@@ -150,16 +150,6 @@ impl<'a> Lexer<'a> {
     }
 
     fn is_special_char(char: &char) -> bool {
-        match char {
-            '+' => true,
-            '-' => true,
-            '*' => true,
-            '/' => true,
-            '(' => true,
-            ')' => true,
-            ';' => true,
-            ',' => true,
-            _ => false
-        }
+        matches!(char, '+' | '-' | '*' | '/' | '(' | ')' | ';' | ',')
     }
 }

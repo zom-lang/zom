@@ -27,13 +27,6 @@ fn main() {
                 .action(ArgAction::SetTrue)
                 .help("Show the result of the parser"),
         )
-        .arg(
-            Arg::new("interpreter")
-                .short('i')
-                .long("interpreter")
-                .action(ArgAction::SetTrue)
-                .help("Show the result of the interpreter. By default, set to true."),
-        )
         .get_matches();
 
     let file = matches.get_one::<String>("file");
@@ -41,7 +34,6 @@ fn main() {
     let mut flags = Flags::new(
         matches.get_flag("lexer"),
         matches.get_flag("parser"),
-        !matches.get_flag("interpreter"),
         matches.get_flag("verbose"),
     );
     println!("Mona {}, to exit enter `.quit`", env!("CARGO_PKG_VERSION"));
@@ -50,7 +42,6 @@ fn main() {
         println!("  You're in a debug binary, if it's not intentional, you should change.");
         flags.lexer = true;
         flags.parser = true;
-        flags.interpreter = true;
         flags.verbose = true;
     });
 
@@ -61,9 +52,6 @@ fn main() {
         }
         if flags.parser {
             print!("Parser,");
-        }
-        if flags.interpreter {
-            print!("Interpreter,");
         }
         if file.is_some() {
             print!("File `{}`,", file.unwrap())

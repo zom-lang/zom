@@ -13,16 +13,14 @@ pub mod token;
 pub struct Flags {
     pub lexer: bool,
     pub parser: bool,
-    pub interpreter: bool,
     pub verbose: bool,
 }
 
 impl Flags {
-    pub fn new(lexer: bool, parser: bool, interpreter: bool, verbose: bool) -> Flags {
+    pub fn new(lexer: bool, parser: bool, verbose: bool) -> Flags {
         Flags {
             lexer,
             parser,
-            interpreter,
             verbose,
         }
     }
