@@ -28,6 +28,18 @@ pub enum Expression {
 
 pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), String>;
 
+enum PartParsingResult<T> {
+    Good(T, Vec<Token>),
+    NotComplete,
+    Bad(String)
+}
+
+use PartParsingResult::*;
+
+fn error<T>(message : &str) -> PartParsingResult<T> {
+    Bad(message.to_string())
+}
+
 pub enum ParserSettings {}
 
 pub fn parse(tokens : &[Token], parsed_tree : &[ASTNode], settings : &mut ParserSettings) -> ParsingResult {
