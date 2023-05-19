@@ -178,7 +178,7 @@ fn parse_function(tokens : &mut Vec<Token>, settings : &mut ParserSettings) -> P
     let prototype = parse_try!(parse_prototype, tokens, settings, parsed_tokens);
     let body = parse_try!(parse_expr, tokens, settings, parsed_tokens);
 
-    Good(FunctionNode(Function{prototype: prototype, body: body}), parsed_tokens)
+    Good(FunctionNode(Function{prototype, body}), parsed_tokens)
 }
 
 fn parse_prototype(tokens : &mut Vec<Token>, _settings : &mut ParserSettings) -> PartParsingResult<Prototype> {
@@ -201,14 +201,14 @@ fn parse_prototype(tokens : &mut Vec<Token>, _settings : &mut ParserSettings) ->
         ] <= tokens, parsed_tokens, "expected ')' in prototype");
     }
 
-    Good(Prototype{name: name, args: args}, parsed_tokens)
+    Good(Prototype{name, args}, parsed_tokens)
 }
 
 fn parse_expression(tokens : &mut Vec<Token>, settings : &mut ParserSettings) -> PartParsingResult<ASTNode> {
     let mut parsed_tokens = Vec::new();
     let expression = parse_try!(parse_expr, tokens, settings, parsed_tokens);
     let prototype = Prototype{name: "".to_string(), args: vec![]};
-    let lambda = Function{prototype: prototype, body: expression};
+    let lambda = Function{prototype, body: expression};
     Good(FunctionNode(lambda), parsed_tokens)
 }
 
@@ -217,7 +217,7 @@ fn parse_primary_expr(tokens : &mut Vec<Token>, settings : &mut ParserSettings) 
         Some(&Ident(_)) => parse_ident_expr(tokens, settings),
         Some(&Int(_)) => parse_literal_expr(tokens, settings),
         Some(&OpenParen) => parse_parenthesis_expr(tokens, settings),
-        None => return NotComplete,
+        None => NotComplete,
         _ => error("unknow token when expecting an expression")
     }
 }
@@ -288,7 +288,7 @@ fn parse_binary_expr(tokens : &mut Vec<Token>, settings : &mut ParserSettings, e
         // continue until the current token is not an operator
         // or it is an operator with precedence lesser than expr_precedence
         let (operator, precedence) = match tokens.last() {
-            Some(&Operator(ref op)) => match settings.operator_precedence.get(op) {
+            Some(Operator(op)) => match settings.operator_precedence.get(op) {
                 Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
                 None => return error("unknown operator found"),
                 _ => break
@@ -304,8 +304,8 @@ fn parse_binary_expr(tokens : &mut Vec<Token>, settings : &mut ParserSettings, e
         // parse all the RHS operators until their precedence is
         // bigger than the current one
         loop {
-            let binary_rhs = match tokens.last().map(|i| {i.clone()}) {
-                Some(Operator(ref op)) => match settings.operator_precedence.get(op).map(|i| {*i}) {
+            let binary_rhs = match tokens.last().cloned() {
+                Some(Operator(ref op)) => match settings.operator_precedence.get(op).copied() {
                     Some(pr) if pr > precedence => {
                         parse_try!(parse_binary_expr, tokens, settings, parsed_tokens, pr, &rhs)
                     },
