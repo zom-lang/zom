@@ -266,7 +266,7 @@ fn parse_parenthesis_expr(tokens : &mut Vec<Token>, settings : &mut ParserSettin
     let expr = parse_try!(parse_expr, tokens, settings, parsed_tokens);
 
     expect_token!(
-        [ClosingParenthesis, ClosingParenthesis, ()] <= tokens,
+        [CloseParen, CloseParen, ()] <= tokens,
         parsed_tokens, "')' expected");
 
     Good(expr, parsed_tokens)
