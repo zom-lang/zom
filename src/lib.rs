@@ -1,7 +1,10 @@
 use std::error::Error;
 
 use lexer::Lexer;
-use parser::{ParseNode, Parser};
+use parser::{
+    ParseNode, 
+    // Parser
+};
 use token::Token;
 
 use crate::parser::print;
@@ -58,8 +61,9 @@ pub fn run(filename: String, text: String) -> Result<RunnerResult, Box<dyn Error
 
     let tokens = lexer.make_tokens()?;
 
-    let parser = Parser::new(tokens.clone()); // TODO: Try removing this .clone()
-    let node_tree = parser.parse()?;
+    // let parser = Parser::new(tokens.clone()); // TODO: Try removing this .clone()
+    // let node_tree = parser.parse()?;
+    let node_tree = ParseNode::new(token::GrammarItem::Int(10)); // TEMPORARY !!
 
     Ok(RunnerResult::new(tokens, node_tree))
 }
