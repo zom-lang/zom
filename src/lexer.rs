@@ -68,7 +68,7 @@ impl<'a> Lexer<'a> {
                 '(' => tokens.push(Token::OpenParen),
                 ')' => tokens.push(Token::CloseParen),
                 ';' => tokens.push(Token::Delimiter),
-                ',' => tokens.push(Token::Coma),
+                ',' => tokens.push(Token::Comma),
                 _ => {
                     if _ch.is_whitespace() {
                         continue;

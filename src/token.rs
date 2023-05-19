@@ -5,7 +5,7 @@ pub use Token::{
     OpenParen,
     CloseParen,
     Delimiter,
-    Coma,
+    Comma,
     Int,
     Float,
     Func,
@@ -22,7 +22,7 @@ pub enum Token {
     OpenParen, // means `open parentheis`
     CloseParen,// means `close parentheis`
     Delimiter, // ` ; ` character
-    Coma, // ` , ` character
+    Comma, // ` , ` character
 
     // Literals
     Int(i32),
