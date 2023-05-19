@@ -1,13 +1,9 @@
 use std::error::Error;
 
 use lexer::Lexer;
-use parser::{
-    ParseNode, 
-    // Parser
-};
+
 use token::Token;
 
-use crate::parser::print;
 
 pub mod error;
 pub mod lexer;
@@ -36,22 +32,19 @@ impl Flags {
 #[derive(Debug, Clone)]
 pub struct RunnerResult {
     lexer_result: Vec<Token>,
-    parse_result: ParseNode,
 }
 
 impl RunnerResult {
-    pub fn new(lexer_result: Vec<Token>, parse_result: ParseNode) -> RunnerResult {
+    pub fn new(lexer_result: Vec<Token>) -> RunnerResult {
         RunnerResult {
             lexer_result,
-            parse_result,
         }
     }
 
     pub fn print_res(&self, flags: Flags) {
         flags.lexer.then(|| println!(" Lexer : \n{:?}\n", self.lexer_result));
         flags.parser.then(|| {
-            println!(" Parser : \n{:#?}\n", self.parse_result);
-            println!(" {}", print(&self.parse_result));
+            // things here
         });
     }
 }
@@ -61,9 +54,5 @@ pub fn run(filename: String, text: String) -> Result<RunnerResult, Box<dyn Error
 
     let tokens = lexer.make_tokens()?;
 
-    // let parser = Parser::new(tokens.clone()); // TODO: Try removing this .clone()
-    // let node_tree = parser.parse()?;
-    let node_tree = ParseNode::new(token::GrammarItem::Int(10)); // TEMPORARY !!
-
-    Ok(RunnerResult::new(tokens, node_tree))
+    Ok(RunnerResult::new(tokens))
 }
