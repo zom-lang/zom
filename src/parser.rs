@@ -1,3 +1,4 @@
+use crate::Token;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum ASTNode {
@@ -23,4 +24,12 @@ pub enum Expression {
     VariableExpr(String),
     BinaryExpr(String, Box<Expression>, Box<Expression>),
     CallExpr(String, Vec<Expression>)
+}
+
+pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), String>;
+
+pub enum ParserSettings {}
+
+pub fn parse(tokens : &[Token], parsed_tree : &[ASTNode], settings : &mut ParserSettings) -> ParsingResult {
+    todo!();
 }

@@ -1,9 +1,7 @@
 use std::error::Error;
 
 use lexer::Lexer;
-
 use token::Token;
-
 
 pub mod error;
 pub mod lexer;
