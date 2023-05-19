@@ -1,5 +1,4 @@
-use mona::{run, Flags};
-use std::io::{self, Write};
+use mona::driver::{Flags, main_loop};
 
 use clap::{command, Arg, ArgAction};
 
@@ -59,37 +58,7 @@ fn main() {
         println!();
     }
 
-    let mut input_buf = String::new();
-    loop {
-        print!("~> ");
-        io::stdout().flush().unwrap();
+    main_loop(flags);
 
-        match io::stdin().read_line(&mut input_buf) {
-            Ok(_len) => {}
-            Err(err) => {
-                println!("ERR: {}", err);
-                continue;
-            }
-        }
-        input_buf = String::from(input_buf.trim());
-
-        //TODO: Add the possibility to safely quit mona with Ctrl + C.
-        if input_buf.as_str() == ".quit" {
-            break;
-        }
-
-        let result = run("<stdin>".to_string(), input_buf);
-
-        match result {
-            Ok(res) => {
-                res.print_res(flags);
-            }
-            Err(err) => {
-                eprintln!("{}", err);
-            }
-        }
-
-        input_buf = String::new();
-    }
     println!("\n See you soon! ;)");
 }

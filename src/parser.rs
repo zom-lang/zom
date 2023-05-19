@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::Token;
+use crate::token::Token;
 use crate::token::*;
 
 pub use self::ASTNode::{
