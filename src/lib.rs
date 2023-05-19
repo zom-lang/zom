@@ -2,6 +2,7 @@ use std::error::Error;
 
 use lexer::Lexer;
 use token::Token;
+use parser::{parse, ParserSettings, ASTNode};
 
 pub mod error;
 pub mod lexer;
@@ -29,20 +30,22 @@ impl Flags {
 
 #[derive(Debug, Clone)]
 pub struct RunnerResult {
-    lexer_result: Vec<Token>,
+    tokens: Vec<Token>,
+    ast: Vec<ASTNode>,
 }
 
 impl RunnerResult {
-    pub fn new(lexer_result: Vec<Token>) -> RunnerResult {
+    pub fn new(tokens: Vec<Token>, ast: Vec<ASTNode>) -> RunnerResult {
         RunnerResult {
-            lexer_result,
+            tokens,
+            ast,
         }
     }
 
     pub fn print_res(&self, flags: Flags) {
-        flags.lexer.then(|| println!(" Lexer : \n{:?}\n", self.lexer_result));
+        flags.lexer.then(|| println!(" Lexer : \n{:?}\n", self.tokens));
         flags.parser.then(|| {
-            // things here
+            println!(" Parser : \n{:?}", self.ast);
         });
     }
 }
@@ -52,5 +55,7 @@ pub fn run(filename: String, text: String) -> Result<RunnerResult, Box<dyn Error
 
     let tokens = lexer.make_tokens()?;
 
-    Ok(RunnerResult::new(tokens))
+    let (ast, _tokens) = parse(tokens.as_slice(), Vec::new().as_slice(), &mut ParserSettings::default())?;
+
+    Ok(RunnerResult::new(tokens, ast))
 }
