@@ -4,7 +4,6 @@ use std::str::Chars;
 
 use crate::error::lexer::IllegalCharError;
 use crate::error::Position;
-use crate::error::*;
 use crate::token::Token;
 
 #[derive(Debug)]
@@ -44,17 +43,10 @@ impl<'a> Lexer<'a> {
         while let Some((mut _idx, mut _ch)) = self.iter.as_mut().unwrap().next() {
             self.pos = _idx;
             match _ch {
-                '0'..='9' | '.' | 'A'..='z'=> {
-                    let num = Self::make_number(
+                '0'..='9' | '.' => {
+                    let num = Self::make_toks(
                         &self.text,
                         self.pos,
-                        Position::new(
-                            self.pos as u32,
-                            self.line,
-                            self.pos as u32,
-                            self.filename.clone(),
-                            self.text.clone(),
-                        ),
                     )?;
 
 
@@ -78,28 +70,11 @@ impl<'a> Lexer<'a> {
                 ')' => tokens.push(Token::CloseParen),
                 ';' => tokens.push(Token::Delimiter),
                 ',' => tokens.push(Token::Coma),
-                'A'..='z'  => {
-                    let word = Self::make_keyword(
-                        &self.text,
-                        self.pos
-                    )?;
-                    let (tok, new_pos) = word;
-                    for _ in 0..(new_pos.0 - 1) {
-                        (_idx, _ch) = self
-                            .iter
-                            .as_mut()
-                            .unwrap()
-                            .next()
-                            .expect("ERR: running out of bounds")
-                    }
-                    tokens.push(tok);
-                }
                 _ => {
                     if _ch.is_whitespace() {
                         continue;
                     }
-                    
-                        
+                     
                     return Err(Box::new(IllegalCharError::new(Position::new(
                         _idx as u32,
                         self.line,
@@ -124,16 +99,12 @@ impl<'a> Lexer<'a> {
         None
     }
 
-    /// This return a tuple (Token, usize) where Token is either
-    /// Token::Int(x) with x as an i32 or
-    /// Token::Float(x) with x as an f32
-    /// and usize is the lenght of the number
-    pub fn make_number(
+    /// This function make tokens that is multiple character long.
+    pub fn make_toks(
         text: &str,
         pos: usize,
-        position: Position,
     ) -> Result<(Token, (usize, char)), Box<dyn Error>> {
-        let mut num_str = String::new();
+        let mut key_str = String::new();
         let mut dot_count = 0;
         let mut pos: usize = pos;
         let mut curr_char: Option<char> = Self::set_current_char(text, pos);
@@ -147,63 +118,37 @@ impl<'a> Lexer<'a> {
             } else if !ch.is_numeric() {
                 break;
             }
-            num_str.push(ch);
-            pos += 1;
-            curr_char = Self::set_current_char(text, pos);
-        }
-
-        curr_char = Self::set_current_char(text, pos - 1);
-
-        if dot_count == 0 {
-            match num_str.parse() {
-                Ok(val) => Ok((Token::Int(val), (num_str.len(), curr_char.unwrap()))),
-                Err(err) => Err(Box::new(GeneralError::new(
-                    "Parse Int Error".to_string(),
-                    ErrorKind::Lexer,
-                    err.to_string(),
-                    position,
-                ))),
-            }
-        } else {
-            match num_str.parse() {
-                Ok(val) => Ok((Token::Float(val), (num_str.len(), curr_char.unwrap()))),
-                Err(err) => Err(Box::new(GeneralError::new(
-                    "Parse Float Error".to_string(),
-                    ErrorKind::Lexer,
-                    err.to_string(),
-                    position,
-                ))),
-            }
-        }
-    }
-
-    /// This return a tuple (Token, usize) where Token is either
-    /// Token::Int(x) with x as an i32 or
-    /// Token::Float(x) with x as an f32
-    /// and usize is the lenght of the number
-    pub fn make_keyword(
-        text: &str,
-        pos: usize,
-    ) -> Result<(Token, (usize, char)), Box<dyn Error>> {
-        let mut key_str = String::new();
-        let mut pos: usize = pos;
-        let mut curr_char: Option<char> = Self::set_current_char(text, pos);
-
-        while let Some(ch) = curr_char {
-            if ch.is_whitespace() && !ch.is_alphanumeric() {
-                break;
-            }
             key_str.push(ch);
             pos += 1;
             curr_char = Self::set_current_char(text, pos);
         }
 
         curr_char = Self::set_current_char(text, pos - 1);
-        
+
+        let res;
+        if dot_count == 0 {
+            match key_str.parse() {
+                Ok(val) => { 
+                    res = Ok((Token::Int(val), (key_str.len(), curr_char.unwrap())));
+                    return res;
+                }
+                Err(_) => {}
+            }
+        } else {
+            match key_str.parse() {
+                Ok(val) => { 
+                    res = Ok((Token::Float(val), (key_str.len(), curr_char.unwrap())));
+                    return res;
+                }
+                Err(_) => {}
+            }
+        }
+
         match key_str.as_str() {
-            "func" => Ok((Token::Func, (key_str.len(), curr_char.unwrap()))),
-            "extern" => Ok((Token::Extern, (key_str.len(), curr_char.unwrap()))),
-            _ => Ok((Token::Ident(key_str.clone()), (key_str.len(), curr_char.unwrap())))
-        }        
+            "func" => res = Ok((Token::Func, (key_str.len(), curr_char.unwrap()))),
+            "extern" => res = Ok((Token::Extern, (key_str.len(), curr_char.unwrap()))),
+            _ => res = Ok((Token::Ident(key_str.clone()), (key_str.len(), curr_char.unwrap()))),
+        }
+        res
     }
 }
