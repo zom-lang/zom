@@ -44,10 +44,7 @@ impl<'a> Lexer<'a> {
             self.pos = _idx;
             match _ch {
                 '0'..='9' | '.' | 'A'..='z' => {
-                    let num = Self::make_word(
-                        &self.text,
-                        self.pos,
-                    )?;
+                    let num = Self::make_word(&self.text, self.pos)?;
 
                     let (tok, new_pos) = num;
 
@@ -99,15 +96,12 @@ impl<'a> Lexer<'a> {
 
     /// The name of the function isn't very appropriate but this is what this is.
     /// This function take the text (code) and a position.
-    /// 
-    /// This return a Result -> 
+    ///
+    /// This return a Result ->
     ///     The token, can be if it's only a int or float, a Token::Float or Int with the correct inner value,
     ///                or if it's not numeric, that returns either Token::Func or Token::Extern if that match with the keyword,
     ///                or if nothing is "true" that returns a Token::Ident
-    pub fn make_word(
-        text: &str,
-        pos: usize,
-    ) -> Result<(Token, (usize, char)), Box<dyn Error>> {
+    pub fn make_word(text: &str, pos: usize) -> Result<(Token, (usize, char)), Box<dyn Error>> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut pos: usize = pos;
@@ -124,7 +118,7 @@ impl<'a> Lexer<'a> {
                 break;
             } else if !ch.is_numeric() {
                 is_numeric = false;
-            } 
+            }
             num_str.push(ch);
             pos += 1;
             curr_char = Self::set_current_char(text, pos);
@@ -134,15 +128,24 @@ impl<'a> Lexer<'a> {
 
         let val = if is_numeric {
             if dot_count == 0 {
-                Ok((Token::Int(num_str.parse()?), (num_str.len(), curr_char.unwrap())))
-            }else {
-                Ok((Token::Float(num_str.parse()?), (num_str.len(), curr_char.unwrap())))
+                Ok((
+                    Token::Int(num_str.parse()?),
+                    (num_str.len(), curr_char.unwrap()),
+                ))
+            } else {
+                Ok((
+                    Token::Float(num_str.parse()?),
+                    (num_str.len(), curr_char.unwrap()),
+                ))
             }
-        }else {
+        } else {
             match num_str.as_str() {
                 "func" => Ok((Token::Func, (num_str.len(), curr_char.unwrap()))),
                 "extern" => Ok((Token::Extern, (num_str.len(), curr_char.unwrap()))),
-                _ => Ok((Token::Ident(num_str.clone()), (num_str.len(), curr_char.unwrap())))
+                _ => Ok((
+                    Token::Ident(num_str.clone()),
+                    (num_str.len(), curr_char.unwrap()),
+                )),
             }
         };
 

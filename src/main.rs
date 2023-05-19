@@ -1,4 +1,4 @@
-use mona::driver::{Flags, main_loop};
+use mona::driver::{main_loop, Flags};
 
 use clap::{command, Arg, ArgAction};
 

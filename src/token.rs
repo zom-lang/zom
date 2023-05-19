@@ -1,16 +1,7 @@
 use std::fmt;
 
 pub use Token::{
-    Operator,
-    OpenParen,
-    CloseParen,
-    Delimiter,
-    Comma,
-    Int,
-    Float,
-    Func,
-    Extern,
-    Ident,
+    CloseParen, Comma, Delimiter, Extern, Float, Func, Ident, Int, OpenParen, Operator,
 };
 
 #[derive(Debug, PartialEq, Clone)]
@@ -19,10 +10,10 @@ pub enum Token {
     Operator(String),
 
     // Separators
-    OpenParen, // means `open parentheis`
-    CloseParen,// means `close parentheis`
-    Delimiter, // ` ; ` character
-    Comma, // ` , ` character
+    OpenParen,  // means `open parentheis`
+    CloseParen, // means `close parentheis`
+    Delimiter,  // ` ; ` character
+    Comma,      // ` , ` character
 
     // Literals
     Int(i32),
@@ -33,7 +24,7 @@ pub enum Token {
     Extern,
 
     // Identifier
-    Ident(String) // Identifier is a alphanumeric string
+    Ident(String), // Identifier is a alphanumeric string
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -54,14 +45,12 @@ impl TryFrom<Token> for GrammarItem {
 
     fn try_from(value: Token) -> Result<Self, Self::Error> {
         match value {
-            Token::Operator(c) => {
-                match c.as_str() {
-                    "+" => Ok(Self::Sum),
-                    "-" => Ok(Self::Sub),
-                    "*" => Ok(Self::Product),
-                    "/" => Ok(Self::Quotient),
-                    _ => Err(format!("The `{c}` is not an operator!"))
-                }
+            Token::Operator(c) => match c.as_str() {
+                "+" => Ok(Self::Sum),
+                "-" => Ok(Self::Sub),
+                "*" => Ok(Self::Product),
+                "/" => Ok(Self::Quotient),
+                _ => Err(format!("The `{c}` is not an operator!")),
             },
 
             Token::OpenParen | Token::CloseParen => Ok(Self::Paren),
@@ -69,7 +58,7 @@ impl TryFrom<Token> for GrammarItem {
             Token::Int(v) => Ok(Self::Int(v)),
             Token::Float(v) => Ok(Self::Float(v)),
 
-            _ => Err("Not implemented yet.".to_string())
+            _ => Err("Not implemented yet.".to_string()),
         }
     }
 }

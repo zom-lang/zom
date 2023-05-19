@@ -1,6 +1,10 @@
 use std::io::{self, Write};
 
-use crate::{parser::{ParserSettings, parse, ASTNode}, lexer::Lexer, token::Token};
+use crate::{
+    lexer::Lexer,
+    parser::{parse, ASTNode, ParserSettings},
+    token::Token,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Flags {
@@ -27,14 +31,13 @@ pub struct RunnerResult {
 
 impl RunnerResult {
     pub fn new(tokens: Vec<Token>, ast: Vec<ASTNode>) -> RunnerResult {
-        RunnerResult {
-            tokens,
-            ast,
-        }
+        RunnerResult { tokens, ast }
     }
 
     pub fn print(&self, flags: Flags) {
-        flags.lexer.then(|| println!(" Lexer : \n{:?}\n", self.tokens));
+        flags
+            .lexer
+            .then(|| println!(" Lexer : \n{:?}\n", self.tokens));
         flags.parser.then(|| {
             println!(" Parser : \n{:#?}", self.ast);
         });
@@ -45,7 +48,6 @@ pub fn main_loop(flags: Flags) {
     let mut stdout = io::stdout();
     let mut input = String::new();
     let mut parser_settings = ParserSettings::default();
-
 
     'main: loop {
         print!("~> ");
@@ -77,12 +79,10 @@ pub fn main_loop(flags: Flags) {
             let lexer_result = lexer.make_tokens();
 
             let tokens = match lexer_result {
-                Ok(toks) => {
-                    toks
-                },
+                Ok(toks) => toks,
                 Err(err) => {
                     eprintln!("{}", err);
-                    continue 'main
+                    continue 'main;
                 }
             };
 
@@ -97,14 +97,14 @@ pub fn main_loop(flags: Flags) {
                     ast.extend(parsed_ast.clone().into_iter());
                     if rest.is_empty() {
                         res.ast = parsed_ast;
-                        break
+                        break;
                     } else {
                         prev = rest;
                     }
-                },
+                }
                 Err(message) => {
                     println!("Err: {}", message);
-                    continue 'main
+                    continue 'main;
                 }
             }
         }
