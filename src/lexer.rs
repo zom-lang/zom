@@ -1,30 +1,30 @@
 use std::error::Error;
-use std::iter::Enumerate;
-use std::str::Chars;
 
-use crate::error::lexer::IllegalCharError;
-use crate::error::Position;
+// use crate::error::lexer::IllegalCharError;
+// use crate::error::Position;
 use crate::token::Token;
 
+macro_rules! regex {
+    ($re:expr) => {
+        ::regex::Regex::new($re).unwrap()
+    };
+}
+
 #[derive(Debug)]
-pub struct Lexer<'a> {
+pub struct Lexer {
     text: String,
     pos: usize, // position in the text
     current_char: Option<char>,
-    iter: Option<Enumerate<Chars<'a>>>,
-    line: u32,
-    filename: String,
+    _filename: String,
 }
 
-impl<'a> Lexer<'a> {
-    pub fn new(text: &String, filename: String) -> Lexer {
+impl Lexer {
+    pub fn new(text: &String, _filename: String) -> Lexer {
         Lexer {
             text: text.to_string(),
             pos: 0,
             current_char: None,
-            iter: None,
-            line: 1,
-            filename,
+            _filename,
         }
     }
 
@@ -35,124 +35,49 @@ impl<'a> Lexer<'a> {
         self.current_char.unwrap()
     }
 
-    pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Box<dyn Error>> {
-        let mut tokens = Vec::new();
+    pub fn make_tokens(&mut self) -> Result<Vec<Token>, Box<dyn Error>> {
+        // regex for commentaries (start with #, end with the line end)
+        let comment_re = regex!(r"(?m)//.*\n");
+        // remove commentaries from the input stream
+        let preprocessed = comment_re.replace_all(self.text.as_str(), "\n");
 
-        self.iter = Some(self.text.chars().enumerate());
+        let mut result = Vec::new();
 
-        while let Some((mut _idx, mut _ch)) = self.iter.as_mut().unwrap().next() {
-            self.pos = _idx;
-            match _ch {
-                '0'..='9' | '.' | 'A'..='z' => {
-                    let num = Self::make_word(&self.text, self.pos)?;
+        // regex for token, just union of straightforward regexes for different token types
+        // operators are parsed the same way as identifier and separated later
+        let token_re = regex!(concat!(
+            r"(?P<ident>\p{Alphabetic}\w*)|",
+            r"(?P<number>\d+\.?\d*)|",
+            r"(?P<delimiter>;)|",
+            r"(?P<oppar>\()|",
+            r"(?P<clpar>\))|",
+            r"(?P<comma>,)|",
+            r"(?P<operator>\S)"));
 
-                    let (tok, new_pos) = num;
-
-                    for _ in 0..(new_pos.0 - 1) {
-                        (_idx, _ch) = self
-                            .iter
-                            .as_mut()
-                            .unwrap()
-                            .next()
-                            .expect("ERR: running out of bounds")
-                    }
-                    tokens.push(tok);
+        for cap in token_re.captures_iter(preprocessed.to_string().as_str()) {
+            let token = if cap.name("ident").is_some() {
+                match &cap["ident"] {
+                    "func" => Token::Func,
+                    "extern" => Token::Extern,
+                    ident => Token::Ident(ident.to_string())
                 }
-                '+' => tokens.push(Token::Operator("+".to_string())),
-                '-' => tokens.push(Token::Operator("-".to_string())),
-                '*' => tokens.push(Token::Operator("*".to_string())),
-                '/' => tokens.push(Token::Operator("/".to_string())),
-                '(' => tokens.push(Token::OpenParen),
-                ')' => tokens.push(Token::CloseParen),
-                ';' => tokens.push(Token::Delimiter),
-                ',' => tokens.push(Token::Comma),
-                _ => {
-                    if _ch.is_whitespace() {
-                        continue;
-                    }
-                    return Err(Box::new(IllegalCharError::new(Position::new(
-                        _idx as u32,
-                        self.line,
-                        _idx as u32,
-                        self.filename.clone(), //TODO: Try to remove .clone()
-                        self.text.clone(),
-                    ))));
-                }
-            }
-        }
-
-        Ok(tokens)
-    }
-
-    fn set_current_char(text: &str, pos: usize) -> Option<char> {
-        // TODO: rewrite this function I think it's not very efficient ...
-        for (i, c) in text.chars().enumerate() {
-            if i == pos {
-                return Some(c);
-            }
-        }
-        None
-    }
-
-    /// The name of the function isn't very appropriate but this is what this is.
-    /// This function take the text (code) and a position.
-    ///
-    /// This return a Result ->
-    ///     The token, can be if it's only a int or float, a Token::Float or Int with the correct inner value,
-    ///                or if it's not numeric, that returns either Token::Func or Token::Extern if that match with the keyword,
-    ///                or if nothing is "true" that returns a Token::Ident
-    pub fn make_word(text: &str, pos: usize) -> Result<(Token, (usize, char)), Box<dyn Error>> {
-        let mut num_str = String::new();
-        let mut dot_count = 0;
-        let mut pos: usize = pos;
-        let mut curr_char: Option<char> = Self::set_current_char(text, pos);
-        let mut is_numeric = true;
-
-        while let Some(ch) = curr_char {
-            if ch == '.' {
-                dot_count += 1;
-                if dot_count > 1 {
-                    break;
-                }
-            } else if ch.is_whitespace() || Self::is_special_char(&ch) {
-                break;
-            } else if !ch.is_numeric() {
-                is_numeric = false;
-            }
-            num_str.push(ch);
-            pos += 1;
-            curr_char = Self::set_current_char(text, pos);
-        }
-
-        curr_char = Self::set_current_char(text, pos - 1);
-
-        let val = if is_numeric {
-            if dot_count == 0 {
-                Ok((
-                    Token::Int(num_str.parse()?),
-                    (num_str.len(), curr_char.unwrap()),
-                ))
+            } else if cap.name("number").is_some() {
+                Token::Int(cap["number"].parse().expect("Lexer wasn't able to successfully parse the number."))
+            } else if cap.name("delimiter").is_some() {
+                Token::Delimiter
+            } else if cap.name("oppar").is_some() {
+                Token::OpenParen
+            } else if cap.name("clpar").is_some() {
+                Token::CloseParen
+            } else if cap.name("comma").is_some() {
+                Token::Comma
             } else {
-                Ok((
-                    Token::Float(num_str.parse()?),
-                    (num_str.len(), curr_char.unwrap()),
-                ))
-            }
-        } else {
-            match num_str.as_str() {
-                "func" => Ok((Token::Func, (num_str.len(), curr_char.unwrap()))),
-                "extern" => Ok((Token::Extern, (num_str.len(), curr_char.unwrap()))),
-                _ => Ok((
-                    Token::Ident(num_str.clone()),
-                    (num_str.len(), curr_char.unwrap()),
-                )),
-            }
-        };
+                Token::Operator(cap["operator"].to_string())
+            };
 
-        val
-    }
+            result.push(token)
+        }
 
-    fn is_special_char(char: &char) -> bool {
-        matches!(char, '+' | '-' | '*' | '/' | '(' | ')' | ';' | ',')
+        Ok(result)
     }
 }
