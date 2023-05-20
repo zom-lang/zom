@@ -10,6 +10,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 clap = { version = "4.2.7", features = ["derive", "cargo"] }
+regex = "1.8.1"
 
 [dev-dependencies]
 criterion = "0.4.0"
