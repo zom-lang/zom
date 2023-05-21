@@ -13,6 +13,7 @@ pub struct Lexer<'a> {
     current_char: Option<char>,
     iter: Option<Enumerate<Chars<'a>>>,
     line: u32,
+    column: usize,
     filename: String,
 }
 
@@ -24,6 +25,7 @@ impl<'a> Lexer<'a> {
             current_char: None,
             iter: None,
             line: 1,
+            column: 0,
             filename,
         }
     }
@@ -46,6 +48,8 @@ impl<'a> Lexer<'a> {
                 '0'..='9' | '.' | 'A'..='z' => {
                     let num = Self::make_word(&self.text, self.pos)?;
 
+                    self.column += num.1.0;
+
                     let (tok, new_pos) = num;
 
                     for _ in 0..(new_pos.0 - 1) {
@@ -66,6 +70,10 @@ impl<'a> Lexer<'a> {
                 ')' => tokens.push(Token::CloseParen),
                 ';' => tokens.push(Token::Delimiter),
                 ',' => tokens.push(Token::Comma),
+                '\n' => {
+                    self.line += 1;
+                    self.column = 0;
+                }
                 _ => {
                     if _ch.is_whitespace() {
                         continue;
@@ -73,12 +81,17 @@ impl<'a> Lexer<'a> {
                     return Err(Box::new(IllegalCharError::new(Position::new(
                         _idx as u32,
                         self.line,
-                        _idx as u32,
+                        if self.line == 1 {
+                            self.column as u32
+                        }else {
+                            self.column as u32 - 1
+                        },
                         self.filename.clone(), //TODO: Try to remove .clone()
                         self.text.clone(),
                     ))));
                 }
             }
+            self.column += 1;
         }
 
         Ok(tokens)

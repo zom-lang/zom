@@ -60,7 +60,6 @@ pub fn main_loop(flags: Flags) {
                 continue;
             }
         }
-        input = String::from(input);
 
         if input.as_str() == ".quit\n" {
             break;
