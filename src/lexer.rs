@@ -48,7 +48,7 @@ impl<'a> Lexer<'a> {
                 '0'..='9' | '.' | 'A'..='z' => {
                     let num = Self::make_word(&self.text, self.pos)?;
 
-                    self.column += num.1.0;
+                    self.column += num.1 .0;
 
                     let (tok, new_pos) = num;
 
@@ -83,7 +83,7 @@ impl<'a> Lexer<'a> {
                         self.line,
                         if self.line == 1 {
                             self.column as u32
-                        }else {
+                        } else {
                             self.column as u32 - 1
                         },
                         self.filename.clone(), //TODO: Try to remove .clone()
