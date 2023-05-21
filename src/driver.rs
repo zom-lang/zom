@@ -60,25 +60,42 @@ pub fn main_loop(flags: Flags) {
                 continue;
             }
         }
-        input = String::from(input.trim());
 
-        //TODO: Add the possibility to safely quit mona with Ctrl + C.
-        if input.as_str() == ".quit" {
+        if input.as_str() == ".quit\n" {
             break;
         }
 
         // the constructed AST
         let mut ast = Vec::new();
-        // tokens left from the previous lines
-        let mut prev = Vec::new();
 
         let mut res = RunnerResult::default();
 
         loop {
+            let mut buf = String::new();
+            print!(" > ");
+            stdout.flush().unwrap();
+
+            match stdin.read_line(&mut buf) {
+                Ok(_len) => {
+                    if buf.as_str() == ".eof\n" {
+                        break;
+                    } else if buf.as_str() == ".quit\n" {
+                        break 'main;
+                    }
+                    input.push_str(buf.as_str());
+                }
+                Err(err) => {
+                    println!("ERR: {}", err);
+                    continue;
+                }
+            }
+        }
+
+        loop {
             let mut lexer = Lexer::new(&input, "<stdin>".to_string());
             let lexer_result = lexer.make_tokens();
-            
-            input.clear(); 
+
+            input.clear();
 
             let tokens = match lexer_result {
                 Ok(toks) => toks,
@@ -87,8 +104,6 @@ pub fn main_loop(flags: Flags) {
                     continue 'main;
                 }
             };
-
-            prev.extend(tokens.clone().into_iter());
 
             let parsing_result = parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings);
 
@@ -100,8 +115,6 @@ pub fn main_loop(flags: Flags) {
                     if rest.is_empty() {
                         res.ast = parsed_ast;
                         break;
-                    } else {
-                        prev = rest;
                     }
                 }
                 Err(message) => {
@@ -110,6 +123,7 @@ pub fn main_loop(flags: Flags) {
                 }
             }
         }
+
         stdout.flush().unwrap();
         input.clear();
         res.print(flags);

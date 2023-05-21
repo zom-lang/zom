@@ -1,20 +1,16 @@
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use mona::lexer::Lexer;
-use criterion::{
-    black_box,
-    criterion_group,
-    criterion_main,
-    Criterion
-};
 
 fn simple_lexer_benchmark(c: &mut Criterion) {
-    c.bench_function(
-        "lexer 1 + 1",
-        |b| b.iter(|| {
+    c.bench_function("lexer 1 + 1", |b| {
+        b.iter(|| {
             let text = black_box(String::from("1 + 1"));
             let mut lexer = Lexer::new(&text, "<benches>".to_string());
-            lexer.make_tokens().expect("An error was occured when benchmarking `simple_lexer_benchmark`.");
+            lexer
+                .make_tokens()
+                .expect("An error was occured when benchmarking `simple_lexer_benchmark`.");
         })
-    );
+    });
 }
 
 fn lex_func_benchmark(c: &mut Criterion) {
@@ -28,7 +24,7 @@ fn lex_func_benchmark(c: &mut Criterion) {
     );
 }
 
-criterion_group!{
+criterion_group! {
     name = benches;
     config = Criterion::default();
     targets = simple_lexer_benchmark, lex_func_benchmark
