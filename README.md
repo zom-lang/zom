@@ -68,9 +68,34 @@ The slice is the Mona AST and the vector is the vector that is passed to the par
 - [x] Make a good [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)
 - [ ] a JIT with LLVM ?
 - [ ] Optimization and cleaning
-- [ ] A good error system for the parser and the interpreter / JIT -> https://github.com/Larsouille25/mona/issues/4
+- [ ] A good error system for the parser and the JIT -> #4
 - [ ] Implement the docs ;)
 - [ ] A AOT compiler ?!...
+
+## Source layout:
+```
+Cargo.toml         - Manifest for Cargo, where version, doc link, dependencies etc is 
+LICENSE-APACHE     - The Apache-2.0 license of Mona
+LICENSE-MIT        - The MIT license of Mona
+
+src/               The source code folder
+src/main.rs        - Entry of the binary
+src/driver.rs      - The logic behind the REPL
+src/lib.rs         - Where modules are declared
+src/error.rs       - Common functions that error structs use 
+src/error/         - Parser, Lexer, Runtime error for Mona
+src/lexer.rs       - Lexing logic
+src/parser.rs      - Parsing occurs here
+src/token.rs       - Tokens of Mona
+
+docs/              The documentation of Mona
+docs/grammar.md    - Grammar of Mona
+docs/syntax.md     - Syntax of Mona
+
+benches/           The benchmarks of every component of Mona
+benches/lexer_benchmark.rs      - Lexer benchmarks
+benches/parser_benchmark.rs     - Parser benchmarks
+```
 
 ## License
 
