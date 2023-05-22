@@ -91,36 +91,33 @@ pub fn main_loop(flags: Flags) {
             }
         }
 
-        loop {
-            let mut lexer = Lexer::new(&input, "<stdin>".to_string());
-            let lexer_result = lexer.make_tokens();
+        let mut lexer = Lexer::new(&input, "<stdin>".to_string());
+        let lexer_result = lexer.make_tokens();
 
-            input.clear();
+        input.clear();
 
-            let tokens = match lexer_result {
-                Ok(toks) => toks,
-                Err(err) => {
-                    eprintln!("{}", err);
-                    continue 'main;
+        let tokens = match lexer_result {
+            Ok(toks) => toks,
+            Err(err) => {
+                eprintln!("{}", err);
+                continue 'main;
+            }
+        };
+
+        let parsing_result = parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings);
+
+        res.tokens = tokens;
+
+        match parsing_result {
+            Ok((parsed_ast, rest)) => {
+                ast.extend(parsed_ast.clone().into_iter());
+                if rest.is_empty() {
+                    res.ast = parsed_ast;
                 }
-            };
-
-            let parsing_result = parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings);
-
-            res.tokens = tokens;
-
-            match parsing_result {
-                Ok((parsed_ast, rest)) => {
-                    ast.extend(parsed_ast.clone().into_iter());
-                    if rest.is_empty() {
-                        res.ast = parsed_ast;
-                        break;
-                    }
-                }
-                Err(message) => {
-                    println!("Err: {}", message);
-                    continue 'main;
-                }
+            }
+            Err(message) => {
+                println!("Err: {}", message);
+                continue 'main;
             }
         }
 
