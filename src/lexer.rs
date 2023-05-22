@@ -81,6 +81,7 @@ impl<'a> Lexer<'a> {
                     return Err(Box::new(IllegalCharError::new(Position::new(
                         _idx as u32,
                         self.line,
+                        // TODO: Find a way to remove this magic if
                         if self.line == 1 {
                             self.column as u32
                         } else {
@@ -127,7 +128,7 @@ impl<'a> Lexer<'a> {
                 if dot_count > 1 {
                     break;
                 }
-            } else if ch.is_whitespace() || Self::is_special_char(&ch) {
+            } else if ch.is_whitespace() || !ch.is_alphanumeric() {
                 break;
             } else if !ch.is_numeric() {
                 is_numeric = false;
@@ -163,9 +164,5 @@ impl<'a> Lexer<'a> {
         };
 
         val
-    }
-
-    fn is_special_char(char: &char) -> bool {
-        matches!(char, '+' | '-' | '*' | '/' | '(' | ')' | ';' | ',')
     }
 }
