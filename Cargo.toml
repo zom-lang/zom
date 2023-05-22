@@ -16,9 +16,9 @@ clap = { version = "4.2.7", features = ["derive", "cargo"] }
 criterion = "0.4.0"
 
 [[bench]]
-name = "lexer_benchmark"
+name = "lexer_bench"
 harness = false
 
 [[bench]]
-name = "parser_benchmark"
+name = "parser_bench"
 harness = false
