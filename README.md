@@ -74,27 +74,31 @@ The slice is the Mona AST and the vector is the vector that is passed to the par
 
 ## Source layout:
 ```
-Cargo.toml         - Manifest for Cargo, where version, doc link, dependencies etc is 
-LICENSE-APACHE     - The Apache-2.0 license of Mona
-LICENSE-MIT        - The MIT license of Mona
+Cargo.toml               - Manifest for Cargo, where version, doc link, dependencies etc is 
+LICENSE-APACHE           - The Apache-2.0 license of Mona
+LICENSE-MIT              - The MIT license of Mona
 
 src/               The source code folder
-src/main.rs        - Entry of the binary
-src/driver.rs      - The logic behind the REPL
-src/lib.rs         - Where modules are declared
-src/error.rs       - Common functions that error structs use 
-src/error/         - Parser, Lexer, Runtime error for Mona
-src/lexer.rs       - Lexing logic
-src/parser.rs      - Parsing occurs here
-src/token.rs       - Tokens of Mona
+src/main.rs              - Entry of the binary
+src/driver.rs            - The logic behind the REPL
+src/lib.rs               - Where modules are declared
+src/error.rs             - Common functions that error structs use 
+src/error/               - Parser, Lexer, Runtime error for Mona
+src/lexer.rs             - Lexing logic
+src/parser.rs            - Parsing occurs here
+src/token.rs             - Tokens of Mona
+src/gc/                  - Garbage Collector (not yet implemented)
+src/typesys/             - Type System (not yet implemented)
+src/typesys/primitive.rs - Primitive types of Rust (not yet implemented)
+src/typesys/class.rs     - Class in Mona (not yet implemented)
 
 docs/              The documentation of Mona
-docs/grammar.md    - Grammar of Mona
-docs/syntax.md     - Syntax of Mona
+docs/grammar.md          - Grammar of Mona
+docs/syntax.md           - Syntax of Mona
 
 benches/           The benchmarks of every component of Mona
-benches/lexer_benchmark.rs      - Lexer benchmarks
-benches/parser_benchmark.rs     - Parser benchmarks
+benches/lexer_bench.rs   - Lexer benchmarks
+benches/parser_bench.rs  - Parser benchmarks
 ```
 
 ## License
