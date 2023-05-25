@@ -11,7 +11,7 @@ repository = "https://github.com/Larsouille25/mona"
 
 [dependencies]
 clap = { version = "4.2.7", features = ["derive", "cargo"] }
-# inkwell = { version = "0.2.0", features = ["llvm15-0"] }
+inkwell = { version = "0.2.0", features = ["llvm15-0"] }
 # llvm-sys = { git = "https://github.com/tari/llvm-sys.rs", branch = "llvm-15.0" }
 
 [dev-dependencies]
