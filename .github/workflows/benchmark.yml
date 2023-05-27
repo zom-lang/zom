@@ -1,7 +1,7 @@
 name: Rust Benchmark with Criterion
 on:
   release:
-    types: [unpublished]
+    types: [published]
 
 permissions:
   contents: write
