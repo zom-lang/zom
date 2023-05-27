@@ -1,4 +1,3 @@
-name: Rust Benchmark with Criterion
 on:
   release:
     types: [published]
