@@ -65,3 +65,47 @@ You can perform `not` with Exclamation mark character : `!`. e.g.: `!a`
 ```
 ! $primary_expr
 ```
+
+## Condition Operation
+
+#### Equal, `==`
+
+The equals operator, of sign `==` is used when you want to check the equality of two objects, and if the objects are equal the operator return true. ex: `a == b`.
+```
+$primary_expr == $primary_expr
+```
+
+#### Different, `!=`
+
+The different operator, of sign `!=` is used when you want to check the non-equality of two objects, and if the objects are not equal the operator return true. e.g.: `a =! b`.
+```
+$primary_expr != $primary_expr
+```
+
+#### Less than, `<`
+
+The `less than` operator, of sign `<` is used when you want to check if the first object is strictly less than the second object, and if the first object is less than the second object, the operator return true. e.g.: `a < b`.
+```
+$primary_expr < $primary_expr
+```
+
+#### More than, `>`
+
+The `more than` operator, of sign `>` is used when you want to check if the first object is strictly bigger than the second object, and if the first object is bigger than the second object, the operator return true. e.g.: `a > b`.
+```
+$primary_expr > $primary_expr
+```
+
+#### Less than or equal to, `=<`
+
+The `less than or equal to` operator, of sign `=<` is used when you want to check if the first object is less than or equal to the second object, and if the first object is less than or equal to the second object, the operator return true. e.g.: `a =< b`.
+```
+$primary_expr =< $primary_expr
+```
+
+#### More than or equal to, `=>`
+
+The `more than or equal to` operator, of sign `=>` is used when you want to check if the first object is more than or equal to the second object, and if the first object is less than or equal to the second object, the operator return true. e.g.: `a => b`.
+```
+$primary_expr => $primary_expr
+```
