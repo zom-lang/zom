@@ -92,9 +92,10 @@ src/typesys/             - Type System (not yet implemented)
 src/typesys/primitive.rs - Primitive types of Rust (not yet implemented)
 src/typesys/class.rs     - Class in Mona (not yet implemented)
 
-docs/              The documentation of Mona
-docs/grammar.md          - Grammar of Mona
-docs/syntax.md           - Syntax of Mona
+docs/                    - The documentation of Mona works
+docs/lang/               - The documentation of the Mona programming language
+docs/lang/000-table-of-content.md
+                         - Table of content of the language
 
 benches/           The benchmarks of every component of Mona
 benches/lexer_bench.rs   - Lexer benchmarks
