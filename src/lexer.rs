@@ -132,7 +132,6 @@ impl<'a> Lexer<'a> {
         let mut ch = ch;
 
         loop {
-            println!("IN THE LKI loop : ch = {ch}");
             if ch == '.' {
                 dot_count += 1;
                 self.pos += 1;
@@ -140,12 +139,12 @@ impl<'a> Lexer<'a> {
                     break;
                 }
             } 
-            // else if ch.is_whitespace() || !ch.is_alphanumeric() && ch != '_' {
-            //     is_numeric = false;
-            //     break;
-            // } else if !ch.is_numeric() {
-            //     is_numeric = false;
-            // }
+            else if ch.is_whitespace() || !ch.is_alphanumeric() && ch != '_' {
+                is_numeric = false;
+                break;
+            } else if !ch.is_numeric() {
+                is_numeric = false;
+            }
             num_str.push(ch);
             self.pos += 1;
             if let Some(ch_peek) = self.chars.peek() {
@@ -161,7 +160,6 @@ impl<'a> Lexer<'a> {
                     break;
                 }
             }
-            
         }
 
         let val = if is_numeric {
