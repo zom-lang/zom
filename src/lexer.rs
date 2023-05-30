@@ -139,19 +139,29 @@ impl<'a> Lexer<'a> {
                 if dot_count > 1 {
                     break;
                 }
-            } else if ch.is_whitespace() || !ch.is_alphanumeric() && ch != '_' {
-                is_numeric = false;
-                break;
-            } else if !ch.is_numeric() {
-                is_numeric = false;
-            }
+            } 
+            // else if ch.is_whitespace() || !ch.is_alphanumeric() && ch != '_' {
+            //     is_numeric = false;
+            //     break;
+            // } else if !ch.is_numeric() {
+            //     is_numeric = false;
+            // }
             num_str.push(ch);
             self.pos += 1;
-            if let Some(char) = self.chars.next() {
-                ch = char;
-            }else {
-                break;
+            if let Some(ch_peek) = self.chars.peek() {
+                if ch_peek.is_whitespace() || !ch_peek.is_alphanumeric() && ch_peek != &'_' {
+                    is_numeric = false;
+                    break;
+                } else if !ch_peek.is_numeric() {
+                    is_numeric = false;
+                }
+                if let Some(char) = self.chars.next() {
+                    ch = char;
+                }else {
+                    break;
+                }
             }
+            
         }
 
         let val = if is_numeric {
