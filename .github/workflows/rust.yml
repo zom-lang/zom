@@ -6,6 +6,7 @@ on:
     paths:
       - '**.rs'
       - '**.toml'
+      - '**.yml'
   pull_request:
 
 env:
@@ -18,14 +19,12 @@ jobs:
     strategy:
       matrix:
         os: 
-          - [ubuntu-latest]
-          - [windows-latest]
-          - [macos-latest]
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
         llvm-version:
-          - ["13.0", "13-0"]
           - ["14.0", "14-0"]
           - ["15.0", "15-0"]
-          - ["16.0", "16-0"]
     steps:
     - uses: actions/checkout@v3
 
