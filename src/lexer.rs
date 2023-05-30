@@ -18,7 +18,7 @@ pub struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(text: &String, filename: String) -> Lexer {
+    pub fn new(text: &str, filename: String) -> Lexer {
         Lexer {
             text: text.to_string(),
             pos: 0,
@@ -42,9 +42,13 @@ impl<'a> Lexer<'a> {
         let mut pos = self.pos;
 
         'main : while let Some(ch) = self.chars.next() {
+            
             self.pos = pos;
 
             match ch {
+                '.' | '0'..='9' | 'A'..='z' => {
+                    tokens.push(self.lex_lki(ch)?);
+                },
                 '+' => {
                     tokens.push(Token::Operator('+'));
                     pos += 1;
@@ -101,12 +105,7 @@ impl<'a> Lexer<'a> {
                     return Err(Box::new(IllegalCharError::new(Position::new(
                         pos as u32,
                         self.line,
-                        // TODO: Find a way to remove this magic if
-                        if self.line == 1 {
-                            self.column as u32
-                        } else {
-                            self.column as u32 - 1
-                        },
+                        self.column as u32,
                         self.filename.clone(), //TODO: Try to remove .clone()
                         self.text.clone(),
                     ))));
@@ -116,5 +115,59 @@ impl<'a> Lexer<'a> {
         }
 
         Ok(tokens)
+    }
+
+
+    /// This function lexes either an literal, a keyword or an identifier
+    /// 
+    /// It takes a char in parameter because we have already "next" the iterator, so it's the actual character to put in arg.
+    /// Because before it was like that : 
+    ///     text: `test` -> Ident("est")
+    /// And after it is like that :
+    ///     text: `test` -> Ident("test")
+    fn lex_lki(&mut self, ch: char) -> Result<Token, Box<dyn Error>> {
+        let mut num_str = String::new();
+        let mut dot_count = 0;
+        let mut is_numeric = true;
+        let mut ch = ch;
+
+        loop {
+            println!("IN THE LKI loop : ch = {ch}");
+            if ch == '.' {
+                dot_count += 1;
+                self.pos += 1;
+                if dot_count > 1 {
+                    break;
+                }
+            } else if ch.is_whitespace() || !ch.is_alphanumeric() && ch != '_' {
+                is_numeric = false;
+                break;
+            } else if !ch.is_numeric() {
+                is_numeric = false;
+            }
+            num_str.push(ch);
+            self.pos += 1;
+            if let Some(char) = self.chars.next() {
+                ch = char;
+            }else {
+                break;
+            }
+        }
+
+        let val = if is_numeric {
+            if dot_count == 0 {
+                Ok(Token::Int(num_str.parse()?))
+            } else {
+                Ok(Token::Float(num_str.parse()?))
+            }
+        } else {
+            match num_str.as_str() {
+                "func" => Ok(Token::Func),
+                "extern" => Ok(Token::Extern),
+                _ => Ok(Token::Ident(num_str.clone()))
+            }
+        };
+
+        val
     }
 }
