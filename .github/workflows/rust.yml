@@ -32,12 +32,12 @@ jobs:
       uses: Swatinem/rust-cache@v2.3.0
     
     - name: Cache LLVM and Clang
-      id: cache-llvm
+      id: cache-llvm-${{ matrix.llvm-version[1] }}-${{ matrix.os }}
       uses: actions/cache@v3
       with:
         path: |
           C:/Program Files/LLVM
-          ./llvm
+          ${{ runner.temp }}/llvm
         key: ${{ matrix.llvm-version[1] }}
 
     - name: Install LLVM and Clang
@@ -45,7 +45,7 @@ jobs:
       with:
         version: ${{ matrix.llvm-version[0] }}
         directory: ${{ runner.temp }}/llvm
-        cached: ${{ steps.cache-llvm.outputs.cache-hit }}
+        cached: ${{ steps.cache-llvm-${{ matrix.llvm-version[1] }}-${{ matrix.os }}.outputs.cache-hit }}
 
     - name: Build
       run: cargo build --verbose
