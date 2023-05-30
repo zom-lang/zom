@@ -1,5 +1,5 @@
 
-name: Rust
+name: Rust tests
 
 on:
   push:
@@ -12,35 +12,33 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-and-test-linux:
-    runs-on: ubuntu-latest
+  build-and-test:
+    name: "Test on ${{ matrix.os }} with LLVM ${{ matrix.llvm-version[0] }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: 
+          - [ubuntu-latest]
+          - [windows-latest]
+          - [macos-latest]
+        llvm-version:
+          - ["13.0", "13-0"]
+          - ["14.0", "14-0"]
+          - ["15.0", "15-0"]
+          - ["16.0", "16-0"]
     steps:
     - uses: actions/checkout@v3
-    - name: Rust Cache
-      uses: Swatinem/rust-cache@v2.3.0
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
 
-  build-and-test-windows:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v3
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2.3.0
+
+    - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v1
+        with:
+          version: ${{ matrix.llvm-version[0] }}
+
     - name: Build
       run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
-  
-  build-and-test-macos:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Rust Cache
-      uses: Swatinem/rust-cache@v2.3.0
-    - name: Build
-      run: cargo build --verbose
+
     - name: Run tests
       run: cargo test --verbose
