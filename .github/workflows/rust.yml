@@ -23,18 +23,29 @@ jobs:
           - windows-latest
           - macos-latest
         llvm-version:
-          - ["14.0", "14-0"]
-          - ["15.0", "15-0"]
+          - ["14.0", "llvm-14.0"]
+          - ["15.0", "llvm-15.0"]
     steps:
     - uses: actions/checkout@v3
 
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2.3.0
+    
+    - name: Cache LLVM and Clang
+      id: cache-llvm
+      uses: actions/cache@v3
+      with:
+        path: |
+          C:/Program Files/LLVM
+          ./llvm
+        key: ${{ matrix.llvm-version[1] }}
 
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@v1
       with:
         version: ${{ matrix.llvm-version[0] }}
+        directory: ${{ runner.temp }}/llvm
+        cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
     - name: Build
       run: cargo build --verbose
