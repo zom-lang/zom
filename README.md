@@ -94,8 +94,7 @@ src/typesys/class.rs     - Class in Mona (not yet implemented)
 
 docs/                    - The documentation of Mona works
 docs/lang/               - The documentation of the Mona programming language
-docs/lang/000-table-of-content.md
-                         - Table of content of the language
+docs/lang/000-readme.md  - Readme of the Mona's doc
 
 benches/           The benchmarks of every component of Mona
 benches/lexer_bench.rs   - Lexer benchmarks
