@@ -35,9 +35,7 @@ jobs:
       id: cache-llvm
       uses: actions/cache@v3
       with:
-        path: |
-          C:/Program Files/LLVM
-          ${{ runner.temp }}/llvm
+        path: ${{ runner.temp }}/llvm
         key: ${{ matrix.llvm-version[1] }}-${{ matrix.os }}
 
     - name: Install LLVM and Clang
