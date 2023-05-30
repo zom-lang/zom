@@ -33,7 +33,7 @@ jobs:
       uses: Swatinem/rust-cache@v2.3.0
 
     - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@v1
+        uses: KyleMayes/install-llvm-action@v1.8
         with:
           version: ${{ matrix.llvm-version[0] }}
 
