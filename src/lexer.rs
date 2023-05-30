@@ -96,10 +96,11 @@ impl<'a> Lexer<'a> {
                 '\n' => {
                     self.line += 1;
                     self.column = 0;
+                    pos += 1;
                 }
                 _ => {
+                    pos += 1;
                     if ch.is_whitespace() {
-                        pos += 1;
                         continue;
                     }
                     return Err(Box::new(IllegalCharError::new(Position::new(
