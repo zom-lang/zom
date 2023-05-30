@@ -7,7 +7,7 @@ pub use Token::{
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     // Operators
-    Operator(String),
+    Operator(char),
 
     // Separators
     OpenParen,  // means `open parentheis`

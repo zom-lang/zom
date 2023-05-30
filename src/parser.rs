@@ -31,7 +31,7 @@ pub struct Prototype {
 pub enum Expression {
     LiteralExpr(i32),
     VariableExpr(String),
-    BinaryExpr(String, Box<Expression>, Box<Expression>),
+    BinaryExpr(char, Box<Expression>, Box<Expression>),
     CallExpr(String, Vec<Expression>),
 }
 
@@ -48,16 +48,16 @@ fn error<T>(message: &str) -> PartParsingResult<T> {
 }
 
 pub struct ParserSettings {
-    operator_precedence: HashMap<String, i32>,
+    operator_precedence: HashMap<char, i32>,
 }
 
 impl Default for ParserSettings {
     fn default() -> Self {
         let mut operator_precedence = HashMap::new();
-        operator_precedence.insert("<".to_string(), 10);
-        operator_precedence.insert("+".to_string(), 20);
-        operator_precedence.insert("-".to_string(), 20);
-        operator_precedence.insert("*".to_string(), 40);
+        operator_precedence.insert('<', 10);
+        operator_precedence.insert('+', 20);
+        operator_precedence.insert('-', 20);
+        operator_precedence.insert('*', 40);
 
         ParserSettings {
             operator_precedence,
