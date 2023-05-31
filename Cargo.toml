@@ -10,10 +10,16 @@ repository = "https://github.com/Larsouille25/mona"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.2.7", features = ["derive", "cargo"] }
+clap = { version = "4.3.0", features = ["derive", "cargo"] }
+inkwell = { version = "0.2.0", default-features = false }
 
 [dev-dependencies]
 criterion = "0.5.0"
+
+[features]
+default = ["llvm15-0"]
+llvm14-0 = ["inkwell/llvm14-0"]
+llvm15-0 = ["inkwell/llvm15-0"]
 
 [[bench]]
 name = "lexer_bench"
