@@ -11,8 +11,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  LLVM_SYS_140_PREFIX: ${{ runner.temp }}/llvm
-  LLVM_SYS_150_PREFIX: ${{ runner.temp }}/llvm
+  LLVM_SYS_140_PREFIX: ./llvm
+  LLVM_SYS_150_PREFIX: ./llvm
 
 jobs:
   build-and-test:
