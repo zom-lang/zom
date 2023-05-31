@@ -37,14 +37,15 @@ jobs:
       id: cache-llvm
       uses: actions/cache@v3
       with:
-        path: ${{ runner.temp }}/llvm
+        path: |
+          C:/Program Files/LLVM
+          ./llvm
         key: ${{ matrix.llvm-version[1] }}-${{ matrix.os }}
 
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@v1
       with:
         version: ${{ matrix.llvm-version[0] }}
-        directory: ${{ runner.temp }}/llvm
         cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
     - name: Build
