@@ -1,7 +1,10 @@
 # Mona
 
-[![codecov](https://codecov.io/gh/Larsouille25/mona/branch/main/graph/badge.svg)](https://github.com/Larsouille25/mona)
 [![lines of code](https://tokei.rs/b1/github/Larsouille25/mona)](https://github.com/Aaronepower/tokei)
+[![codecov](https://codecov.io/gh/Larsouille25/mona/branch/main/graph/badge.svg)](https://github.com/Larsouille25/mona)
+[![MIT/Apache][licence-badge]](https://github.com/Larsouille25/mona/tree/main#license)
+
+[licence-badge]: https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-lightgrey
 
 Mona is an interpreted programming language written in Rust. Run Mona code with the REPL or passing a source file.
 
