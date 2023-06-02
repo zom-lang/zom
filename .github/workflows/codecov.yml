@@ -8,9 +8,8 @@ jobs:
   codecov:
     name: "Codecov report"
     runs-on: ubuntu-latest
-  steps:
-
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        token:  ${{ secrets.CODECOV_TOKEN }}
+    steps:
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token:  ${{ secrets.CODECOV_TOKEN }}
