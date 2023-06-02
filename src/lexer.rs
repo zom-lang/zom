@@ -41,14 +41,13 @@ impl<'a> Lexer<'a> {
         let mut tokens = Vec::new();
         let mut pos = self.pos;
 
-        'main : while let Some(ch) = self.chars.next() {
-            
+        'main: while let Some(ch) = self.chars.next() {
             self.pos = pos;
 
             match ch {
                 '.' | '0'..='9' | 'A'..='z' => {
                     tokens.push(self.lex_lki(ch)?);
-                },
+                }
                 '+' => {
                     tokens.push(Token::Operator('+'));
                     pos += 1;
@@ -67,7 +66,7 @@ impl<'a> Lexer<'a> {
                         loop {
                             let ch = self.chars.next();
                             pos += 1;
-        
+
                             if ch == Some('\n') {
                                 continue 'main;
                             }
@@ -118,11 +117,10 @@ impl<'a> Lexer<'a> {
         Ok(tokens)
     }
 
-
     /// This function lexes either an literal, a keyword or an identifier
-    /// 
+    ///
     /// It takes a char in parameter because we have already "next" the iterator, so it's the actual character to put in arg.
-    /// Because before it was like that : 
+    /// Because before it was like that :
     ///     text: `test` -> Ident("est")
     /// And after it is like that :
     ///     text: `test` -> Ident("test")
@@ -139,8 +137,7 @@ impl<'a> Lexer<'a> {
                 if dot_count > 1 {
                     break;
                 }
-            } 
-            else if ch.is_whitespace() || !ch.is_alphanumeric() && ch != '_' {
+            } else if ch.is_whitespace() || !ch.is_alphanumeric() && ch != '_' {
                 is_numeric = false;
                 break;
             } else if !ch.is_numeric() {
@@ -157,7 +154,7 @@ impl<'a> Lexer<'a> {
                 }
                 if let Some(char) = self.chars.next() {
                     ch = char;
-                }else {
+                } else {
                     break;
                 }
             }
@@ -173,7 +170,7 @@ impl<'a> Lexer<'a> {
             match num_str.as_str() {
                 "func" => Ok(Token::Func),
                 "extern" => Ok(Token::Extern),
-                _ => Ok(Token::Ident(num_str.clone()))
+                _ => Ok(Token::Ident(num_str.clone())),
             }
         };
 

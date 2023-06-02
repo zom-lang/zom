@@ -340,7 +340,7 @@ fn parse_binary_expr(
             _ => break,
         };
         tokens.pop();
-        parsed_tokens.push(Operator(operator.clone()));
+        parsed_tokens.push(Operator(operator));
 
         // parse primary RHS expression
         let mut rhs = parse_try!(parse_primary_expr, tokens, settings, parsed_tokens);

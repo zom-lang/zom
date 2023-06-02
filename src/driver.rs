@@ -38,7 +38,9 @@ impl RunnerResult {
         flags
             .lexer
             .then(|| println!(" Lexer : \n{:?}\n", self.tokens));
-        flags.parser.then(|| println!(" Parser : \n{:#?}", self.ast) );
+        flags
+            .parser
+            .then(|| println!(" Parser : \n{:#?}", self.ast));
     }
 }
 pub fn main_loop(flags: Flags) {

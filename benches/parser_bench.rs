@@ -12,10 +12,11 @@ fn simple_lexer_and_parser_benchmark(c: &mut Criterion) {
             let tokens = lexer
                 .make_tokens()
                 .expect("An error was occured when benchmarking `simple_lexer_benchmark`.");
-            
+
             let ast = Vec::new();
             let mut parser_settings = ParserSettings::default();
-            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings).expect("Parsing was failed");
+            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings)
+                .expect("Parsing was failed");
         })
     });
 }
@@ -30,7 +31,7 @@ fn lexer_and_parser_func_benchmark(c: &mut Criterion) {
             let tokens = lexer
                 .make_tokens()
                 .expect("An error was occured when benchmarking `simple_lexer_benchmark`.");
-            
+
             let ast = Vec::new();
             let mut parser_settings = ParserSettings::default();
             parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings).expect("Parsing was failed");
@@ -42,20 +43,20 @@ fn simple_parser_benchmark(c: &mut Criterion) {
     c.bench_function("parser  1 + 1", |b| {
         b.iter(|| {
             let tokens = black_box(vec![Int(1), Operator('+'), Int(1)]);
-            
+
             let ast = Vec::new();
             let mut parser_settings = ParserSettings::default();
-            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings).expect("Parsing was failed");
+            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings)
+                .expect("Parsing was failed");
         })
     });
 }
 
 fn parser_func_benchmark(c: &mut Criterion) {
-    c.bench_function(
-        "parser  func(26 args) addition of the 26 args",
-        |b| b.iter(|| {
+    c.bench_function("parser  func(26 args) addition of the 26 args", |b| {
+        b.iter(|| {
             let tokens = black_box(vec![
-                Func, 
+                Func,
                 Ident("foo".to_owned()),
                 OpenParen,
                 Ident("a".to_owned()),
@@ -161,13 +162,14 @@ fn parser_func_benchmark(c: &mut Criterion) {
                 Ident("y".to_owned()),
                 Operator('+'),
                 Ident("z".to_owned()),
-                ]);
+            ]);
 
             let ast = Vec::new();
             let mut parser_settings = ParserSettings::default();
-            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings).expect("Parsing was failed");
+            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings)
+                .expect("Parsing was failed");
         })
-    );
+    });
 }
 
 criterion_group! {
