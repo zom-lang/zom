@@ -1,6 +1,6 @@
 # Mona
 
-[![codecov](https://codecov.io/gh/Larsouille25/mona/branch/main/graph/badge.svg)](https://codecov.io/gh/TheDan64/inkwell)
+[![codecov](https://codecov.io/gh/Larsouille25/mona/branch/main/graph/badge.svg)](https://github.com/Larsouille25/mona)
 
 Mona is an interpreted programming language written in Rust. Run Mona code with the REPL or passing a source file.
 
