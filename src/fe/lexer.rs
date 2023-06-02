@@ -1,3 +1,7 @@
+//! This is the lexer of Mona
+//! 
+//! It is entirely made for Mona, without using dependencies.
+
 use std::error::Error;
 use std::iter::Peekable;
 use std::str::Chars;

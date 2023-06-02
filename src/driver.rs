@@ -1,3 +1,5 @@
+//! This is a REPL implementation for Mona
+
 use std::io::{self, Write};
 
 use crate::fe::{

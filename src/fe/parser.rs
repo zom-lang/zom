@@ -1,3 +1,7 @@
+//! This is the parser of Mona
+//! 
+//! It is entirely made for Mona, without using dependencies.
+
 use std::collections::HashMap;
 
 use crate::fe::token::Token;

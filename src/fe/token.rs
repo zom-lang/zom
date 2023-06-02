@@ -1,3 +1,7 @@
+//! This is the token of Mona
+//! 
+//! It is in its own file because later on, there will be lot of tokens type.
+
 use std::fmt;
 
 pub use Token::{
