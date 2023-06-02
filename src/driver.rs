@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::{
+use crate::fe::{
     lexer::Lexer,
     parser::{parse, ASTNode, ParserSettings},
     token::Token,

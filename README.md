@@ -82,12 +82,17 @@ src/               The source code folder
 src/main.rs              - Entry of the binary
 src/driver.rs            - The logic behind the REPL
 src/lib.rs               - Where modules are declared
+
 src/error.rs             - Common functions that error structs use 
 src/error/               - Parser, Lexer, Runtime error for Mona
-src/lexer.rs             - Lexing logic
-src/parser.rs            - Parsing occurs here
-src/token.rs             - Tokens of Mona
+
+src/fe/                  - Tokens, Lexer, Parser, AST .. Front-End
+src/fe/lexer.rs          - Lexing logic
+src/fe/parser.rs         - Parsing occurs here
+src/fe/token.rs          - Tokens of Mona
+
 src/gc/                  - Garbage Collector (not yet implemented)
+
 src/typesys/             - Type System (not yet implemented)
 src/typesys/primitive.rs - Primitive types of Rust (not yet implemented)
 src/typesys/class.rs     - Class in Mona (not yet implemented)

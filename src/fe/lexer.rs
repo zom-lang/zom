@@ -4,7 +4,7 @@ use std::str::Chars;
 
 use crate::error::lexer::IllegalCharError;
 use crate::error::Position;
-use crate::token::Token;
+use crate::fe::token::Token;
 
 #[derive(Debug)]
 pub struct Lexer<'a> {

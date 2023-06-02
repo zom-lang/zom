@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use crate::token::Token;
-use crate::token::*;
+use crate::fe::token::Token;
+use crate::fe::token::*;
 
 pub use self::ASTNode::{ExternNode, FunctionNode};
 
