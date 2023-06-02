@@ -1,5 +1,5 @@
 //! This is the parser of Mona
-//! 
+//!
 //! It is entirely made for Mona, without using dependencies.
 
 use std::collections::HashMap;
@@ -187,7 +187,14 @@ fn parse_function(
     let prototype = parse_try!(parse_prototype, tokens, settings, parsed_tokens);
     let body = parse_try!(parse_expr, tokens, settings, parsed_tokens);
 
-    Good(FunctionNode(Function { prototype, body, is_anonymous: false }), parsed_tokens)
+    Good(
+        FunctionNode(Function {
+            prototype,
+            body,
+            is_anonymous: false,
+        }),
+        parsed_tokens,
+    )
 }
 
 fn parse_prototype(

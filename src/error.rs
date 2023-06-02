@@ -1,5 +1,5 @@
 //! error module.
-//! 
+//!
 //! This used to spawn custom (beautiful) error message when a component of Mona fails.
 
 use std::error::Error;

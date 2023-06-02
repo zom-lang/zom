@@ -1,5 +1,5 @@
 //! This is the lexer of Mona
-//! 
+//!
 //! It is entirely made for Mona, without using dependencies.
 
 use std::error::Error;
