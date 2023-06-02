@@ -12,14 +12,16 @@ use crate::fe::{
 pub struct Flags {
     pub lexer: bool,
     pub parser: bool,
+    pub llvm_ir: bool,
     pub verbose: bool,
 }
 
 impl Flags {
-    pub fn new(lexer: bool, parser: bool, verbose: bool) -> Flags {
+    pub fn new(lexer: bool, parser: bool, llvm_ir: bool,  verbose: bool) -> Flags {
         Flags {
             lexer,
             parser,
+            llvm_ir,
             verbose,
         }
     }

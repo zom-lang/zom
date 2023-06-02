@@ -26,6 +26,13 @@ fn main() {
                 .action(ArgAction::SetTrue)
                 .help("Show the result of the parser"),
         )
+        .arg(
+            Arg::new("llvm-ir")
+                .short('r')
+                .long("llvm-ir")
+                .action(ArgAction::SetTrue)
+                .help("Show the result of the compiler, so the LLVM IR"),
+        )
         .get_matches();
 
     let file = matches.get_one::<String>("file");
@@ -33,6 +40,7 @@ fn main() {
     let mut flags = Flags::new(
         matches.get_flag("lexer"),
         matches.get_flag("parser"),
+        matches.get_flag("llvm-ir"),
         matches.get_flag("verbose"),
     );
     println!(
@@ -44,19 +52,23 @@ fn main() {
         println!("  You're in a debug binary, if it's not intentional, you should change.");
         flags.lexer = true;
         flags.parser = true;
+        flags.llvm_ir = true;
         flags.verbose = true;
     });
 
     if flags.verbose {
-        print!(" Flags: ");
+        print!("  Flags: ");
         if flags.lexer {
-            print!("Lexer,");
+            print!("Lexer, ");
         }
         if flags.parser {
-            print!("Parser,");
+            print!("Parser, ");
+        }
+        if flags.llvm_ir {
+            print!("LLVM IR, ");
         }
         if file.is_some() {
-            print!("File `{}`,", file.unwrap())
+            print!("File `{}`", file.unwrap())
         }
         println!();
     }
