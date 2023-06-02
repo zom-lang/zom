@@ -3,23 +3,23 @@
 Primitive types are types that are directly encoded in Mona.
 
 Signed numbers work with [two's complement](https://en.wikipedia.org/wiki/Two%27s_complement)
-|          Name         |            Description                |                           Range                          |                Default?               |
-| --------------------- | ------------------------------------- | -------------------------------------------------------- | ------------------------------------- |
-|    `(signed) byte`    | `byte` is a 8 bits signed integer,    | -127 to +127                                             |                   No                  |
-|    `(signed) short`   | `short` is a 16 bits signed integer   | −32_767 to +32_767                                       |                   No                  |
-|     `(signed) int`    | `int` is a 32 bits signed integer     | −2_147_483_647 to +2_147_483_647                         |                   Yes                 |
-|     `(signed) long`   | `long` is a 64 bits signed integer    | −9_223_372_036_854_775_807 to +9_223_372_036_854_775_807 | Yes, when number don't fit in 32 bits |
+|     Name     |            Description                |                           Range                          | Default?  |
+| ------------ | ------------------------------------- | -------------------------------------------------------- | --------- |
+|    `sbyte`   | `sbyte` is a 8 bits signed integer,   | -127 to +127                                             |     No    |
+|    `short`   | `short` is a 16 bits signed integer   | −32_767 to +32_767                                       |     No    |
+|     `int`    | `int` is a 32 bits signed integer     | −2_147_483_647 to +2_147_483_647                         |    Yes    |
+|     `long`   | `long` is a 64 bits signed integer    | −9_223_372_036_854_775_807 to +9_223_372_036_854_775_807 |   Maybe   |
 > By default numbers are signed but, you can use the "signed" keyword to explicitly say it's signed (that's why in the table `signed` is in brackets).
 > The `Default?` column tell that the interpreter when no type is given in a declaration will choose `signed int` by default or `signed long` if the number do not fit in 32 bits.
 You can type a number like that `123456` or like that if the number is big or it's complex to read it `123_456`.
 
 You can use the keyword `unsigned` before a primitive type number and this will remove the two's complement :
-|          Name        |                  Description                       |              Range              | Default? |
-| -------------------- | -------------------------------------------------- | ------------------------------- | -------- |
-|   `unsigned byte`    | `unsigned byte` is a 8 bits unsigned integer       | 0 to 255                        |    No    |
-|   `unsigned short`   | `unsigned short` is a 16 bits unsigned integer     | 0 to 65_535                     |    No    |
-|    `unsigned int`    | `unsigned int` is a 32 bits unsigned integer       | 0 to 4_294_967_295              |    No    |
-|   `unsigned long`    | `unsigned long` is a 64 bits unsigned integer      | 0 to 18_446_744_073_709_551_615 |    No    |
+|      Name    |            Description                 |              Range              | Default? |
+| ------------ | -------------------------------------- | ------------------------------- | -------- |
+|   `ubyte`    | `ubyte` is a 8 bits unsigned integer   | 0 to 255                        |    No    |
+|   `ushort`   | `ushort` is a 16 bits unsigned integer | 0 to 65_535                     |    No    |
+|    `uint`    | `uint` is a 32 bits unsigned integer   | 0 to 4_294_967_295              |    No    |
+|   `ulong`    | `ulong` is a 64 bits unsigned integer  | 0 to 18_446_744_073_709_551_615 |    No    |
 > The `Default?` column tell that the interpreter when no type is given in a declaration will choose `signed int` by default or `signed long` if the number do not fit in 32 bits.
 
 Floating numbers, specified in the [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754) 
