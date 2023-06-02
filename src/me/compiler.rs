@@ -8,7 +8,7 @@ use inkwell::{
     module::Module,
     passes::PassManager,
     types::BasicMetadataTypeEnum,
-    values::{BasicMetadataValueEnum, FloatValue, FunctionValue, IntValue, PointerValue},
+    values::{BasicMetadataValueEnum, FunctionValue, IntValue, PointerValue},
     IntPredicate,
 };
 
@@ -238,5 +238,26 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
 
             Err("Invalid generated function.")
         }
+    }
+
+    /// Compiles the specified `Function` in the given `Context` and using the specified `Builder`, `PassManager`, and `Module`.
+    pub fn compile(
+        context: &'ctx Context,
+        builder: &'a Builder<'ctx>,
+        pass_manager: &'a PassManager<FunctionValue<'ctx>>,
+        module: &'a Module<'ctx>,
+        function: &Function,
+    ) -> Result<FunctionValue<'ctx>, &'static str> {
+        let mut compiler = Compiler {
+            context,
+            builder,
+            fpm: pass_manager,
+            module,
+            function,
+            fn_value_opt: None,
+            variables: HashMap::new(),
+        };
+
+        compiler.compile_fn()
     }
 }
