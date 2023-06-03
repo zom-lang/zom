@@ -12,7 +12,7 @@ use inkwell::{
     IntPredicate,
 };
 
-use crate::fe::parser::{Expression, Function, Prototype, ASTNode};
+use crate::fe::{parser::{Expression, Function, Prototype, ASTNode}, token::*};
 
 /// Defines the `Expression` compiler.
 pub struct Compiler<'a, 'ctx> {
@@ -95,11 +95,11 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                     let rhs = self.compile_expr(right)?;
 
                     match op.as_str() {
-                        "+" => Ok(self.builder.build_int_add(lhs, rhs, "tmpadd")),
-                        "-" => Ok(self.builder.build_int_sub(lhs, rhs, "tmpsub")),
-                        "*" => Ok(self.builder.build_int_mul(lhs, rhs, "tmpmul")),
-                        "/" => Ok(self.builder.build_int_signed_div(lhs, rhs, "tmpdiv")),
-                        "<" => Ok({
+                        OP_PLUS     => Ok(self.builder.build_int_add(lhs, rhs, "tmpadd")),
+                        OP_MINUS    => Ok(self.builder.build_int_sub(lhs, rhs, "tmpsub")),
+                        OP_MUL      => Ok(self.builder.build_int_mul(lhs, rhs, "tmpmul")),
+                        OP_DIV      => Ok(self.builder.build_int_signed_div(lhs, rhs, "tmpdiv")),
+                        OP_COMP_LT  => Ok({
                             let cmp = self.builder.build_int_compare(
                                 IntPredicate::ULT,
                                 lhs,
@@ -110,7 +110,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                             self.builder
                                 .build_int_cast(cmp, self.context.i32_type(), "tmpbool")
                         }),
-                        ">" => Ok({
+                        OP_COMP_GT  => Ok({
                             let cmp = self.builder.build_int_compare(
                                 IntPredicate::ULT,
                                 rhs,
