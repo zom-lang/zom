@@ -50,7 +50,12 @@ impl<'ctx> RunnerResult<'ctx> {
             .then(|| println!("> Attempting to parse the lexed input : \n{:#?}", self.ast));
         flags
             .llvm_ir
-            .then(|| println!("> Attempting to compile the parsed input : \n{:#?}", self.funcs));
+            .then(|| { 
+                println!("> Attempting to compile the parsed input :");
+                for func in self.funcs.clone() {
+                    func.print_to_stderr()
+                }
+            });
     }
 }
 pub fn main_loop(flags: Flags) {
@@ -156,13 +161,13 @@ pub fn main_loop(flags: Flags) {
         // make module
         let module = context.create_module("tmp");
 
-        println!("> Full AST : \n{ast:#?}");
+        // println!("> Full AST : \n{ast:#?}");
 
-        // res.funcs = 
-        //     Compiler::compile_ast(&context, &builder, &fpm, &module, &ast)
-        //     .iter()
-        //     .map(|f| f.expect("Expression failed to compile."))
-        //     .collect::<Vec<FunctionValue>>();
+        res.funcs = 
+            Compiler::compile_ast(&context, &builder, &fpm, &module, &ast)
+            .iter()
+            .map(|f| f.expect("Expression failed to compile."))
+            .collect::<Vec<FunctionValue>>();
 
         stdout.flush().unwrap();
         input.clear();
