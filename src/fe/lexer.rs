@@ -49,7 +49,7 @@ impl<'a> Lexer<'a> {
             self.pos = pos;
 
             match ch {
-                '0'..='9' | 'A'..='z' => {
+                '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' => {
                     tokens.push(self.lex_lki(ch)?);
                 }
                 '+' => {
@@ -65,6 +65,7 @@ impl<'a> Lexer<'a> {
                     pos += 1;
                 }
                 '/' => {
+                    // Check for comments
                     if let Some('/') = self.chars.peek() {
                         self.chars.next();
                         loop {
@@ -88,8 +89,28 @@ impl<'a> Lexer<'a> {
                     tokens.push(Token::CloseParen);
                     pos += 1;
                 }
+                '[' => {
+                    tokens.push(Token::OpenBracket);
+                    pos += 1;
+                }
+                ']' => {
+                    tokens.push(Token::CloseBracket);
+                    pos += 1;
+                }
+                '{' => {
+                    tokens.push(Token::OpenBrace);
+                    pos += 1;
+                }
+                '}' => {
+                    tokens.push(Token::CloseBrace);
+                    pos += 1;
+                }
                 ';' => {
                     tokens.push(Token::Delimiter);
+                    pos += 1;
+                }
+                ':' => {
+                    tokens.push(Token::Colon);
                     pos += 1;
                 }
                 ',' => {

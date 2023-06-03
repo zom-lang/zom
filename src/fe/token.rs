@@ -23,7 +23,7 @@ pub enum Token {
     OpenBrace,    // ` { ` 
     CloseBrace,   // ` } ` 
 
-    Colon,
+    Colon,        // ` : `
     Delimiter,    // ` ; ` 
     Comma,        // ` , ` 
 
@@ -34,6 +34,7 @@ pub enum Token {
     // Keywords
     Func,
     Extern,
+    Let,
 
     // Identifier
     Ident(String), // Identifier is a alphanumeric string
