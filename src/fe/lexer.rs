@@ -179,8 +179,9 @@ impl<'a> Lexer<'a> {
             }
         } else {
             match num_str.as_str() {
-                "func" => Ok(Token::Func),
-                "extern" => Ok(Token::Extern),
+                KEY_FUNC => Ok(Token::Func),
+                KEY_EXTERN => Ok(Token::Extern),
+                KEY_LET => Ok(Token::Let),
                 _ => Ok(Token::Ident(num_str.clone())),
             }
         }

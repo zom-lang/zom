@@ -128,6 +128,13 @@ pub fn is_operator(maybe_op: &str) -> (bool, usize) { // I think it can be impro
     }
 }
 
+/// const for the keyword `func`
+pub const KEY_FUNC: &str    = "func";
+/// const for the keyword `extern`
+pub const KEY_EXTERN: &str  = "extern";
+/// const for the keyword `let`
+pub const KEY_LET: &str     = "let";
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     // Operators
