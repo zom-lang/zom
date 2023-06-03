@@ -156,11 +156,13 @@ pub fn main_loop(flags: Flags) {
         // make module
         let module = context.create_module("tmp");
 
-        res.funcs = 
-            Compiler::compile_ast(&context, &builder, &fpm, &module, &ast)
-            .iter()
-            .map(|f| f.expect("Expression failed to compile."))
-            .collect::<Vec<FunctionValue>>();
+        println!("> Full AST : \n{ast:#?}");
+
+        // res.funcs = 
+        //     Compiler::compile_ast(&context, &builder, &fpm, &module, &ast)
+        //     .iter()
+        //     .map(|f| f.expect("Expression failed to compile."))
+        //     .collect::<Vec<FunctionValue>>();
 
         stdout.flush().unwrap();
         input.clear();

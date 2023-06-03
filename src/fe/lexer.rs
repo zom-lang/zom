@@ -49,7 +49,7 @@ impl<'a> Lexer<'a> {
             self.pos = pos;
 
             match ch {
-                '.' | '0'..='9' | 'A'..='z' => {
+                '0'..='9' | 'A'..='z' => {
                     tokens.push(self.lex_lki(ch)?);
                 }
                 '+' => {
@@ -151,10 +151,7 @@ impl<'a> Lexer<'a> {
             self.pos += 1;
             if let Some(ch_peek) = self.chars.peek() {
                 if ch_peek.is_whitespace() || !ch_peek.is_alphanumeric() && ch_peek != &'_' {
-                    is_numeric = false;
                     break;
-                } else if !ch_peek.is_numeric() {
-                    is_numeric = false;
                 }
                 if let Some(char) = self.chars.next() {
                     ch = char;
@@ -164,7 +161,7 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        let val = if is_numeric {
+        if is_numeric {
             if dot_count == 0 {
                 Ok(Token::Int(num_str.parse()?))
             } else {
@@ -176,8 +173,6 @@ impl<'a> Lexer<'a> {
                 "extern" => Ok(Token::Extern),
                 _ => Ok(Token::Ident(num_str.clone())),
             }
-        };
-
-        val
+        }
     }
 }
