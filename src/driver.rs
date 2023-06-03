@@ -144,6 +144,10 @@ pub fn main_loop(flags: Flags) {
 
         res.tokens = tokens;
 
+        cfg!(debug_assertions).then(|| {
+            println!("TOKENS = {:?}", res.tokens);
+        });
+
         match parsing_result {
             Ok((parsed_ast, rest)) => {
                 

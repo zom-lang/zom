@@ -53,16 +53,8 @@ impl<'a> Lexer<'a> {
 
                     let window = window.unwrap().trim();
                     let (is_op, len) = is_operator(window);
-
-                    println!(
-                        "IT STARTS LIKE AN OPERATOR, {ch} at pos {}, window = {window:?}, is_op = {:?}, len = {}", 
-                        self.pos,
-                        is_op,
-                        len
-                    );
                     
                     if is_op {
-                        println!("will_be_pushed = {}\n", &window[..len]);
                         tokens.push(Operator(window[..len].to_owned()));
                         self.pos += len;
                         continue;
