@@ -53,15 +53,15 @@ impl<'a> Lexer<'a> {
                     tokens.push(self.lex_lki(ch)?);
                 }
                 '+' => {
-                    tokens.push(Token::Operator('+'));
+                    tokens.push(Token::Operator("+".to_owned()));
                     pos += 1;
                 }
                 '-' => {
-                    tokens.push(Token::Operator('-'));
+                    tokens.push(Token::Operator("-".to_owned()));
                     pos += 1;
                 }
                 '*' => {
-                    tokens.push(Token::Operator('*'));
+                    tokens.push(Token::Operator("*".to_owned()));
                     pos += 1;
                 }
                 '/' => {
@@ -77,7 +77,7 @@ impl<'a> Lexer<'a> {
                         }
                     }
 
-                    tokens.push(Token::Operator('/'));
+                    tokens.push(Token::Operator("/".to_owned()));
                     pos += 1;
                 }
                 '(' => {

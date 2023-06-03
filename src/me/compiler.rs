@@ -60,8 +60,8 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
 
     /// Compiles the specified `Expr` into an LLVM `FloatValue`.
     fn compile_expr(&mut self, expr: &Expression) -> Result<IntValue<'ctx>, &'static str> {
-        match *expr {
-            Expression::LiteralExpr(nb) => Ok(self.context.i32_type().const_int(nb as u64, true)),
+        match expr {
+            Expression::LiteralExpr(nb) => Ok(self.context.i32_type().const_int(*nb as u64, true)),
 
             Expression::VariableExpr(ref name) => match self.variables.get(name.as_str()) {
                 Some(var) => Ok(self
@@ -72,7 +72,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
             },
 
             Expression::BinaryExpr(op, ref left, ref right) => {
-                if op == '=' {
+                if op == &"=".to_owned() {
                     // handle assignement
                     let var_name = match *left.borrow() {
                         Expression::VariableExpr(ref var_name) => var_name,
@@ -94,12 +94,12 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                     let lhs = self.compile_expr(left)?;
                     let rhs = self.compile_expr(right)?;
 
-                    match op {
-                        '+' => Ok(self.builder.build_int_add(lhs, rhs, "tmpadd")),
-                        '-' => Ok(self.builder.build_int_sub(lhs, rhs, "tmpsub")),
-                        '*' => Ok(self.builder.build_int_mul(lhs, rhs, "tmpmul")),
-                        '/' => Ok(self.builder.build_int_signed_div(lhs, rhs, "tmpdiv")),
-                        '<' => Ok({
+                    match op.as_str() {
+                        "+" => Ok(self.builder.build_int_add(lhs, rhs, "tmpadd")),
+                        "-" => Ok(self.builder.build_int_sub(lhs, rhs, "tmpsub")),
+                        "*" => Ok(self.builder.build_int_mul(lhs, rhs, "tmpmul")),
+                        "/" => Ok(self.builder.build_int_signed_div(lhs, rhs, "tmpdiv")),
+                        "<" => Ok({
                             let cmp = self.builder.build_int_compare(
                                 IntPredicate::ULT,
                                 lhs,
@@ -110,7 +110,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                             self.builder
                                 .build_int_cast(cmp, self.context.i32_type(), "tmpbool")
                         }),
-                        '>' => Ok({
+                        ">" => Ok({
                             let cmp = self.builder.build_int_compare(
                                 IntPredicate::ULT,
                                 rhs,
@@ -125,7 +125,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                         custom => {
                             let mut name = String::from("binary");
 
-                            name.push(custom);
+                            name.push_str(custom);
 
                             match self.get_function(name.as_str()) {
                                 Some(fun) => {
@@ -313,7 +313,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                 }
             }
         }
-        
+
         result
     }
 }

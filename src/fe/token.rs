@@ -11,13 +11,21 @@ pub use Token::{
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     // Operators
-    Operator(char),
+    Operator(String),
 
-    // Separators
-    OpenParen,  // means `open parentheis`
-    CloseParen, // means `close parentheis`
-    Delimiter,  // ` ; ` character
-    Comma,      // ` , ` character
+    // Structural symbols
+    OpenParen,    // ` ( ` 
+    CloseParen,   // ` ) ` 
+
+    OpenBracket,  // ` [ ` 
+    CloseBracket, // ` ] ` 
+
+    OpenBrace,    // ` { ` 
+    CloseBrace,   // ` } ` 
+
+    Colon,
+    Delimiter,    // ` ; ` 
+    Comma,        // ` , ` 
 
     // Literals
     Int(i32),
