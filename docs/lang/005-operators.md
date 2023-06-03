@@ -89,9 +89,9 @@ The `less than` operator, of sign `<` is used when you want to check if the firs
 $primary_expr < $primary_expr
 ```
 
-#### More than, `>`
+#### Greater than, `>`
 
-The `more than` operator, of sign `>` is used when you want to check if the first object is strictly bigger than the second object, and if the first object is bigger than the second object, the operator return true. e.g.: `a > b`.
+The `greater than` operator, of sign `>` is used when you want to check if the first object is strictly greater than the second object, and if the first object is strictly greater than the second object, the operator return true. e.g.: `a > b`.
 ```
 $primary_expr > $primary_expr
 ```
@@ -103,9 +103,9 @@ The `less than or equal to` operator, of sign `=<` is used when you want to chec
 $primary_expr =< $primary_expr
 ```
 
-#### More than or equal to, `=>`
+#### Greater than or equal to, `=>`
 
-The `more than or equal to` operator, of sign `=>` is used when you want to check if the first object is more than or equal to the second object, and if the first object is less than or equal to the second object, the operator return true. e.g.: `a => b`.
+The `greater than or equal to` operator, of sign `=>` is used when you want to check if the first object is greater than or equal to the second object, and if the first object is gretter than or equal to the second object, the operator return true. e.g.: `a => b`.
 ```
 $primary_expr => $primary_expr
 ```

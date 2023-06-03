@@ -10,6 +10,8 @@ use crate::error::lexer::IllegalCharError;
 use crate::error::Position;
 use crate::fe::token::Token;
 
+// use super::token::*;
+
 #[derive(Debug)]
 pub struct Lexer<'a> {
     text: String,
