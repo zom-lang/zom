@@ -2,6 +2,8 @@
 
 use std::io::{self, Write};
 
+use inkwell::{context::Context, passes::PassManager};
+
 use crate::fe::{
     lexer::Lexer,
     parser::{parse, ASTNode, ParserSettings},
@@ -41,10 +43,10 @@ impl RunnerResult {
     pub fn print(&self, flags: Flags) {
         flags
             .lexer
-            .then(|| println!(" Lexer : \n{:?}\n", self.tokens));
+            .then(|| println!("> Attempting to lex input : \n{:?}\n", self.tokens));
         flags
             .parser
-            .then(|| println!(" Parser : \n{:#?}", self.ast));
+            .then(|| println!("> Attempting to parse the lexed input : \n{:#?}", self.ast));
     }
 }
 pub fn main_loop(flags: Flags) {
@@ -54,7 +56,7 @@ pub fn main_loop(flags: Flags) {
     let mut parser_settings = ParserSettings::default();
 
     'main: loop {
-        print!("~> ");
+        print!("==> ");
         stdout.flush().unwrap();
 
         match stdin.read_line(&mut input) {
@@ -74,9 +76,27 @@ pub fn main_loop(flags: Flags) {
 
         let mut res = RunnerResult::default();
 
+        let context = Context::create();
+        let module = context.create_module("repl");
+        let builder = context.create_builder();
+    
+        // Create FPM
+        let fpm = PassManager::create(&module);
+    
+        fpm.add_instruction_combining_pass();
+        fpm.add_reassociate_pass();
+        fpm.add_gvn_pass();
+        fpm.add_cfg_simplification_pass();
+        fpm.add_basic_alias_analysis_pass();
+        fpm.add_promote_memory_to_register_pass();
+        fpm.add_instruction_combining_pass();
+        fpm.add_reassociate_pass();
+    
+        fpm.initialize();
+
         loop {
             let mut buf = String::new();
-            print!(" > ");
+            print!(" ~> ");
             stdout.flush().unwrap();
 
             match stdin.read_line(&mut buf) {
@@ -124,6 +144,8 @@ pub fn main_loop(flags: Flags) {
                 continue 'main;
             }
         }
+
+        
 
         stdout.flush().unwrap();
         input.clear();
