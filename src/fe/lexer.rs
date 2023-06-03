@@ -10,6 +10,8 @@ use crate::error::lexer::IllegalCharError;
 use crate::error::Position;
 use crate::fe::token::Token;
 
+use super::token::{is_operator, is_start_operator};
+
 // use super::token::*;
 
 #[derive(Debug)]
@@ -54,35 +56,26 @@ impl<'a> Lexer<'a> {
                 '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' => {
                     tokens.push(self.lex_lki(ch)?);
                 }
-                '+' => {
-                    tokens.push(Token::Operator("+".to_owned()));
-                    pos += 1;
+                ch if is_start_operator(ch) => {
+                    println!("IT STARTS LIKE AN OPERATOR, {ch}");
                 }
-                '-' => {
-                    tokens.push(Token::Operator("-".to_owned()));
-                    pos += 1;
-                }
-                '*' => {
-                    tokens.push(Token::Operator("*".to_owned()));
-                    pos += 1;
-                }
-                '/' => {
-                    // Check for comments
-                    if let Some('/') = self.chars.peek() {
-                        self.chars.next();
-                        loop {
-                            let ch = self.chars.next();
-                            pos += 1;
+                // '/' => {
+                //     // Check for comments
+                //     if let Some('/') = self.chars.peek() {
+                //         self.chars.next();
+                //         loop {
+                //             let ch = self.chars.next();
+                //             pos += 1;
 
-                            if ch == Some('\n') {
-                                continue 'main;
-                            }
-                        }
-                    }
+                //             if ch == Some('\n') {
+                //                 continue 'main;
+                //             }
+                //         }
+                //     }
 
-                    tokens.push(Token::Operator("/".to_owned()));
-                    pos += 1;
-                }
+                //     tokens.push(Token::Operator("/".to_owned()));
+                //     pos += 1;
+                // }
                 '(' => {
                     tokens.push(Token::OpenParen);
                     pos += 1;

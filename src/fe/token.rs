@@ -40,6 +40,68 @@ pub const OP_OR: &str  = "||";
 /// Logical AND, `||`
 pub const OP_AND: &str = "&&";
 
+pub const OP_MAX_LENGHT: usize = 2;
+
+/// This function get the first char of a potentil operator
+pub fn is_start_operator(maybe_start: char) -> bool {
+    let maybe_start = maybe_start.to_string();
+
+    if OP_PLUS.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_MINUS.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_MUL.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_DIV.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_MOD.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_POWER.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_EQ.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_COMP_EQ.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_COMP_NE.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_COMP_GT.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_COMP_LT.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_COMP_GTE.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_COMP_LTE.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_OR.starts_with(maybe_start.as_str()) {
+        true
+    } else if OP_AND.starts_with(maybe_start.as_str()) {
+        true
+    } else {
+        false
+    }
+}
+
+pub fn is_operator(maybe_op: &str) -> bool {
+    matches!(
+        maybe_op, 
+        OP_PLUS |
+        OP_MINUS |
+        OP_MUL |
+        OP_DIV |
+        OP_MOD |
+        OP_POWER | 
+        OP_EQ | 
+        OP_COMP_EQ |
+        OP_COMP_NE |
+        OP_COMP_GT |
+        OP_COMP_LT |
+        OP_COMP_GTE |
+        OP_COMP_LTE |
+        OP_OR |
+        OP_AND
+    )
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     // Operators
