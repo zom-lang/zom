@@ -10,15 +10,14 @@ use crate::error::lexer::IllegalCharError;
 use crate::error::Position;
 use crate::fe::token::Token;
 
-use super::token::{is_operator, is_start_operator};
+use super::token::is_start_operator;
 
-// use super::token::*;
+use super::token::*;
 
 #[derive(Debug)]
 pub struct Lexer<'a> {
     text: String,
     pos: usize, // position in the text
-    current_char: Option<char>,
     chars: Box<Peekable<Chars<'a>>>,
     line: u32,
     column: usize,
@@ -30,7 +29,6 @@ impl<'a> Lexer<'a> {
         Lexer {
             text: text.to_string(),
             pos: 0,
-            current_char: None,
             chars: Box::new(text.chars().peekable()),
             line: 1,
             column: 0,
@@ -38,92 +36,97 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn get_current_char(&self) -> char {
-        if self.pos >= self.text.len() {
-            return '\0';
-        }
-        self.current_char.unwrap()
-    }
-
     pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Box<dyn Error>> {
         let mut tokens = Vec::new();
-        let mut pos = self.pos;
 
         'main: while let Some(ch) = self.chars.next() {
-            self.pos = pos;
-
             match ch {
                 '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' => {
                     tokens.push(self.lex_lki(ch)?);
                 }
                 ch if is_start_operator(ch) => {
-                    println!("IT STARTS LIKE AN OPERATOR, {ch}");
+                    let window = &self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
+
+                    if let None = window {
+                        continue;
+                    }
+
+                    let window = window.unwrap().trim();
+                    let (is_op, len) = is_operator(window);
+
+                    println!(
+                        "IT STARTS LIKE AN OPERATOR, {ch} at pos {}, window = {window:?}, is_op = {:?}, len = {}", 
+                        self.pos,
+                        is_op,
+                        len
+                    );
+                    
+                    if is_op {
+                        println!("will_be_pushed = {}\n", &window[..len]);
+                        tokens.push(Operator(window[..len].to_owned()));
+                        self.pos += len;
+                        continue;
+                    }
                 }
-                // '/' => {
-                //     // Check for comments
-                //     if let Some('/') = self.chars.peek() {
-                //         self.chars.next();
-                //         loop {
-                //             let ch = self.chars.next();
-                //             pos += 1;
+                '#' => {
+                    self.chars.next();
+                    loop {
+                        let ch = self.chars.next();
+                        self.pos += 1;
 
-                //             if ch == Some('\n') {
-                //                 continue 'main;
-                //             }
-                //         }
-                //     }
-
-                //     tokens.push(Token::Operator("/".to_owned()));
-                //     pos += 1;
-                // }
+                        if ch == Some('\n') {
+                            continue 'main;
+                        }
+                    }
+                }
                 '(' => {
                     tokens.push(Token::OpenParen);
-                    pos += 1;
+                    self.pos += 1;
                 }
                 ')' => {
                     tokens.push(Token::CloseParen);
-                    pos += 1;
+                    self.pos += 1;
                 }
                 '[' => {
                     tokens.push(Token::OpenBracket);
-                    pos += 1;
+                    self.pos += 1;
                 }
                 ']' => {
                     tokens.push(Token::CloseBracket);
-                    pos += 1;
+                    self.pos += 1;
                 }
                 '{' => {
                     tokens.push(Token::OpenBrace);
-                    pos += 1;
+                    self.pos += 1;
                 }
                 '}' => {
                     tokens.push(Token::CloseBrace);
-                    pos += 1;
+                    self.pos += 1;
                 }
                 ';' => {
                     tokens.push(Token::Delimiter);
-                    pos += 1;
+                    self.pos += 1;
                 }
                 ':' => {
                     tokens.push(Token::Colon);
-                    pos += 1;
+                    self.pos += 1;
                 }
                 ',' => {
                     tokens.push(Token::Comma);
-                    pos += 1;
+                    self.pos += 1;
                 }
                 '\n' => {
                     self.line += 1;
                     self.column = 0;
-                    pos += 1;
-                }
+                    self.pos += 1;
+                } 
                 _ => {
-                    pos += 1;
+                    self.pos += 1;
                     if ch.is_whitespace() {
                         continue;
                     }
                     return Err(Box::new(IllegalCharError::new(Position::new(
-                        pos as u32,
+                        self.pos as u32,
                         self.line,
                         self.column as u32,
                         self.filename.clone(), //TODO: Try to remove .clone()
@@ -151,9 +154,9 @@ impl<'a> Lexer<'a> {
         let mut ch = ch;
 
         loop {
+            self.pos += 1;
             if ch == '.' {
                 dot_count += 1;
-                self.pos += 1;
                 if dot_count > 1 {
                     break;
                 }
@@ -164,7 +167,6 @@ impl<'a> Lexer<'a> {
                 is_numeric = false;
             }
             num_str.push(ch);
-            self.pos += 1;
             if let Some(ch_peek) = self.chars.peek() {
                 if ch_peek.is_whitespace() || !ch_peek.is_alphanumeric() && ch_peek != &'_' {
                     break;

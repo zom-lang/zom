@@ -81,30 +81,57 @@ pub fn is_start_operator(maybe_start: char) -> bool {
     }
 }
 
-pub fn is_operator(maybe_op: &str) -> bool {
-    matches!(
-        maybe_op, 
-        OP_PLUS |
-        OP_MINUS |
-        OP_MUL |
-        OP_DIV |
-        OP_MOD |
-        OP_POWER | 
-        OP_EQ | 
-        OP_COMP_EQ |
-        OP_COMP_NE |
-        OP_COMP_GT |
-        OP_COMP_LT |
-        OP_COMP_GTE |
-        OP_COMP_LTE |
-        OP_OR |
-        OP_AND
-    )
+/// Check if the given string slice is an Operator (OP_**)
+/// 
+/// return a tuple, the first element is if it's an operator and the second is the lenght of the operator.
+pub fn is_operator(maybe_op: &str) -> (bool, usize) { // I think it can be improved...
+    // Single char operator.
+    if maybe_op.starts_with(OP_PLUS) {
+        (true, 1)
+    } else if maybe_op.starts_with(OP_MINUS) {
+        (true, 1)
+    } else if maybe_op.starts_with(OP_MUL) {
+        (true, 1)
+    } else if maybe_op.starts_with(OP_DIV) {
+        (true, 1)
+    } else if maybe_op.starts_with(OP_MOD) {
+        (true, 1)
+    } else if maybe_op.starts_with(OP_POWER) {
+        (true, 1)
+    } else if maybe_op.starts_with(OP_EQ) {
+        if let Some("=") = maybe_op.get(..2){
+            return (true, 2)
+        }
+
+        (true, 1)
+    } else if maybe_op.starts_with(OP_COMP_GT) {
+        (true, 1)
+    } else if maybe_op.starts_with(OP_COMP_LT) {
+        (true, 1)
+    } 
+    // Dual char operator.
+    else if maybe_op == OP_COMP_NE {
+        (true, 2)
+    } else if maybe_op == OP_COMP_GTE {
+        (true, 2)
+    } else if maybe_op == OP_COMP_LTE {
+        (true, 2)
+    } else if maybe_op == OP_OR {
+        (true, 2)
+    } else if maybe_op == OP_AND {
+        (true, 2)
+    }
+    
+    // it's not an OP_**
+    else {
+        (false, 0)
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     // Operators
+    /// Operators, should only be an OP_**
     Operator(String),
 
     // Structural symbols
