@@ -2,13 +2,13 @@
 
 use std::io::{self, Write};
 
-use inkwell::{context::Context, passes::PassManager};
+use inkwell::{context::Context, passes::PassManager, values::FunctionValue};
 
-use crate::fe::{
+use crate::{fe::{
     lexer::Lexer,
     parser::{parse, ASTNode, ParserSettings},
     token::Token,
-};
+}, me::compiler::Compiler};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Flags {
@@ -30,14 +30,15 @@ impl Flags {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct RunnerResult {
+pub struct RunnerResult<'ctx> {
     tokens: Vec<Token>,
     ast: Vec<ASTNode>,
+    funcs: Vec<FunctionValue<'ctx>>,
 }
 
-impl RunnerResult {
-    pub fn new(tokens: Vec<Token>, ast: Vec<ASTNode>) -> RunnerResult {
-        RunnerResult { tokens, ast }
+impl<'ctx> RunnerResult<'ctx> {
+    pub fn new(tokens: Vec<Token>, ast: Vec<ASTNode>, funcs: Vec<FunctionValue<'ctx>>) -> RunnerResult<'ctx> {
+        RunnerResult { tokens, ast, funcs }
     }
 
     pub fn print(&self, flags: Flags) {
@@ -47,6 +48,9 @@ impl RunnerResult {
         flags
             .parser
             .then(|| println!("> Attempting to parse the lexed input : \n{:#?}", self.ast));
+        flags
+            .llvm_ir
+            .then(|| println!("> Attempting to compile the parsed input : \n{:#?}", self.funcs));
     }
 }
 pub fn main_loop(flags: Flags) {
@@ -54,6 +58,27 @@ pub fn main_loop(flags: Flags) {
     let mut stdout = io::stdout();
     let mut input = String::new();
     let mut parser_settings = ParserSettings::default();
+
+    let context = Context::create();
+    let module = context.create_module("repl");
+    let builder = context.create_builder();
+
+    // Create FPM
+    let fpm = PassManager::create(&module);
+
+    fpm.add_instruction_combining_pass();
+    fpm.add_reassociate_pass();
+    fpm.add_gvn_pass();
+    fpm.add_cfg_simplification_pass();
+    fpm.add_basic_alias_analysis_pass();
+    fpm.add_promote_memory_to_register_pass();
+    fpm.add_instruction_combining_pass();
+    fpm.add_reassociate_pass();
+
+    fpm.initialize();
+
+    // the constructed AST
+    let mut ast: Vec<ASTNode> = Vec::new();
 
     'main: loop {
         print!("==> ");
@@ -71,28 +96,7 @@ pub fn main_loop(flags: Flags) {
             break;
         }
 
-        // the constructed AST
-        let mut ast = Vec::new();
-
         let mut res = RunnerResult::default();
-
-        let context = Context::create();
-        let module = context.create_module("repl");
-        let builder = context.create_builder();
-    
-        // Create FPM
-        let fpm = PassManager::create(&module);
-    
-        fpm.add_instruction_combining_pass();
-        fpm.add_reassociate_pass();
-        fpm.add_gvn_pass();
-        fpm.add_cfg_simplification_pass();
-        fpm.add_basic_alias_analysis_pass();
-        fpm.add_promote_memory_to_register_pass();
-        fpm.add_instruction_combining_pass();
-        fpm.add_reassociate_pass();
-    
-        fpm.initialize();
 
         loop {
             let mut buf = String::new();
@@ -105,6 +109,9 @@ pub fn main_loop(flags: Flags) {
                         break;
                     } else if buf.as_str() == ".quit\n" {
                         break 'main;
+                    } else if buf.as_str() == ".full_ast\n" {
+                        println!("> Full AST : \n{ast:#?}");
+                        continue 'main;
                     }
                     input.push_str(buf.as_str());
                 }
@@ -126,14 +133,15 @@ pub fn main_loop(flags: Flags) {
                 eprintln!("{}", err);
                 continue 'main;
             }
-        };
+        };   
 
-        let parsing_result = parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings);
+        let parsing_result = parse(tokens.as_slice(), &[], &mut parser_settings);
 
         res.tokens = tokens;
 
         match parsing_result {
             Ok((parsed_ast, rest)) => {
+                
                 ast.extend(parsed_ast.clone().into_iter());
                 if rest.is_empty() {
                     res.ast = parsed_ast;
@@ -145,7 +153,14 @@ pub fn main_loop(flags: Flags) {
             }
         }
 
-        
+        // make module
+        let module = context.create_module("tmp");
+
+        res.funcs = 
+            Compiler::compile_ast(&context, &builder, &fpm, &module, &ast)
+            .iter()
+            .map(|f| f.expect("Expression failed to compile."))
+            .collect::<Vec<FunctionValue>>();
 
         stdout.flush().unwrap();
         input.clear();

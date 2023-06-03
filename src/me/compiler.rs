@@ -12,7 +12,7 @@ use inkwell::{
     IntPredicate,
 };
 
-use crate::fe::parser::{Expression, Function, Prototype};
+use crate::fe::parser::{Expression, Function, Prototype, ASTNode};
 
 /// Defines the `Expression` compiler.
 pub struct Compiler<'a, 'ctx> {
@@ -25,6 +25,8 @@ pub struct Compiler<'a, 'ctx> {
     variables: HashMap<String, PointerValue<'ctx>>,
     fn_value_opt: Option<FunctionValue<'ctx>>,
 }
+
+pub type CompiledASTResult<'ctx> = Vec<Result<FunctionValue<'ctx>, &'static str>>;
 
 impl<'a, 'ctx> Compiler<'a, 'ctx> {
     /// Gets a defined function given its name.
@@ -240,6 +242,13 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
         }
     }
 
+    /// Compiles the specified `Function` into an LLVM `FunctionValue`.
+    fn compile_ext(&mut self) -> Result<FunctionValue<'ctx>, &'static str> {
+        let proto = &self.function.prototype;
+        let function = self.compile_prototype(proto)?;
+        Ok(function)
+    }
+
     /// Compiles the specified `Function` in the given `Context` and using the specified `Builder`, `PassManager`, and `Module`.
     pub fn compile(
         context: &'ctx Context,
@@ -259,5 +268,52 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
         };
 
         compiler.compile_fn()
+    }
+
+    /// Compiles the specified `AST` in the given `Context` and using the specified `Builder`, `PassManager`, and `Module`.
+    /// 
+    /// This call either `compile_fn(...)` if it's a FunctionNode or,
+    /// calls `compile_ext(...)` if it's a ExternNode
+    pub fn compile_ast(
+        context: &'ctx Context,
+        builder: &'a Builder<'ctx>,
+        pass_manager: &'a PassManager<FunctionValue<'ctx>>,
+        module: &'a Module<'ctx>,
+        ast: &[ASTNode],
+    ) -> CompiledASTResult<'ctx> {
+        let mut result: CompiledASTResult<'ctx> = vec![];
+
+        for node in ast {
+            match node {
+                ASTNode::FunctionNode(fun) => {
+                    let mut compiler = Compiler {
+                        context,
+                        builder,
+                        fpm: pass_manager,
+                        module,
+                        function: &fun,
+                        fn_value_opt: None,
+                        variables: HashMap::new(),
+                    };
+
+                    result.push(compiler.compile_fn());
+                }
+                ASTNode::ExternNode(proto) => {
+                    let mut compiler = Compiler {
+                        context,
+                        builder,
+                        fpm: pass_manager,
+                        module,
+                        function: &Function { prototype: proto.clone(), body: Expression::LiteralExpr(2), is_anonymous: true },
+                        fn_value_opt: None,
+                        variables: HashMap::new(),
+                    };
+
+                    result.push(compiler.compile_ext());
+                }
+            }
+        }
+        
+        result
     }
 }
