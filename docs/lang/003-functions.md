@@ -1,3 +1,8 @@
+- **Feature Name:** `functions` 
+- **Mona Issue:** Not related to an issue 
+- **Status:** `Implemented` since [30d89dc](https://github.com/Larsouille25/mona/commit/30d89dc09819236ed75ebd45ae2cab9cd98d41dd)
+
+
 # Functions
 
 ## Declaration

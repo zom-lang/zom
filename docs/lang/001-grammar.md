@@ -1,3 +1,7 @@
+- **Feature Name:** `grammar` 
+- **Mona Issue:** Not related to an issue 
+- **Status:** `Implemented` since [8ac7aa7](https://github.com/Larsouille25/mona/commit/8ac7aa7d8aa31c3274764db404ef990b527c2908)
+
 # Grammar of Mona Programming Language
 
 ## Grammar

@@ -1,3 +1,7 @@
+- **Feature Name:** `primitive-types` 
+- **Mona Issue:** *Number doesn't correspond* [`mona#010`](https://github.com/Larsouille25/mona/issues/10)
+- **Status:** `Not implemented yet`
+
 # Primitive types
 
 Primitive types are types that are directly encoded in Mona.
