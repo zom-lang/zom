@@ -37,10 +37,32 @@ pub const OP_COMP_LTE: &str = "=<";
 
 /// Logical OR, `||`
 pub const OP_OR: &str  = "||";
-/// Logical AND, `||`
+/// Logical AND, `&&`
 pub const OP_AND: &str = "&&";
 
 pub const OP_MAX_LENGHT: usize = 2;
+
+
+/// Operator Precedence Value for Mul, Div and MOD
+pub const PRECEDE_MUL_DIV_MOD: i32  = 60;
+
+/// Operator Precedence Value for ADD and SUB
+pub const PRECEDE_ADD_SUB: i32 = 40;
+
+/// Operator Precedence Value for COMP_LT, COMP_GT, COMP_LTE and COMP_GTE
+pub const PRECEDE_COMP: i32 = 20;
+
+/// Operator Precedence Value for COMPE_EQ and COMP_NE
+pub const PRECEDE_EQ_NE: i32 = 10;
+
+/// Operator Precedence Value for AND
+pub const PRECEDE_AND: i32 = 6;
+
+/// Operator Precedence Value for OR
+pub const PRECEDE_OR: i32 = 5;
+
+/// Operator Precedence Value for EQ (assignement)
+pub const PRECEDE_EQ: i32 = 2;
 
 /// This function get the first char of a potentil operator
 pub fn is_start_operator(maybe_start: char) -> bool {

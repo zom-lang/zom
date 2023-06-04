@@ -60,11 +60,31 @@ pub struct ParserSettings {
 
 impl Default for ParserSettings {
     fn default() -> Self {
-        let mut operator_precedence = HashMap::new();
-        operator_precedence.insert("<".to_owned(), 10);
-        operator_precedence.insert("+".to_owned(), 20);
-        operator_precedence.insert("-".to_owned(), 20);
-        operator_precedence.insert("*".to_owned(), 40);
+        let mut operator_precedence = HashMap::with_capacity(9);
+
+        // Setup Operator Precedence according to the documentation
+
+        operator_precedence.insert(OP_MUL.to_owned(), PRECEDE_MUL_DIV_MOD);
+        operator_precedence.insert(OP_DIV.to_owned(), PRECEDE_MUL_DIV_MOD);
+        operator_precedence.insert(OP_MOD.to_owned(), PRECEDE_MUL_DIV_MOD);
+
+        operator_precedence.insert(OP_PLUS.to_owned(), PRECEDE_ADD_SUB);
+        operator_precedence.insert(OP_MINUS.to_owned(), PRECEDE_ADD_SUB);
+
+        operator_precedence.insert(OP_COMP_LT.to_owned(), PRECEDE_COMP);
+        operator_precedence.insert(OP_COMP_GT.to_owned(), PRECEDE_COMP);
+        operator_precedence.insert(OP_COMP_LTE.to_owned(), PRECEDE_COMP);
+        operator_precedence.insert(OP_COMP_GTE.to_owned(), PRECEDE_COMP);
+
+        operator_precedence.insert(OP_COMP_EQ.to_owned(), PRECEDE_EQ_NE);
+        operator_precedence.insert(OP_COMP_NE.to_owned(), PRECEDE_EQ_NE);
+
+        operator_precedence.insert(OP_AND.to_owned(), PRECEDE_AND);
+
+        operator_precedence.insert(OP_OR.to_owned(), PRECEDE_OR);
+
+        operator_precedence.insert(OP_EQ.to_owned(), PRECEDE_EQ);
+
 
         ParserSettings {
             operator_precedence,
