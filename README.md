@@ -69,6 +69,7 @@ Licensed under either of
 at your option.
 
 ## Contribution
+
 Feel free to contribute. For the moment there is a documentation but it needs to be improved.
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
@@ -76,3 +77,5 @@ for inclusion in the work by you shall be dual licensed as above, without any
 additional terms or conditions.
 
 And thanks to all the people who helped me when I had issues with the borrow checker 😂
+
+A much more detailed version, on how to contribute to Mona can be found [here](/CONTRIBUTING.md)
