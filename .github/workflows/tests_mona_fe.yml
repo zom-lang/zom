@@ -25,11 +25,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Move into mona_common
+      run: cd mona_common
+
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2.3.0
 
     - name: Build
-      run: cargo build --release --features llvm${{ matrix.llvm-version[2] }} --verbose
+      run: cargo build --release --verbose
 
     - name: Run tests
-      run: cargo test --release --features llvm${{ matrix.llvm-version[2] }} --verbose
+      run: cargo test --release --verbose
