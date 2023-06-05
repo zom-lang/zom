@@ -8,9 +8,9 @@ use std::str::Chars;
 
 use std::mem;
 
+use crate::token::Token;
 use mona_common::error::lexer::IllegalCharError;
 use mona_common::error::Position;
-use crate::token::Token;
 
 use super::token::is_start_operator;
 
@@ -55,7 +55,7 @@ impl<'a> Lexer<'a> {
 
                     let window = window.unwrap().trim();
                     let (is_op, len) = is_operator(window);
-                    
+
                     if is_op {
                         tokens.push(Operator(window[..len].to_owned()));
                         self.pos += len;
@@ -113,7 +113,7 @@ impl<'a> Lexer<'a> {
                     self.line += 1;
                     self.column = 0;
                     self.pos += 1;
-                } 
+                }
                 _ => {
                     self.pos += 1;
                     if ch.is_whitespace() {
@@ -123,7 +123,7 @@ impl<'a> Lexer<'a> {
                         self.pos as u32,
                         self.line,
                         self.column as u32,
-                        mem::take(&mut self.filename), 
+                        mem::take(&mut self.filename),
                         mem::take(&mut self.text),
                     ))));
                 }

@@ -7,15 +7,15 @@ use std::fmt;
 pub use Token::*;
 
 /// Plus, `+`
-pub const OP_PLUS: &str  = "+";
+pub const OP_PLUS: &str = "+";
 /// Minus, `-`
 pub const OP_MINUS: &str = "-";
 /// Mul, `+`
-pub const OP_MUL: &str   = "*";
+pub const OP_MUL: &str = "*";
 /// Div, `/`
-pub const OP_DIV: &str   = "/";
+pub const OP_DIV: &str = "/";
 /// Mod (remainder), `%`
-pub const OP_MOD: &str   = "%";
+pub const OP_MOD: &str = "%";
 /// Power, `^`
 pub const OP_POWER: &str = "^";
 
@@ -23,28 +23,27 @@ pub const OP_POWER: &str = "^";
 pub const OP_EQ: &str = "=";
 
 /// Compare Equality, `==`
-pub const OP_COMP_EQ: &str  = "==";
+pub const OP_COMP_EQ: &str = "==";
 /// Compare Non-Equality, `!=`
-pub const OP_COMP_NE: &str  = "!=";
+pub const OP_COMP_NE: &str = "!=";
 /// Compare Greater than, `>`
-pub const OP_COMP_GT: &str  = ">";
+pub const OP_COMP_GT: &str = ">";
 /// Compare Less than, `<`
-pub const OP_COMP_LT: &str  = "<";
+pub const OP_COMP_LT: &str = "<";
 /// Compare Greater Than or Equal to, `=>`
 pub const OP_COMP_GTE: &str = "=>";
 /// Compare Less than or Equal to, `=<`
 pub const OP_COMP_LTE: &str = "=<";
 
 /// Logical OR, `||`
-pub const OP_OR: &str  = "||";
+pub const OP_OR: &str = "||";
 /// Logical AND, `&&`
 pub const OP_AND: &str = "&&";
 
 pub const OP_MAX_LENGHT: usize = 2;
 
-
 /// Operator Precedence Value for Mul, Div and MOD
-pub const PRECEDE_MUL_DIV_MOD: i32  = 60;
+pub const PRECEDE_MUL_DIV_MOD: i32 = 60;
 
 /// Operator Precedence Value for ADD and SUB
 pub const PRECEDE_ADD_SUB: i32 = 40;
@@ -104,9 +103,10 @@ pub fn is_start_operator(maybe_start: char) -> bool {
 }
 
 /// Check if the given string slice is an Operator (OP_**)
-/// 
+///
 /// return a tuple, the first element is if it's an operator and the second is the lenght of the operator.
-pub fn is_operator(maybe_op: &str) -> (bool, usize) { // I think it can be improved...
+pub fn is_operator(maybe_op: &str) -> (bool, usize) {
+    // I think it can be improved...
     // Single char operator.
     if maybe_op.starts_with(OP_PLUS) {
         (true, 1)
@@ -121,8 +121,8 @@ pub fn is_operator(maybe_op: &str) -> (bool, usize) { // I think it can be impro
     } else if maybe_op.starts_with(OP_POWER) {
         (true, 1)
     } else if maybe_op.starts_with(OP_EQ) {
-        if let Some("=") = maybe_op.get(..2){
-            return (true, 2)
+        if let Some("=") = maybe_op.get(..2) {
+            return (true, 2);
         }
 
         (true, 1)
@@ -130,7 +130,7 @@ pub fn is_operator(maybe_op: &str) -> (bool, usize) { // I think it can be impro
         (true, 1)
     } else if maybe_op.starts_with(OP_COMP_LT) {
         (true, 1)
-    } 
+    }
     // Dual char operator.
     else if maybe_op == OP_COMP_NE {
         (true, 2)
@@ -143,7 +143,6 @@ pub fn is_operator(maybe_op: &str) -> (bool, usize) { // I think it can be impro
     } else if maybe_op == OP_AND {
         (true, 2)
     }
-    
     // it's not an OP_**
     else {
         (false, 0)
@@ -151,11 +150,11 @@ pub fn is_operator(maybe_op: &str) -> (bool, usize) { // I think it can be impro
 }
 
 /// const for the keyword `func`
-pub const KEY_FUNC: &str    = "func";
+pub const KEY_FUNC: &str = "func";
 /// const for the keyword `extern`
-pub const KEY_EXTERN: &str  = "extern";
+pub const KEY_EXTERN: &str = "extern";
 /// const for the keyword `let`
-pub const KEY_LET: &str     = "let";
+pub const KEY_LET: &str = "let";
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
@@ -164,18 +163,18 @@ pub enum Token {
     Operator(String),
 
     // Structural symbols
-    OpenParen,    // ` ( ` 
-    CloseParen,   // ` ) ` 
+    OpenParen,  // ` ( `
+    CloseParen, // ` ) `
 
-    OpenBracket,  // ` [ ` 
-    CloseBracket, // ` ] ` 
+    OpenBracket,  // ` [ `
+    CloseBracket, // ` ] `
 
-    OpenBrace,    // ` { ` 
-    CloseBrace,   // ` } ` 
+    OpenBrace,  // ` { `
+    CloseBrace, // ` } `
 
-    Colon,        // ` : `
-    Delimiter,    // ` ; ` 
-    Comma,        // ` , ` 
+    Colon,     // ` : `
+    Delimiter, // ` ; `
+    Comma,     // ` , `
 
     // Literals
     Int(i32),

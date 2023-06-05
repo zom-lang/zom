@@ -85,7 +85,6 @@ impl Default for ParserSettings {
 
         operator_precedence.insert(OP_EQ.to_owned(), PRECEDE_EQ);
 
-
         ParserSettings {
             operator_precedence,
         }

@@ -13,10 +13,8 @@ use inkwell::{
 };
 
 use mona_fe::{
-    parser::{
-        Expression, Function, Prototype, ASTNode
-    }, 
-    token::*
+    parser::{ASTNode, Expression, Function, Prototype},
+    token::*,
 };
 
 /// Defines the `Expression` compiler.
@@ -100,11 +98,11 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                     let rhs = self.compile_expr(right)?;
 
                     match op.as_str() {
-                        OP_PLUS     => Ok(self.builder.build_int_add(lhs, rhs, "tmpadd")),
-                        OP_MINUS    => Ok(self.builder.build_int_sub(lhs, rhs, "tmpsub")),
-                        OP_MUL      => Ok(self.builder.build_int_mul(lhs, rhs, "tmpmul")),
-                        OP_DIV      => Ok(self.builder.build_int_signed_div(lhs, rhs, "tmpdiv")),
-                        OP_COMP_LT  => Ok({
+                        OP_PLUS => Ok(self.builder.build_int_add(lhs, rhs, "tmpadd")),
+                        OP_MINUS => Ok(self.builder.build_int_sub(lhs, rhs, "tmpsub")),
+                        OP_MUL => Ok(self.builder.build_int_mul(lhs, rhs, "tmpmul")),
+                        OP_DIV => Ok(self.builder.build_int_signed_div(lhs, rhs, "tmpdiv")),
+                        OP_COMP_LT => Ok({
                             let cmp = self.builder.build_int_compare(
                                 IntPredicate::ULT,
                                 lhs,
@@ -115,7 +113,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                             self.builder
                                 .build_int_cast(cmp, self.context.i32_type(), "tmpbool")
                         }),
-                        OP_COMP_GT  => Ok({
+                        OP_COMP_GT => Ok({
                             let cmp = self.builder.build_int_compare(
                                 IntPredicate::ULT,
                                 rhs,
@@ -276,7 +274,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
     }
 
     /// Compiles the specified `AST` in the given `Context` and using the specified `Builder`, `PassManager`, and `Module`.
-    /// 
+    ///
     /// This call either `compile_fn(...)` if it's a FunctionNode or,
     /// calls `compile_ext(...)` if it's a ExternNode
     pub fn compile_ast(
@@ -309,7 +307,11 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                         builder,
                         fpm: pass_manager,
                         module,
-                        function: &Function { prototype: proto.clone(), body: Expression::LiteralExpr(2), is_anonymous: true },
+                        function: &Function {
+                            prototype: proto.clone(),
+                            body: Expression::LiteralExpr(2),
+                            is_anonymous: true,
+                        },
                         fn_value_opt: None,
                         variables: HashMap::new(),
                     };
