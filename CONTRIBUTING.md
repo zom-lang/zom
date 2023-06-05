@@ -134,10 +134,6 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/Larsou
 <!-- You might want to create an issue template for enhancement suggestions that can be used as a guide and that defines the structure of the information to be included. If you do so, reference it here in the description. -->
 
 ### Your First Code Contribution
-<!-- TODO
-include Setup of env, IDE and typical getting started instructions?
-
--->
 
 1.  Fork the repository.
 2.  Git clone your fork, e.g.: `git clone https://github.com/YOUR_USERNAME/mona.git`
@@ -159,9 +155,13 @@ Updating, improving and correcting the documentation
 
 ## Styleguides
 ### Commit Messages
-<!-- TODO
 
--->
+Somes rules to write good commits messages :
+
+- Use imperative mood in the subject line. e.g.: `Add lexing for Quotation Mark characters`. Imperative mood gives the tone you are giving an order or request.
+- Commit messages needs to be concise, around 50 characters long for the first line. and around 75 characters long in total.
+- Specify the type of commit e.g.: Bugfix, Update, Refactor, Bump, Add .. etc
+- If it's a one commit issue fix, add the issue number. e.g.: `Fix the compiler #000`.
 
 ## Join The Project Team
 <!-- TODO -->
