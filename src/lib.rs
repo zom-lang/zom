@@ -7,7 +7,6 @@
 //!
 //! Mona repository link -> <https://github.com/Larsouille25/mona>
 
-pub mod driver;
 pub mod error;
 
 pub mod fe;
