@@ -1,6 +1,6 @@
 [package]
 name = "mona_common"
-description = "Common modules for Mona like, errors etc.."
+description = "Common crate for Mona like, errors etc.."
 repository = "https://github.com/Larsouille25/mona/tree/main/mona_common"
 
 version.workspace = true

@@ -10,7 +10,7 @@ Mona is a Ahead Of Time compiled programming language written in Rust, the code 
 
 ## Usage
 
-After [build](#) Mona, just run it and you will see that :
+After [build](#build-mona) Mona, just run it and you will see that :
 ```
 Usage: mona <COMMAND>
 
@@ -23,6 +23,13 @@ Options:
 ```
 
 For now only one subcommand exits, it's `bobj`, it's the contraction of `build an object`, this will transform the file passed in arguments and compiles it to an object file.
+
+## Build Mona
+
+To build the source code of Mona, there are three steps :
+1. Clone the repository / download the source code
+2. Build with Cargo, in the root of the repository, `cargo build --all-targets --release`
+3. The binary, now is in `./target/release/mona`, you can put it in your binary folder, use it like that etc...
 
 ## Work to be done :
 - [x] Lexer
@@ -37,36 +44,20 @@ For now only one subcommand exits, it's `bobj`, it's the contraction of `build a
 
 ## Source layout:
 ```
-Cargo.toml               - Manifest for Cargo, where version, doc link, dependencies etc is 
+Cargo.toml               - Manifest for Cargo workspace
 LICENSE-APACHE           - The Apache-2.0 license of Mona
 LICENSE-MIT              - The MIT license of Mona
 
-src/               The source code folder
-src/main.rs              - Entry of the binary
-src/driver.rs            - The logic behind the REPL
-src/lib.rs               - Where modules are declared
 
-src/error.rs             - Common functions that error structs use 
-src/error/               - Parser, Lexer, Runtime error for Mona
+mona/                    - Binary crate.
+mona_fe/                 - Crate where the lexer, parser, token list and AST are.
+mona_common/             - Common crate for Mona like, errors etc..
+mona_codegen/            - Crate responsible for the generation of the LLVM IR.
+mona_compiler/           - Where the transformation of the LLVM IR to object files and then binary / lib.
 
-src/fe/                  - Tokens, Lexer, Parser, AST .. Front-End
-src/fe/lexer.rs          - Lexing logic
-src/fe/parser.rs         - Parsing occurs here
-src/fe/token.rs          - Tokens of Mona
-
-src/gc/                  - Garbage Collector (not yet implemented)
-
-src/typesys/             - Type System (not yet implemented)
-src/typesys/primitive.rs - Primitive types of Rust (not yet implemented)
-src/typesys/class.rs     - Class in Mona (not yet implemented)
-
-docs/                    - The documentation of Mona works
+docs/                    - The documentation of how Mona works
 docs/lang/               - The documentation of the Mona programming language
-docs/lang/000-readme.md  - Readme of the Mona's doc
-
-benches/           The benchmarks of every component of Mona
-benches/lexer_bench.rs   - Lexer benchmarks
-benches/parser_bench.rs  - Parser benchmarks
+docs/lang/000-readme.md  - Readme of the Mona Lang's doc
 ```
 
 ## License
