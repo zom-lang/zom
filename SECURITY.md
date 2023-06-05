@@ -4,10 +4,9 @@
 
 In the next table, there are the versions that are currently supported
 
-|    Version   | Supported          |
-| ------------ | ------------------ |
-| 0.0.0        | :x:                |
-| 0.1.0-alapha | :white_check_mark: |
+|    Version   | Supported |
+| ------------ | --------- |
+| `HEAD`       | :x:       |
 
 ## Reporting a Vulnerability
 
