@@ -2,10 +2,6 @@
 
 [workspace]
 
-# default-members = [
-#     "mona"
-# ]
-
 members = [
     "mona_fe",
     "mona_common",

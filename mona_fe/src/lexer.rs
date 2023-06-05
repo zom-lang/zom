@@ -8,9 +8,9 @@ use std::str::Chars;
 
 use std::mem;
 
-use crate::error::lexer::IllegalCharError;
-use crate::error::Position;
-use crate::fe::token::Token;
+use mona_common::error::lexer::IllegalCharError;
+use mona_common::error::Position;
+use crate::token::Token;
 
 use super::token::is_start_operator;
 

@@ -12,6 +12,7 @@ authors.workspace = true
 
 [dependencies]
 inkwell.workspace = true
+mona_fe = { path = "../mona_fe" }
 
 [features]
 default = ["llvm15-0"]

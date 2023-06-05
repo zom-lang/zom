@@ -12,7 +12,12 @@ use inkwell::{
     IntPredicate,
 };
 
-use crate::fe::{parser::{Expression, Function, Prototype, ASTNode}, token::*};
+use mona_fe::{
+    parser::{
+        Expression, Function, Prototype, ASTNode
+    }, 
+    token::*
+};
 
 /// Defines the `Expression` compiler.
 pub struct Compiler<'a, 'ctx> {

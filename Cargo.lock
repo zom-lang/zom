@@ -481,6 +481,7 @@ name = "mona_codegen"
 version = "0.0.0"
 dependencies = [
  "inkwell",
+ "mona_fe",
 ]
 
 [[package]]
@@ -492,6 +493,7 @@ name = "mona_fe"
 version = "0.0.0"
 dependencies = [
  "criterion",
+ "mona_common",
 ]
 
 [[package]]
