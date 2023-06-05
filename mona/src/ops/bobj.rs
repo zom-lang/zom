@@ -17,8 +17,8 @@ pub struct Args {
     optimization_level: usize, 
 
     /// Emits IR instead of a *.o
-    #[clap(long, short)]
-    emit_ir: Option<bool>,
+    #[clap(long)] // TODO: turn it into a flag
+    emit_ir: bool,
 }
 
 pub fn build(args: Args) -> Result<ExitStatus, anyhow::Error> {
