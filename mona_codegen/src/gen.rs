@@ -18,7 +18,7 @@ use mona_fe::{
 };
 
 /// Defines the `Expression` compiler.
-pub struct Compiler<'a, 'ctx> {
+pub struct CodeGen<'a, 'ctx> {
     pub context: &'ctx Context,
     pub builder: &'a Builder<'ctx>,
     pub fpm: &'a PassManager<FunctionValue<'ctx>>,
@@ -31,7 +31,7 @@ pub struct Compiler<'a, 'ctx> {
 
 pub type CompiledASTResult<'ctx> = Vec<Result<FunctionValue<'ctx>, &'static str>>;
 
-impl<'a, 'ctx> Compiler<'a, 'ctx> {
+impl<'a, 'ctx> CodeGen<'a, 'ctx> {
     /// Gets a defined function given its name.
     #[inline]
     fn get_function(&self, name: &str) -> Option<FunctionValue<'ctx>> {
@@ -260,7 +260,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
         module: &'a Module<'ctx>,
         function: &Function,
     ) -> Result<FunctionValue<'ctx>, &'static str> {
-        let mut compiler = Compiler {
+        let mut compiler = CodeGen {
             context,
             builder,
             fpm: pass_manager,
@@ -289,7 +289,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
         for node in ast {
             match node {
                 ASTNode::FunctionNode(fun) => {
-                    let mut compiler = Compiler {
+                    let mut compiler = CodeGen {
                         context,
                         builder,
                         fpm: pass_manager,
@@ -302,7 +302,7 @@ impl<'a, 'ctx> Compiler<'a, 'ctx> {
                     result.push(compiler.compile_fn());
                 }
                 ASTNode::ExternNode(proto) => {
-                    let mut compiler = Compiler {
+                    let mut compiler = CodeGen {
                         context,
                         builder,
                         fpm: pass_manager,
