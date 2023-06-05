@@ -464,11 +464,34 @@ dependencies = [
 
 [[package]]
 name = "mona"
-version = "0.0.0-alpha"
+version = "0.0.0"
 dependencies = [
  "clap",
- "criterion",
+]
+
+[[package]]
+name = "mona_build"
+version = "0.0.0"
+dependencies = [
  "inkwell",
+]
+
+[[package]]
+name = "mona_codegen"
+version = "0.0.0"
+dependencies = [
+ "inkwell",
+]
+
+[[package]]
+name = "mona_common"
+version = "0.0.0"
+
+[[package]]
+name = "mona_fe"
+version = "0.0.0"
+dependencies = [
+ "criterion",
 ]
 
 [[package]]

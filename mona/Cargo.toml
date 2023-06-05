@@ -1,0 +1,15 @@
+[package]
+name = "mona"
+description = "Mona is an interpreted programming language written in Rust. Run Mona code with the REPL or passing a source file."
+repository = "https://github.com/Larsouille25/mona"
+
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+readme.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap.workspace = true

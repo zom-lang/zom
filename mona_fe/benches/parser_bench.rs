@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use mona::fe::lexer::Lexer;
-use mona::fe::parser::{parse, ParserSettings};
-use mona::fe::token::Token::*;
+use mona_fe::lexer::Lexer;
+use mona_fe::parser::{parse, ParserSettings};
+use mona_fe::token::Token::*;
 
 fn simple_lexer_and_parser_benchmark(c: &mut Criterion) {
     c.bench_function("lexer + parser  1 + 1", |b| {
