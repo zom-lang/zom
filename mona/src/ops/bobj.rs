@@ -21,7 +21,10 @@ pub struct Args {
     emit_ir: bool,
 }
 
-pub fn build(args: Args) -> Result<ExitStatus, anyhow::Error> {
+pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
+    // default ouput_file to `output.o`, it's where because with `default_value_t`, that doesn't work.
+    args.output_file = Some(PathBuf::from(r"output.o"));
+
     println!("{:?}", args);
     todo!()
 }
