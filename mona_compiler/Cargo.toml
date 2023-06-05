@@ -1,6 +1,6 @@
 [package]
-name = "mona_build"
-description = "Mona crate responsible for generation of the object files."
+name = "mona_compiler"
+description = "Mona crate is responsible for the transformation of the LLVM IR to object files and then binary / lib."
 repository = "https://github.com/Larsouille25/mona/tree/main/mona_build"
 
 version.workspace = true

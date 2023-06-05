@@ -470,13 +470,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mona_build"
-version = "0.0.0"
-dependencies = [
- "inkwell",
-]
-
-[[package]]
 name = "mona_codegen"
 version = "0.0.0"
 dependencies = [
@@ -487,6 +480,13 @@ dependencies = [
 [[package]]
 name = "mona_common"
 version = "0.0.0"
+
+[[package]]
+name = "mona_compiler"
+version = "0.0.0"
+dependencies = [
+ "inkwell",
+]
 
 [[package]]
 name = "mona_fe"
