@@ -139,6 +139,18 @@ include Setup of env, IDE and typical getting started instructions?
 
 -->
 
+1.  Fork the repository.
+2.  Git clone your fork, e.g.: `git clone https://github.com/YOUR_USERNAME/mona.git`
+3.  Make sure you have Rust installed
+4.  Open your code editor, if it's Visual Studio Code, a minimal configuration is in the folder `.vscode`.
+5.  Make clear [commits messages](#commit-messages)
+6.  Push your changes to your fork.
+7.  When you are happy with your code implementation.
+8.  Run `cargo clippy` and fix all lints, it shows up
+9.  Format your code with `cargo fmt`
+10. Return to your fork and click on `Contribute` and `Open pull request`
+11. Write a good and consice pull request
+
 ### Improving The Documentation
 <!-- TODO
 Updating, improving and correcting the documentation
