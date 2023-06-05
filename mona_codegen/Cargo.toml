@@ -1,5 +1,7 @@
 [package]
 name = "mona_codegen"
+description = "Mona crate responsible for the generation of the LLVM IR."
+repository = "https://github.com/Larsouille25/mona/tree/main/mona_codegen"
 
 version.workspace = true
 edition.workspace = true

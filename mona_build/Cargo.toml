@@ -1,5 +1,7 @@
 [package]
 name = "mona_build"
+description = "Mona crate responsible for generation of the object files."
+repository = "https://github.com/Larsouille25/mona/tree/main/mona_build"
 
 version.workspace = true
 edition.workspace = true

@@ -1,6 +1,7 @@
 [package]
 name = "mona_fe"
-repository = "https://github.com/Larsouille25/mona"
+description = "Mona crate, where the lexer, parser, token list and AST are."
+repository = "https://github.com/Larsouille25/mona/tree/main/mona_fe"
 
 version.workspace = true
 edition.workspace = true
