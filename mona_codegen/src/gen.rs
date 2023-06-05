@@ -29,7 +29,7 @@ pub struct CodeGen<'a, 'ctx> {
     fn_value_opt: Option<FunctionValue<'ctx>>,
 }
 
-pub type CompiledASTResult<'ctx> = Vec<Result<FunctionValue<'ctx>, &'static str>>;
+pub type GeneratedCode<'ctx> = Vec<Result<FunctionValue<'ctx>, &'static str>>;
 
 impl<'a, 'ctx> CodeGen<'a, 'ctx> {
     /// Gets a defined function given its name.
@@ -283,8 +283,8 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         pass_manager: &'a PassManager<FunctionValue<'ctx>>,
         module: &'a Module<'ctx>,
         ast: &[ASTNode],
-    ) -> CompiledASTResult<'ctx> {
-        let mut result: CompiledASTResult<'ctx> = vec![];
+    ) -> GeneratedCode<'ctx> {
+        let mut result: GeneratedCode<'ctx> = vec![];
 
         for node in ast {
             match node {
