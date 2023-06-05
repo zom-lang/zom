@@ -1,0 +1,35 @@
+
+name: Rust tests for mona_fe
+
+on:
+  push:
+    paths:
+      - '**.rs'
+      - '**.toml'
+      - '**.yml'
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-and-test:
+    name: "On ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: 
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2.3.0
+
+    - name: Build
+      run: cargo build --release --features llvm${{ matrix.llvm-version[2] }} --verbose
+
+    - name: Run tests
+      run: cargo test --release --features llvm${{ matrix.llvm-version[2] }} --verbose
