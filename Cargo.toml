@@ -1,4 +1,4 @@
-# Mona is an interpreted programming language written in Rust. Run Mona code with the REPL or passing a source file.
+# Mona is a Ahead Of Time compiled programming language written in Rust, the code generation and compilation is made with LLVM. 
 
 [workspace]
 

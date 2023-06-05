@@ -6,7 +6,7 @@
 
 [licence-badge]: https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-lightgrey
 
-Mona is an interpreted programming language written in Rust. Run Mona code with the REPL or passing a source file.
+Mona is a Ahead Of Time compiled programming language written in Rust, the code generation and compilation is made with LLVM. 
 
 ## How to use it?
 
