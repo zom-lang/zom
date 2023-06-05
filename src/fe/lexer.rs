@@ -6,6 +6,8 @@ use std::error::Error;
 use std::iter::Peekable;
 use std::str::Chars;
 
+use std::mem;
+
 use crate::error::lexer::IllegalCharError;
 use crate::error::Position;
 use crate::fe::token::Token;
@@ -121,8 +123,8 @@ impl<'a> Lexer<'a> {
                         self.pos as u32,
                         self.line,
                         self.column as u32,
-                        self.filename.clone(), //TODO: Try to remove .clone()
-                        self.text.clone(),
+                        mem::take(&mut self.filename), 
+                        mem::take(&mut self.text),
                     ))));
                 }
             }
