@@ -8,65 +8,21 @@
 
 Mona is a Ahead Of Time compiled programming language written in Rust, the code generation and compilation is made with LLVM. 
 
-## How to use it?
+## Usage
 
-It's not fully implemented yet, but you can use it. After compiling Mona, run it like this:
-
+After [build](#) Mona, just run it and you will see that :
 ```
-$ ./mona
-Mona 0.1.0-alpha, to exit enter `.quit`
-~> 
-``` 
-Type anything you want, if there is an error it'll show you like that for lexing errors: 
+Usage: mona <COMMAND>
 
-```
-Err: Lexer, in file `<stdin>` at line 1 :
- ... |
-  1  | 1 + 2 * $
- ... |         ^
-               Illegal Character
+Commands:
+  bobj  Builds a given file into an object file
+  help  Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help
 ```
 
-By default when you type nothing shows up, it's normal you need to enable flags. By typing `./mona --help`, you will see a bunch of flags, if you want to see the result of the lexer add `-l` to the command, and if you want to also see the result of the parser you just need to add `-p`. The command will look like that `./mona -lp`.
-
-e.g:
-
-```
-$ ./mona
-Mona 0.1.0-alpha, to exit enter `.quit`
-~> (2 + 8) * 4
- Lexer : 
-[OpenParen, Int(2), Operator("+"), Int(8), CloseParen, Operator("*"), Int(4)]
-
- Parser : 
-[
-    FunctionNode(
-        Function {
-            prototype: Prototype {
-                name: "",
-                args: [],
-            },
-            body: BinaryExpr(
-                "*",
-                BinaryExpr(
-                    "+",
-                    LiteralExpr(
-                        2,
-                    ),
-                    LiteralExpr(
-                        8,
-                    ),
-                ),
-                LiteralExpr(
-                    4,
-                ),
-            ),
-        },
-    ),
-]
-
-```
-The slice is the Mona AST and the vector is the vector that is passed to the parser of Mona.
+For now only one subcommand exits, it's `bobj`, it's the contraction of `build an object`, this will transform the file passed in arguments and compiles it to an object file.
 
 ## Work to be done :
 - [x] Lexer
