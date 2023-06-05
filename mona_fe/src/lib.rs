@@ -1,14 +1,7 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+//! fe means `front end`.
+//!
+//! The front end of Mona is the Lexer, Token, Parser and AST.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub mod lexer;
+pub mod parser;
+pub mod token;
