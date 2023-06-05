@@ -12,7 +12,7 @@ mod ops;
 use std::ffi::OsString;
 
 use clap::{Parser, Subcommand};
-use ops::bobj;
+use ops::{bobj, version};
 
 #[derive(Parser)]
 #[clap()]
@@ -25,6 +25,9 @@ struct Args {
 enum Command {
     /// Builds a given file into an object file
     Bobj(bobj::Args),
+
+    /// Get the current version of Mona
+    Version,
 }
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
@@ -51,5 +54,6 @@ where
     let args = Args::parse_from(args);
     match args.command {
         Command::Bobj(args) => bobj::build(args),
+        Command::Version => version::version(),
     }
 }
