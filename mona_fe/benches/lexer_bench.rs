@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use mona::fe::lexer::Lexer;
+use mona_fe::lexer::Lexer;
 
 fn simple_lexer_benchmark(c: &mut Criterion) {
     c.bench_function("lexer 1 + 1", |b| {
