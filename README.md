@@ -12,17 +12,25 @@ Mona is a Ahead Of Time compiled programming language written in Rust, the code 
 
 After [build](#build-mona) Mona, just run it and you will see that :
 ```
-Usage: mona <COMMAND>
+Usage: mona [OPTIONS] <COMMAND>
 
 Commands:
-  bobj  Builds a given file into an object file
-  help  Print this message or the help of the given subcommand(s)
+  bobj        Builds a given file into an object file
+  version     Get the current version of Mona
+  get-target  Get the current target detected by LLVM
+  help        Print this message or the help of the given subcommand(s)
 
 Options:
-  -h, --help  Print help
+  -V, --verbose  Print verbose ouput if enabled
+  -h, --help     Print help
 ```
 
-For now only one subcommand exits, it's `bobj`, it's the contraction of `build an object`, this will transform the file passed in arguments and compiles it to an object file.
+There are
+
+- `bobj`, it's the contraction of `build an object`, this will transform the file passed in arguments and compiles it to an object file.
+- `version`, that output the current version of Mona
+- `get-target`, return the target found by LLVM.
+- and `--verbose`, that output more details.
 
 ## Build Mona
 
