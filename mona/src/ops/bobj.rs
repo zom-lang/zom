@@ -1,4 +1,7 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, fs, mem};
+
+use anyhow::anyhow;
+use mona_fe::lexer::Lexer;
 
 use crate::ExitStatus;
 
@@ -29,6 +32,27 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
         Some(PathBuf::from(r"output.o"))
     };
 
-    println!("{:?}", args);
-    todo!()
+    println!("{:#?}", args);
+
+    let source = match fs::read_to_string(mem::take(&mut args.source_file)) {
+        Ok(src) => src,
+        Err(_) => return Err(anyhow!("Error while trying to read the source file.")),
+    };
+
+    println!("\n{}", source);
+
+    let mut lexer = Lexer::new(source.as_str(), args.source_file.to_str().unwrap().to_owned());
+
+    println!("after the lexer");
+
+    // TODO: DOESN'T WORK.
+    let tokens = match lexer.make_tokens() {
+        Ok(src) => src,
+        Err(_) => return Err(anyhow!("Error while trying to read the source file.")),
+    };
+
+    println!("{:?}", tokens);
+
+
+    Ok(ExitStatus::Success)
 }
