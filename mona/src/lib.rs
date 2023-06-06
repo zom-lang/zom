@@ -12,7 +12,7 @@ mod ops;
 use std::ffi::OsString;
 
 use clap::{Parser, Subcommand};
-use ops::{bobj, version, gettarget::gettarget};
+use ops::{bobj, gettarget::gettarget, version};
 
 #[derive(Parser)]
 #[clap()]
