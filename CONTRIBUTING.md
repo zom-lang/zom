@@ -156,12 +156,35 @@ Updating, improving and correcting the documentation
 ## Styleguides
 ### Commit Messages
 
-Somes rules to write good commits messages :
+For git commits we follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format, which stats that a commit messages should be structured as follows: 
 
-- Use imperative mood in the subject line. e.g.: `Add lexing for Quotation Mark characters`. Imperative mood gives the tone you are giving an order or request.
-- Commit messages needs to be concise, around 50 characters long for the first line. and around 75 characters long in total.
-- Specify the type of commit e.g.: Bugfix, Update, Refactor, Bump, Add .. etc
-- If it's a one commit issue fix, add the issue number. e.g.: `Fix the compiler #000`.
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+--- 
+
+<br />
+The commit contains the following structural elements, to communicate intent to the
+consumers of your library:
+
+1. **fix:** a commit of the _type_ `fix` patches a bug in your codebase (this correlates with [`PATCH`](http://semver.org/#summary) in Semantic Versioning).
+1. **feat:** a commit of the _type_ `feat` introduces a new feature to the codebase (this correlates with [`MINOR`](http://semver.org/#summary) in Semantic Versioning).
+1. **BREAKING CHANGE:** a commit that has a footer `BREAKING CHANGE:`, or appends a `!` after the type/scope, introduces a breaking API change (correlating with [`MAJOR`](http://semver.org/#summary) in Semantic Versioning).
+A BREAKING CHANGE can be part of commits of any _type_.
+1. _types_ other than `fix:` and `feat:` are allowed, for example [@commitlint/config-conventional](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional) (based on the [Angular convention](https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#-commit-message-guidelines)) recommends `build:`, `chore:`, `ci:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`, and others.
+1. _footers_ other than `BREAKING CHANGE: <description>` may be provided and follow a convention similar to
+  [git trailer format](https://git-scm.com/docs/git-interpret-trailers).
+
+Additional types are not mandated by the Conventional Commits specification, and have no implicit effect in Semantic Versioning (unless they include a BREAKING CHANGE).
+<br /><br />
+A scope may be provided to a commit's type, to provide additional contextual information and is contained within parenthesis, e.g., `feat(parser): add ability to parse arrays`.
+
+> Full specification [here](https://www.conventionalcommits.org/en/v1.0.0/)
 
 ## Join The Project Team
 <!-- TODO -->
