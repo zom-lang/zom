@@ -491,6 +491,7 @@ dependencies = [
  "anyhow",
  "clap",
  "log",
+ "mona_compiler",
  "pretty_env_logger",
 ]
 

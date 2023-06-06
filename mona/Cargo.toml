@@ -16,3 +16,4 @@ clap = { version = "4.3.0", features = ["derive", "cargo"] }
 anyhow = { version = "1.0.71", default-features = false }
 log.workspace = true
 pretty_env_logger.workspace = true
+mona_compiler = { path = "../mona_compiler" }
