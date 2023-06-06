@@ -25,8 +25,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Move into mona_common
-      run: cd mona_common
+    - name: Move into mona_fe
+      run: cd mona_fe
 
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2.3.0
