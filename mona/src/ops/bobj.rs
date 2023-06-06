@@ -13,6 +13,7 @@ pub struct Args {
 
     /// Path to where the object file will go
     #[clap(short = 'O', long, default_value_t = 2)]
+    
     // TODO: Change this to the actual things later.
     optimization_level: usize,
 
@@ -23,7 +24,11 @@ pub struct Args {
 
 pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
     // default ouput_file to `output.o`, it's where because with `default_value_t`, that doesn't work.
-    args.output_file = Some(PathBuf::from(r"output.o"));
+    args.output_file = if args.emit_ir {
+        Some(PathBuf::from(r"output.ll"))
+    }else {
+        Some(PathBuf::from(r"output.o"))
+    };
 
     println!("{:?}", args);
     todo!()
