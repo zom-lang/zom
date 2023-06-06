@@ -19,6 +19,10 @@ use ops::{bobj, gettarget::gettarget, version};
 struct Args {
     #[clap(subcommand)]
     command: Command,
+
+    /// Print verbose ouput if enabled.
+    #[clap(long, short = 'V', action = clap::ArgAction::SetTrue)]
+    verbose: bool,
 }
 
 #[derive(Subcommand)]
