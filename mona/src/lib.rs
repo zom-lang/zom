@@ -12,7 +12,7 @@ mod ops;
 use std::ffi::OsString;
 
 use clap::{Parser, Subcommand};
-use ops::{bobj, version};
+use ops::{bobj, version, gettarget::gettarget};
 
 #[derive(Parser)]
 #[clap()]
@@ -28,6 +28,9 @@ enum Command {
 
     /// Get the current version of Mona
     Version,
+
+    /// Get the current target detected by LLVM.
+    GetTarget,
 }
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
@@ -55,5 +58,6 @@ where
     match args.command {
         Command::Bobj(args) => bobj::build(args),
         Command::Version => version::version(),
+        Command::GetTarget => gettarget(),
     }
 }
