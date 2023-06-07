@@ -2,3 +2,4 @@
 .vscode
 output.ll
 output.o
+a.out
