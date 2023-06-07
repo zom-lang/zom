@@ -38,6 +38,10 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    pub fn filename(&self) -> String {
+        self.filename.clone()
+    }
+
     pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Box<dyn Error>> {
         let mut tokens = Vec::new();
 
@@ -161,11 +165,12 @@ impl<'a> Lexer<'a> {
                 is_numeric = false;
             }
             num_str.push(ch);
-            if let Some(ch_peek) = self.chars.peek() {
+            if self.pos > self.text.len() {
+                break
+            }else if let Some(ch_peek) = self.chars.peek() {
                 if ch_peek.is_whitespace() || !ch_peek.is_alphanumeric() && ch_peek != &'_' {
                     break;
-                }
-                if let Some(char) = self.chars.next() {
+                }else if let Some(char) = self.chars.next() {
                     ch = char;
                 } else {
                     break;
