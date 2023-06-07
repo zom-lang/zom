@@ -18,4 +18,12 @@ log.workspace = true
 pretty_env_logger.workspace = true
 
 mona_compiler = { path = "../mona_compiler" }
+mona_codegen ={ path = "../mona_codegen" }
 mona_fe = { path = "../mona_fe" }
+
+inkwell.workspace = true
+
+[features]
+default = ["llvm15-0"]
+llvm14-0 = ["inkwell/llvm14-0"]
+llvm15-0 = ["inkwell/llvm15-0"]

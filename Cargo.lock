@@ -490,7 +490,9 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "clap",
+ "inkwell",
  "log",
+ "mona_codegen",
  "mona_compiler",
  "mona_fe",
  "pretty_env_logger",
