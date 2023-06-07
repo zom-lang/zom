@@ -1,2 +1,5 @@
+func main()
+    foo()
+
 func foo()
     123
