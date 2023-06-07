@@ -1,0 +1,13 @@
+[package]
+name = "mona_common"
+description = "Common crate for Mona like, errors etc.."
+repository = "https://github.com/Larsouille25/mona/tree/main/mona_common"
+
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]

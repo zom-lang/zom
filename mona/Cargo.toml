@@ -1,0 +1,29 @@
+[package]
+name = "mona"
+description = "This crate is a binary for the Mona Lang."
+repository = "https://github.com/Larsouille25/mona/tree/main/mona"
+
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+readme.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.3.0", features = ["derive", "cargo"] }
+anyhow = { version = "1.0.71", default-features = false }
+log.workspace = true
+pretty_env_logger.workspace = true
+
+mona_compiler = { path = "../mona_compiler" }
+mona_codegen ={ path = "../mona_codegen" }
+mona_fe = { path = "../mona_fe" }
+
+inkwell.workspace = true
+
+[features]
+default = ["llvm15-0"]
+llvm14-0 = ["inkwell/llvm14-0"]
+llvm15-0 = ["inkwell/llvm15-0"]

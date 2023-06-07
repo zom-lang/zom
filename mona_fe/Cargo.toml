@@ -1,0 +1,26 @@
+[package]
+name = "mona_fe"
+description = "Mona crate, where the lexer, parser, token list and AST are."
+repository = "https://github.com/Larsouille25/mona/tree/main/mona_fe"
+
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+mona_common = { path = "../mona_common" }
+
+[dev-dependencies]
+criterion.workspace = true
+
+[[bench]]
+name = "lexer_bench"
+harness = false
+
+[[bench]]
+name = "parser_bench"
+harness = false
+

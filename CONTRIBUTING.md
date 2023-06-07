@@ -31,7 +31,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 This project and everyone participating in it is governed by the
 [Mona Code of Conduct](https://github.com/Larsouille25/mona/blob/master/CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Please report unacceptable behavior
-to <Larsouille25#9352>.
+to <Larsouille25#9352> on Discord.
 
 
 ## I Have a Question
@@ -134,10 +134,18 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/Larsou
 <!-- You might want to create an issue template for enhancement suggestions that can be used as a guide and that defines the structure of the information to be included. If you do so, reference it here in the description. -->
 
 ### Your First Code Contribution
-<!-- TODO
-include Setup of env, IDE and typical getting started instructions?
 
--->
+1.  Fork the repository.
+2.  Git clone your fork, e.g.: `git clone https://github.com/YOUR_USERNAME/mona.git`
+3.  Make sure you have Rust installed
+4.  Open your code editor, if it's Visual Studio Code, a minimal configuration is in the folder `.vscode`.
+5.  Make clear [commits messages](#commit-messages)
+6.  Push your changes to your fork.
+7.  When you are happy with your code implementation.
+8.  Run `cargo clippy` and fix all lints, it shows up
+9.  Format your code with `cargo fmt`
+10. Return to your fork and click on `Contribute` and `Open pull request`
+11. Write a good and consice pull request
 
 ### Improving The Documentation
 <!-- TODO
@@ -147,9 +155,42 @@ Updating, improving and correcting the documentation
 
 ## Styleguides
 ### Commit Messages
-<!-- TODO
 
--->
+For git commits we follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format, which stats that a commit messages should be structured as follows: 
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+--- 
+
+<br />
+The commit contains the following structural elements, to communicate intent to the
+consumers of your library:
+
+1. **fix:** a commit of the _type_ `fix` patches a bug in your codebase (this correlates with [`PATCH`](http://semver.org/#summary) in Semantic Versioning).
+2. **feat:** a commit of the _type_ `feat` introduces a new feature to the codebase (this correlates with [`MINOR`](http://semver.org/#summary) in Semantic Versioning).
+3. **BREAKING CHANGE:** a commit that has a footer `BREAKING CHANGE:`, or appends a `!` after the type/scope, introduces a breaking API change (correlating with [`MAJOR`](http://semver.org/#summary) in Semantic Versioning).
+A BREAKING CHANGE can be part of commits of any _type_.
+4. _types_ other than `fix:` and `feat:` are allowed, for example [@commitlint/config-conventional](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional) (based on the [Angular convention](https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#-commit-message-guidelines)) recommends `build:`, `chore:`, `ci:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`, and others.
+5. _footers_ other than `BREAKING CHANGE: <description>` may be provided and follow a convention similar to
+  [git trailer format](https://git-scm.com/docs/git-interpret-trailers).
+6. _scopes_ can be the crate name your commit changes. e.g.: `mona`, `mona_fe`, `mona_common`, `mona_codegen`, `mona_compiler`.
+
+Additional types are not mandated by the Conventional Commits specification, and have no implicit effect in Semantic Versioning (unless they include a BREAKING CHANGE).
+<br /><br />
+A scope may be provided to a commit's type, to provide additional contextual information and is contained within parenthesis, e.g., `feat(parser): add ability to parse arrays`.
+
+> Full specification [here](https://www.conventionalcommits.org/en/v1.0.0/)
 
 ## Join The Project Team
-<!-- TODO -->
+
+There isn't really a way to join the project team, but it might help if you're
+- active on the project
+- you often contribute
+- know the base of LLVM and Compilers
+- be cool 👍

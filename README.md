@@ -6,67 +6,48 @@
 
 [licence-badge]: https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-lightgrey
 
-Mona is an interpreted programming language written in Rust. Run Mona code with the REPL or passing a source file.
+Mona is a Ahead Of Time compiled programming language written in Rust, the code generation and compilation is made with LLVM. 
 
-## How to use it?
+## Features
 
-It's not fully implemented yet, but you can use it. After compiling Mona, run it like this:
+- **Ahead of Time** compiled programmaing language, that mean you will have great performance, because the transformation of the source code to executable code is done before. Contrary to Just In Time compilation who's occur at the same time as the execution.
+- **Statically typed**, Mona solves types at compile time, and not at run time and you'll also know when you develop with Mona, the type of variables / arguments.
+- **Performance**, because Mona is Ahead of Time compiled, all the hard work is done before the execution.
+- **Safety and Simplicity**, Mona is safe and simple at the same time, because it doesn't have a very strict design.
+- **Memory managment**, Mona uses a Garbage collector, for the heap allocation, it is developed in safe Rust. The GC is simple and lightweight but have all the functionnality needed.
 
+> For the moment some of the features are not yet implemented.
+
+## Usage
+
+After [build](#build-mona) Mona, just run it and you will see that :
 ```
-$ ./mona
-Mona 0.1.0-alpha, to exit enter `.quit`
-~> 
-``` 
-Type anything you want, if there is an error it'll show you like that for lexing errors: 
+Usage: mona [OPTIONS] <COMMAND>
 
+Commands:
+  bobj        Builds a given file into an object file
+  version     Get the current version of Mona
+  get-target  Get the current target detected by LLVM
+  help        Print this message or the help of the given subcommand(s)
+
+Options:
+  -V, --verbose  Print verbose ouput if enabled
+  -h, --help     Print help
 ```
-Err: Lexer, in file `<stdin>` at line 1 :
- ... |
-  1  | 1 + 2 * $
- ... |         ^
-               Illegal Character
-```
 
-By default when you type nothing shows up, it's normal you need to enable flags. By typing `./mona --help`, you will see a bunch of flags, if you want to see the result of the lexer add `-l` to the command, and if you want to also see the result of the parser you just need to add `-p`. The command will look like that `./mona -lp`.
+There are
 
-e.g:
+- `bobj`, it's the contraction of `build an object`, this will transform the file passed in arguments and compiles it to an object file.
+- `version`, that output the current version of Mona
+- `get-target`, return the target found by LLVM.
+- and `--verbose`, that output more details.
 
-```
-$ ./mona
-Mona 0.1.0-alpha, to exit enter `.quit`
-~> (2 + 8) * 4
- Lexer : 
-[OpenParen, Int(2), Operator("+"), Int(8), CloseParen, Operator("*"), Int(4)]
+## Build Mona
 
- Parser : 
-[
-    FunctionNode(
-        Function {
-            prototype: Prototype {
-                name: "",
-                args: [],
-            },
-            body: BinaryExpr(
-                "*",
-                BinaryExpr(
-                    "+",
-                    LiteralExpr(
-                        2,
-                    ),
-                    LiteralExpr(
-                        8,
-                    ),
-                ),
-                LiteralExpr(
-                    4,
-                ),
-            ),
-        },
-    ),
-]
-
-```
-The slice is the Mona AST and the vector is the vector that is passed to the parser of Mona.
+To build the source code of Mona, there are three steps :
+1. Clone the repository / download the source code
+2. Build with Cargo, in the root of the repository, `cargo build --all-targets --release`
+3. The binary, now is in `./target/release/mona`, you can put it in your binary folder, use it like that etc...
 
 ## Work to be done :
 - [x] Lexer
@@ -74,43 +55,27 @@ The slice is the Mona AST and the vector is the vector that is passed to the par
 - [ ] ~~Interpreter~~
 - [x] ~~Make a good [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)~~
 - [ ] ~~a JIT with LLVM ?~~
-- [ ] A AOT compiler
+- [x] A AOT compiler
 - [ ] Optimization and cleaning
 - [ ] A good error system for the parser and the compiler -> https://github.com/Larsouille25/mona/issues/4
 - [ ] Implement the docs ;)
 
 ## Source layout:
 ```
-Cargo.toml               - Manifest for Cargo, where version, doc link, dependencies etc is 
+Cargo.toml               - Manifest for Cargo workspace
 LICENSE-APACHE           - The Apache-2.0 license of Mona
 LICENSE-MIT              - The MIT license of Mona
 
-src/               The source code folder
-src/main.rs              - Entry of the binary
-src/driver.rs            - The logic behind the REPL
-src/lib.rs               - Where modules are declared
 
-src/error.rs             - Common functions that error structs use 
-src/error/               - Parser, Lexer, Runtime error for Mona
+mona/                    - Binary crate.
+mona_fe/                 - Crate where the lexer, parser, token list and AST are.
+mona_common/             - Common crate for Mona like, errors etc..
+mona_codegen/            - Crate responsible for the generation of the LLVM IR.
+mona_compiler/           - Where the transformation of the LLVM IR to object files and then binary / lib.
 
-src/fe/                  - Tokens, Lexer, Parser, AST .. Front-End
-src/fe/lexer.rs          - Lexing logic
-src/fe/parser.rs         - Parsing occurs here
-src/fe/token.rs          - Tokens of Mona
-
-src/gc/                  - Garbage Collector (not yet implemented)
-
-src/typesys/             - Type System (not yet implemented)
-src/typesys/primitive.rs - Primitive types of Rust (not yet implemented)
-src/typesys/class.rs     - Class in Mona (not yet implemented)
-
-docs/                    - The documentation of Mona works
+docs/                    - The documentation of how Mona works
 docs/lang/               - The documentation of the Mona programming language
-docs/lang/000-readme.md  - Readme of the Mona's doc
-
-benches/           The benchmarks of every component of Mona
-benches/lexer_bench.rs   - Lexer benchmarks
-benches/parser_bench.rs  - Parser benchmarks
+docs/lang/000-readme.md  - Readme of the Mona Lang's doc
 ```
 
 ## License
@@ -121,11 +86,14 @@ Licensed under either of
 
 at your option.
 
+> More informations [here](/COPYRIGHT).
+
 ## Contribution
+
 Feel free to contribute. For the moment there is a documentation but it needs to be improved.
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you shall be dual licensed as above, without any
 additional terms or conditions.
 
-And thanks to all the people who helped me when I had issues with the borrow checker 😂
+A much more detailed version, on how to contribute to Mona can be found [here](/CONTRIBUTING.md)
