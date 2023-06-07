@@ -29,7 +29,7 @@ pub struct CodeGen<'a, 'ctx> {
     fn_value_opt: Option<FunctionValue<'ctx>>,
 }
 
-pub type GeneratedCode<'ctx> = Vec<Result<FunctionValue<'ctx>, &'static str>>;
+pub type GeneratedCode<'ctx> = Result<Vec<FunctionValue<'ctx>>, &'static str>;
 
 impl<'a, 'ctx> CodeGen<'a, 'ctx> {
     /// Gets a defined function given its name.
@@ -284,7 +284,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         module: &'a Module<'ctx>,
         ast: &[ASTNode],
     ) -> GeneratedCode<'ctx> {
-        let mut result: GeneratedCode<'ctx> = vec![];
+        let mut result = vec![];
 
         for node in ast {
             match node {
@@ -299,7 +299,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         variables: HashMap::new(),
                     };
 
-                    result.push(compiler.compile_fn());
+                    result.push(compiler.compile_fn()?);
                 }
                 ASTNode::ExternNode(proto) => {
                     let mut compiler = CodeGen {
@@ -316,11 +316,11 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         variables: HashMap::new(),
                     };
 
-                    result.push(compiler.compile_ext());
+                    result.push(compiler.compile_ext()?);
                 }
             }
         }
 
-        result
+        Ok(result)
     }
 }
