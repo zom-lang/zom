@@ -40,3 +40,4 @@ If you want to improve the Mona syntax / grammar and you've already open a pull 
 ## Template
 
 There is a [template](/docs/xxx-template.md), if you want to contribute to the doc of the Language, you **must** use it.
+You just need to replace `feature name` with the name of your feature. Replace the link to the issue. And of course, wrote what your feature will do and how ?
