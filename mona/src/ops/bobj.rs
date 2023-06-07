@@ -8,7 +8,7 @@ use mona_fe::{lexer::Lexer, parser::{parse, ParserSettings}};
 
 use crate::ExitStatus;
 
-#[derive(clap::Args, Debug)]
+#[derive(clap::Args, Debug, Clone)]
 pub struct Args {
     /// Path to the Mona source file
     source_file: PathBuf,
@@ -25,6 +25,11 @@ pub struct Args {
     /// Emits IR instead of a *.o
     #[clap(long, short, action = clap::ArgAction::SetTrue)]
     emit_ir: bool,
+
+
+    /// Print verbose ouput if enabled.
+    #[clap(long, short = 'V', action = clap::ArgAction::SetTrue)]
+    verbose: bool,
 }
 
 pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
@@ -37,25 +42,21 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
         };
     }
 
-    println!("{:#?}", args);
-
     let source = match fs::read_to_string(mem::take(&mut args.source_file)) {
         Ok(src) => src,
         Err(_) => return Err(anyhow!("Error while trying to read the source file.")),
     };
 
-    println!("\n{}", source);
-
     let mut lexer = Lexer::new(source.as_str(), args.source_file.to_str().unwrap().to_owned());
-
-    println!("after the lexer");
 
     let tokens = match lexer.make_tokens() {
         Ok(src) => src,
         Err(_) => return Err(anyhow!("Error while trying to read the source file.")),
     };
 
-    println!("{:?}", tokens);
+    args.verbose.then(|| {
+        println!("[+] Successfully lexes the input.");
+    });
 
     let parse_result = parse(tokens.as_slice(), &[], &mut ParserSettings::default());
 
@@ -72,7 +73,9 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
         Err(_) => return Err(anyhow!("Parsing error occurs."))
     }
 
-    println!("{:#?}", ast);
+    args.verbose.then(|| {
+        println!("[+] Successfully parsed the tokens.");
+    });
 
     let context = Context::create();
     let module = context.create_module("repl");
@@ -98,6 +101,9 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
 
     match compile_res {
         Ok(funcs) => {
+            args.verbose.then(|| {
+                println!("[+] Successfully generate the code.");
+            });
             if args.emit_ir {
                 for fun in funcs {
                     let str = fun.print_to_string();
@@ -105,6 +111,8 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
                         Some(ref path) => {
                             let mut file = File::create(path).expect("Couldn't open the file");
                             file.write(str.to_bytes()).expect("Could write to the file");
+
+                            println!("Wrote the result to {:?}!", path);
                         }
                         None => return Err(anyhow!("Couldn't unwrap the file path"))
                     }
@@ -113,16 +121,14 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
             else {
                 match args.output_file {
                     Some(ref path) => {
-                        Compiler::compile_default(module, path).expect("Couldn't compile to object file")
+                        Compiler::compile_default(module, path).expect("Couldn't compile to object file");
+                        println!("Wrote result to {:?}!", path);
                     }
                     None => return Err(anyhow!("Couldn't unwrap the file path"))
                 }
             }
         }
-        Err(err) => {
-            println!("{err}");
-            return Err(anyhow!("Error was occur when trying to generate the code"))
-        }
+        Err(_) => return Err(anyhow!("Error was occur when trying to generate the code"))
     }
 
     Ok(ExitStatus::Success)
