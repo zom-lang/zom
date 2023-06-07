@@ -31,7 +31,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 This project and everyone participating in it is governed by the
 [Mona Code of Conduct](https://github.com/Larsouille25/mona/blob/master/CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Please report unacceptable behavior
-to <Larsouille25#9352>.
+to <Larsouille25#9352> on Discord.
 
 
 ## I Have a Question
@@ -188,4 +188,9 @@ A scope may be provided to a commit's type, to provide additional contextual inf
 > Full specification [here](https://www.conventionalcommits.org/en/v1.0.0/)
 
 ## Join The Project Team
-<!-- TODO -->
+
+There isn't really a way to join the project team, but it might help if you're
+- active on the project
+- you often contribute
+- know the base of LLVM and Compilers
+- be cool 👍
