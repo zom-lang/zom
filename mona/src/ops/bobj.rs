@@ -1,10 +1,18 @@
-use std::{path::PathBuf, fs::{self, File}, mem, io::Write};
+use std::{
+    fs::{self, File},
+    io::Write,
+    mem,
+    path::PathBuf,
+};
 
 use anyhow::anyhow;
 use inkwell::{context::Context, passes::PassManager, values::AnyValue};
 use mona_codegen::gen::CodeGen;
 use mona_compiler::compiler::Compiler;
-use mona_fe::{lexer::Lexer, parser::{parse, ParserSettings}};
+use mona_fe::{
+    lexer::Lexer,
+    parser::{parse, ParserSettings},
+};
 
 use crate::ExitStatus;
 
@@ -26,7 +34,6 @@ pub struct Args {
     #[clap(long, short, action = clap::ArgAction::SetTrue)]
     emit_ir: bool,
 
-
     /// Print verbose ouput if enabled.
     #[clap(long, short = 'V', action = clap::ArgAction::SetTrue)]
     verbose: bool,
@@ -47,7 +54,10 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
         Err(_) => return Err(anyhow!("Error while trying to read the source file.")),
     };
 
-    let mut lexer = Lexer::new(source.as_str(), args.source_file.to_str().unwrap().to_owned());
+    let mut lexer = Lexer::new(
+        source.as_str(),
+        args.source_file.to_str().unwrap().to_owned(),
+    );
 
     let tokens = match lexer.make_tokens() {
         Ok(src) => src,
@@ -66,11 +76,11 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
         Ok((parsed_ast, rest)) => {
             if rest.is_empty() {
                 ast = parsed_ast;
-            }else {
-                return Err(anyhow!("There is rest after parsing."))
+            } else {
+                return Err(anyhow!("There is rest after parsing."));
             }
         }
-        Err(_) => return Err(anyhow!("Parsing error occurs."))
+        Err(_) => return Err(anyhow!("Parsing error occurs.")),
     }
 
     args.verbose.then(|| {
@@ -95,7 +105,9 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
 
     fpm.initialize();
 
-    let module = context.create_module(mem::take(&mut args.source_file.as_mut_os_str().to_str().unwrap()));
+    let module = context.create_module(mem::take(
+        &mut args.source_file.as_mut_os_str().to_str().unwrap(),
+    ));
 
     let compile_res = CodeGen::compile_ast(&context, &builder, &fpm, &module, &ast);
 
@@ -114,21 +126,21 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
 
                             println!("Wrote the result to {:?}!", path);
                         }
-                        None => return Err(anyhow!("Couldn't unwrap the file path"))
+                        None => return Err(anyhow!("Couldn't unwrap the file path")),
                     }
                 }
-            }
-            else {
+            } else {
                 match args.output_file {
                     Some(ref path) => {
-                        Compiler::compile_default(module, path).expect("Couldn't compile to object file");
+                        Compiler::compile_default(module, path)
+                            .expect("Couldn't compile to object file");
                         println!("Wrote result to {:?}!", path);
                     }
-                    None => return Err(anyhow!("Couldn't unwrap the file path"))
+                    None => return Err(anyhow!("Couldn't unwrap the file path")),
                 }
             }
         }
-        Err(_) => return Err(anyhow!("Error was occur when trying to generate the code"))
+        Err(_) => return Err(anyhow!("Error was occur when trying to generate the code")),
     }
 
     Ok(ExitStatus::Success)
