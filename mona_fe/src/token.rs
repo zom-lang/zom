@@ -67,21 +67,21 @@ pub const PRECEDE_EQ: i32 = 2;
 pub fn is_start_operator(maybe_start: char) -> bool {
     let maybe_start = maybe_start.to_string();
 
-    OP_PLUS.starts_with(maybe_start.as_str()) 
-      || OP_MINUS.starts_with(maybe_start.as_str())
-      || OP_MUL.starts_with(maybe_start.as_str())
-      || OP_DIV.starts_with(maybe_start.as_str())
-      || OP_MOD.starts_with(maybe_start.as_str())
-      || OP_POWER.starts_with(maybe_start.as_str())
-      || OP_EQ.starts_with(maybe_start.as_str())
-      || OP_COMP_EQ.starts_with(maybe_start.as_str())
-      || OP_COMP_NE.starts_with(maybe_start.as_str())
-      || OP_COMP_GT.starts_with(maybe_start.as_str())
-      || OP_COMP_LT.starts_with(maybe_start.as_str())
-      || OP_COMP_GTE.starts_with(maybe_start.as_str()) 
-      || OP_COMP_LTE.starts_with(maybe_start.as_str())
-      || OP_OR.starts_with(maybe_start.as_str())
-      || OP_AND.starts_with(maybe_start.as_str()) 
+    OP_PLUS.starts_with(maybe_start.as_str())
+        || OP_MINUS.starts_with(maybe_start.as_str())
+        || OP_MUL.starts_with(maybe_start.as_str())
+        || OP_DIV.starts_with(maybe_start.as_str())
+        || OP_MOD.starts_with(maybe_start.as_str())
+        || OP_POWER.starts_with(maybe_start.as_str())
+        || OP_EQ.starts_with(maybe_start.as_str())
+        || OP_COMP_EQ.starts_with(maybe_start.as_str())
+        || OP_COMP_NE.starts_with(maybe_start.as_str())
+        || OP_COMP_GT.starts_with(maybe_start.as_str())
+        || OP_COMP_LT.starts_with(maybe_start.as_str())
+        || OP_COMP_GTE.starts_with(maybe_start.as_str())
+        || OP_COMP_LTE.starts_with(maybe_start.as_str())
+        || OP_OR.starts_with(maybe_start.as_str())
+        || OP_AND.starts_with(maybe_start.as_str())
 }
 
 /// Check if the given string slice is an Operator (OP_**)
@@ -90,31 +90,30 @@ pub fn is_start_operator(maybe_start: char) -> bool {
 pub fn is_operator(maybe_op: &str) -> (bool, usize) {
     // I think it can be improved...
     // Single char operator.
-    if maybe_op.starts_with(OP_PLUS) 
+    if maybe_op.starts_with(OP_PLUS)
         || maybe_op.starts_with(OP_MINUS)
         || maybe_op.starts_with(OP_MUL)
         || maybe_op.starts_with(OP_DIV)
         || maybe_op.starts_with(OP_MOD)
         || maybe_op.starts_with(OP_POWER)
         || maybe_op.starts_with(OP_COMP_GT)
-        || maybe_op.starts_with(OP_COMP_LT) {
+        || maybe_op.starts_with(OP_COMP_LT)
+    {
         (true, 1)
     } else if maybe_op.starts_with(OP_EQ) {
         match maybe_op.get(1..=1) {
             Some("=") | Some("<") | Some(">") => {
                 return (true, 2);
             }
-            _ => ()
+            _ => (),
         }
 
         (true, 1)
     }
     // Dual char operator.
-    else if maybe_op == OP_COMP_NE 
-             || maybe_op == OP_OR
-             || maybe_op == OP_AND {
+    else if maybe_op == OP_COMP_NE || maybe_op == OP_OR || maybe_op == OP_AND {
         (true, 2)
-    } 
+    }
     // it's not an OP_**
     else {
         (false, 0)
@@ -131,7 +130,6 @@ pub const KEY_LET: &str = "let";
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     // Operators
-
     /// Operators, should only be an OP_**
     Operator(String),
 

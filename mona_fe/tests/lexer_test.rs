@@ -5,7 +5,10 @@ use std::error::Error;
 fn test_operators_lexing() -> Result<(), Box<dyn Error>> {
     use mona_fe::token::Token::Operator;
     use mona_fe::token::*;
-    let mut lexer = Lexer::new("= + - * / % ^ == != > < => =< || &&", "test_operators_parsing".to_string());
+    let mut lexer = Lexer::new(
+        "= + - * / % ^ == != > < => =< || &&",
+        "test_operators_parsing".to_string(),
+    );
     let toks = lexer.make_tokens()?;
 
     let expected = vec![
@@ -24,18 +27,20 @@ fn test_operators_lexing() -> Result<(), Box<dyn Error>> {
         Operator(OP_COMP_LTE.to_string()),
         Operator(OP_OR.to_string()),
         Operator(OP_AND.to_string()),
-        ];
+    ];
 
     assert_eq!(toks, expected);
 
     Ok(())
 }
 
-
 #[test]
 fn test_lexing() -> Result<(), Box<dyn Error>> {
     use mona_fe::token::*;
-    let mut lexer = Lexer::new("func extern let () [] {} : ; , 123", "test_operators_parsing".to_string());
+    let mut lexer = Lexer::new(
+        "func extern let () [] {} : ; , 123",
+        "test_operators_parsing".to_string(),
+    );
     let toks = lexer.make_tokens()?; // Float aren't currently tested because there is a bug
 
     let expected = vec![
@@ -52,7 +57,7 @@ fn test_lexing() -> Result<(), Box<dyn Error>> {
         SemiColon,
         Comma,
         Int(123),
-        ];
+    ];
 
     assert_eq!(toks, expected);
 
