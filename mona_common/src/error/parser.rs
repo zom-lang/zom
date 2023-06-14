@@ -4,35 +4,35 @@ use std::error::Error;
 use super::{ErrorKind, Position, MonaError};
 
 #[derive(Debug, PartialEq)]
-pub struct InvalidSyntaxError {
+pub struct UnexpectedTokenError {
     name: String,
     details: String,
     kind: ErrorKind,
     position: Position,
 }
 
-impl InvalidSyntaxError {
-    pub fn new(position: Position, details: String) -> InvalidSyntaxError {
-        InvalidSyntaxError {
-            name: String::from("Invalid Syntax"),
+impl UnexpectedTokenError {
+    pub fn new(position: Position, details: String) -> UnexpectedTokenError {
+        UnexpectedTokenError {
+            name: String::from("Unexpected Token Error"),
             details,
-            kind: ErrorKind::Lexer,
+            kind: ErrorKind::Parser,
             position,
         }
     }
 }
 
-impl Error for InvalidSyntaxError {
+impl Error for UnexpectedTokenError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         None
     }
 }
 
-impl MonaError for InvalidSyntaxError {
+impl MonaError for UnexpectedTokenError {
     
 }
 
-impl fmt::Display for InvalidSyntaxError {
+impl fmt::Display for UnexpectedTokenError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         super::print_error(
             f,
