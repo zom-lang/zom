@@ -113,7 +113,7 @@ pub fn parse(
         let result = match cur_token {
             Func => parse_function(&mut rest, settings),
             Extern => parse_extern(&mut rest, settings),
-            Delimiter => {
+            SemiColon => {
                 rest.pop();
                 continue;
             }

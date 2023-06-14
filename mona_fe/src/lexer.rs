@@ -38,8 +38,21 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    pub fn pos(&self) -> usize {
+        self.pos
+    }
+
+    pub fn column(&self) -> usize {
+        self.column
+    }
+
     pub fn filename(&self) -> String {
         self.filename.clone()
+    }
+
+    pub fn incr_pos(&mut self) {
+        self.pos += 1;
+        self.column += 1;
     }
 
     pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Box<dyn Error>> {
@@ -57,12 +70,13 @@ impl<'a> Lexer<'a> {
                         continue;
                     }
 
-                    let window = window.unwrap().trim();
+                    let window = window.unwrap();
                     let (is_op, len) = is_operator(window);
 
                     if is_op {
                         tokens.push(Operator(window[..len].to_owned()));
                         self.pos += len;
+                        self.column += len;
                         continue;
                     }
                 }
@@ -70,7 +84,7 @@ impl<'a> Lexer<'a> {
                     self.chars.next();
                     loop {
                         let ch = self.chars.next();
-                        self.pos += 1;
+                        self.incr_pos();
 
                         if ch == Some('\n') {
                             continue 'main;
@@ -79,50 +93,50 @@ impl<'a> Lexer<'a> {
                 }
                 '(' => {
                     tokens.push(Token::OpenParen);
-                    self.pos += 1;
+                    self.incr_pos();
                 }
                 ')' => {
                     tokens.push(Token::CloseParen);
-                    self.pos += 1;
+                    self.incr_pos();
                 }
                 '[' => {
                     tokens.push(Token::OpenBracket);
-                    self.pos += 1;
+                    self.incr_pos();
                 }
                 ']' => {
                     tokens.push(Token::CloseBracket);
-                    self.pos += 1;
+                    self.incr_pos();
                 }
                 '{' => {
                     tokens.push(Token::OpenBrace);
-                    self.pos += 1;
+                    self.incr_pos();
                 }
                 '}' => {
                     tokens.push(Token::CloseBrace);
-                    self.pos += 1;
+                    self.incr_pos();
                 }
                 ';' => {
-                    tokens.push(Token::Delimiter);
-                    self.pos += 1;
+                    tokens.push(Token::SemiColon);
+                    self.incr_pos();
                 }
                 ':' => {
                     tokens.push(Token::Colon);
-                    self.pos += 1;
+                    self.incr_pos();
                 }
                 ',' => {
                     tokens.push(Token::Comma);
-                    self.pos += 1;
+                    self.incr_pos();
                 }
                 '\n' => {
                     self.line += 1;
                     self.column = 0;
                     self.pos += 1;
                 }
+                w if w.is_whitespace() => {
+                    self.incr_pos();
+                    continue;
+                }
                 _ => {
-                    self.pos += 1;
-                    if ch.is_whitespace() {
-                        continue;
-                    }
                     return Err(Box::new(IllegalCharError::new(Position::new(
                         self.pos as u32,
                         self.line,
@@ -152,7 +166,7 @@ impl<'a> Lexer<'a> {
         let mut ch = ch;
 
         loop {
-            self.pos += 1;
+            self.incr_pos();
             if ch == '.' {
                 dot_count += 1;
                 if dot_count > 1 {

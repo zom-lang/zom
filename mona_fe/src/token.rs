@@ -100,16 +100,17 @@ pub fn is_operator(maybe_op: &str) -> (bool, usize) {
         || maybe_op.starts_with(OP_COMP_LT) {
         (true, 1)
     } else if maybe_op.starts_with(OP_EQ) {
-        if let Some("=") = maybe_op.get(..2) {
-            return (true, 2);
+        match maybe_op.get(1..=1) {
+            Some("=") | Some("<") | Some(">") => {
+                return (true, 2);
+            }
+            _ => ()
         }
 
         (true, 1)
     }
     // Dual char operator.
     else if maybe_op == OP_COMP_NE 
-             || maybe_op == OP_COMP_GTE
-             || maybe_op == OP_COMP_LTE 
              || maybe_op == OP_OR
              || maybe_op == OP_AND {
         (true, 2)
@@ -130,6 +131,7 @@ pub const KEY_LET: &str = "let";
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     // Operators
+
     /// Operators, should only be an OP_**
     Operator(String),
 
@@ -144,7 +146,7 @@ pub enum Token {
     CloseBrace, // ` } `
 
     Colon,     // ` : `
-    Delimiter, // ` ; `
+    SemiColon, // ` ; `
     Comma,     // ` , `
 
     // Literals
