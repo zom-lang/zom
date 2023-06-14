@@ -56,7 +56,7 @@ fn error<T>(message: &str) -> PartParsingResult<T> {
 #[derive(Debug)]
 pub struct ParserSettings {
     operator_precedence: HashMap<String, i32>,
-    pos: usize
+    pub pos: usize
 }
 
 impl ParserSettings {
@@ -128,8 +128,6 @@ pub fn parse(
             Bad(message) => return Err(message),
         }
     }
-
-    println!("settings = {:#?}", settings);
 
     // unparsed tokens
     rest.reverse();
@@ -240,7 +238,7 @@ fn parse_prototype(
         settings,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
-        "expected function name in prototype"
+        format!("expected function name in prototype, tok pos = {}", settings.pos).as_str()
     );
 
     expect_token!(
