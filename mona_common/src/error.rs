@@ -124,41 +124,6 @@ impl Position {
     }
 }
 
-// General Lexer Error
-
-#[derive(Debug, PartialEq)]
-pub struct GeneralError {
-    name: String,
-    details: String,
-    kind: ErrorKind,
-    position: Position,
-}
-
-impl GeneralError {
-    pub fn new(name: String, kind: ErrorKind, details: String, position: Position) -> GeneralError {
-        GeneralError {
-            name, // String::from("Parse Litteral Error")
-            details,
-            kind,
-            position,
-        }
-    }
-}
-
-impl Error for GeneralError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        None
-    }
-}
-
-impl fmt::Display for GeneralError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        print_error(
-            f,
-            &self.position,
-            &self.kind,
-            self.name.to_string(),
-            self.details.to_string(),
-        )
-    }
+pub trait MonaError: Error {
+    
 }
