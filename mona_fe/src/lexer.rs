@@ -53,7 +53,7 @@ impl<'a> Lexer<'a> {
                 ch if is_start_operator(ch) => {
                     let window = &self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
 
-                    if let None = window {
+                    if window.is_none() {
                         continue;
                     }
 

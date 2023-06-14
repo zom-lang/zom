@@ -67,39 +67,21 @@ pub const PRECEDE_EQ: i32 = 2;
 pub fn is_start_operator(maybe_start: char) -> bool {
     let maybe_start = maybe_start.to_string();
 
-    if OP_PLUS.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_MINUS.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_MUL.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_DIV.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_MOD.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_POWER.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_EQ.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_COMP_EQ.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_COMP_NE.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_COMP_GT.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_COMP_LT.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_COMP_GTE.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_COMP_LTE.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_OR.starts_with(maybe_start.as_str()) {
-        true
-    } else if OP_AND.starts_with(maybe_start.as_str()) {
-        true
-    } else {
-        false
-    }
+    OP_PLUS.starts_with(maybe_start.as_str()) 
+      || OP_MINUS.starts_with(maybe_start.as_str())
+      || OP_MUL.starts_with(maybe_start.as_str())
+      || OP_DIV.starts_with(maybe_start.as_str())
+      || OP_MOD.starts_with(maybe_start.as_str())
+      || OP_POWER.starts_with(maybe_start.as_str())
+      || OP_EQ.starts_with(maybe_start.as_str())
+      || OP_COMP_EQ.starts_with(maybe_start.as_str())
+      || OP_COMP_NE.starts_with(maybe_start.as_str())
+      || OP_COMP_GT.starts_with(maybe_start.as_str())
+      || OP_COMP_LT.starts_with(maybe_start.as_str())
+      || OP_COMP_GTE.starts_with(maybe_start.as_str()) 
+      || OP_COMP_LTE.starts_with(maybe_start.as_str())
+      || OP_OR.starts_with(maybe_start.as_str())
+      || OP_AND.starts_with(maybe_start.as_str()) 
 }
 
 /// Check if the given string slice is an Operator (OP_**)
@@ -108,17 +90,14 @@ pub fn is_start_operator(maybe_start: char) -> bool {
 pub fn is_operator(maybe_op: &str) -> (bool, usize) {
     // I think it can be improved...
     // Single char operator.
-    if maybe_op.starts_with(OP_PLUS) {
-        (true, 1)
-    } else if maybe_op.starts_with(OP_MINUS) {
-        (true, 1)
-    } else if maybe_op.starts_with(OP_MUL) {
-        (true, 1)
-    } else if maybe_op.starts_with(OP_DIV) {
-        (true, 1)
-    } else if maybe_op.starts_with(OP_MOD) {
-        (true, 1)
-    } else if maybe_op.starts_with(OP_POWER) {
+    if maybe_op.starts_with(OP_PLUS) 
+        || maybe_op.starts_with(OP_MINUS)
+        || maybe_op.starts_with(OP_MUL)
+        || maybe_op.starts_with(OP_DIV)
+        || maybe_op.starts_with(OP_MOD)
+        || maybe_op.starts_with(OP_POWER)
+        || maybe_op.starts_with(OP_COMP_GT)
+        || maybe_op.starts_with(OP_COMP_LT) {
         (true, 1)
     } else if maybe_op.starts_with(OP_EQ) {
         if let Some("=") = maybe_op.get(..2) {
@@ -126,23 +105,15 @@ pub fn is_operator(maybe_op: &str) -> (bool, usize) {
         }
 
         (true, 1)
-    } else if maybe_op.starts_with(OP_COMP_GT) {
-        (true, 1)
-    } else if maybe_op.starts_with(OP_COMP_LT) {
-        (true, 1)
     }
     // Dual char operator.
-    else if maybe_op == OP_COMP_NE {
+    else if maybe_op == OP_COMP_NE 
+             || maybe_op == OP_COMP_GTE
+             || maybe_op == OP_COMP_LTE 
+             || maybe_op == OP_OR
+             || maybe_op == OP_AND {
         (true, 2)
-    } else if maybe_op == OP_COMP_GTE {
-        (true, 2)
-    } else if maybe_op == OP_COMP_LTE {
-        (true, 2)
-    } else if maybe_op == OP_OR {
-        (true, 2)
-    } else if maybe_op == OP_AND {
-        (true, 2)
-    }
+    } 
     // it's not an OP_**
     else {
         (false, 0)

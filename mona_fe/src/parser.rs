@@ -192,7 +192,7 @@ fn parse_extern(
     tokens.pop();
     let mut parsed_tokens = vec![Extern];
     let prototype = parse_try!(parse_prototype, tokens, settings, parsed_tokens);
-    Good(FunctionNode(Function { prototype: prototype, body: None, is_anonymous: false }), parsed_tokens)
+    Good(FunctionNode(Function { prototype, body: None, is_anonymous: false }), parsed_tokens)
 }
 
 fn parse_function(
