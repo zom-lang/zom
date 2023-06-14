@@ -493,6 +493,7 @@ dependencies = [
  "inkwell",
  "log",
  "mona_codegen",
+ "mona_common",
  "mona_compiler",
  "mona_fe",
  "pretty_env_logger",
