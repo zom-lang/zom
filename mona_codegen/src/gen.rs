@@ -207,6 +207,11 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         let proto = &self.function.prototype;
         let function = self.compile_prototype(proto)?;
 
+        // got external function, returning only compiled prototype
+        if self.function.body.is_none() {
+            return Ok(function);
+        }
+
         let entry = self.context.append_basic_block(function, "entry");
 
         self.builder.position_at_end(entry);
@@ -227,7 +232,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         }
 
         // compile body
-        let body = self.compile_expr(&self.function.body)?;
+        let body = self.compile_expr(&self.function.body.as_ref().unwrap())?;
 
         self.builder.build_return(Some(&body));
 
@@ -243,13 +248,6 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
             Err("Invalid generated function.")
         }
-    }
-
-    /// Compiles the specified `Function` into an LLVM `FunctionValue`.
-    fn compile_ext(&mut self) -> Result<FunctionValue<'ctx>, &'static str> {
-        let proto = &self.function.prototype;
-        let function = self.compile_prototype(proto)?;
-        Ok(function)
     }
 
     /// Compiles the specified `Function` in the given `Context` and using the specified `Builder`, `PassManager`, and `Module`.
@@ -300,23 +298,6 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     };
 
                     result.push(compiler.compile_fn()?);
-                }
-                ASTNode::ExternNode(proto) => {
-                    let mut compiler = CodeGen {
-                        context,
-                        builder,
-                        fpm: pass_manager,
-                        module,
-                        function: &Function {
-                            prototype: proto.clone(),
-                            body: Expression::LiteralExpr(2),
-                            is_anonymous: true,
-                        },
-                        fn_value_opt: None,
-                        variables: HashMap::new(),
-                    };
-
-                    result.push(compiler.compile_ext()?);
                 }
             }
         }
