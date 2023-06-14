@@ -12,7 +12,8 @@ pub mod parser;
 pub enum ErrorKind {
     Lexer,
     Parser,
-    Interpreter,
+    Codegen,
+    Compiler,
     General,
 }
 
