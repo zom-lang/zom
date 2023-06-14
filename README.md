@@ -3,6 +3,7 @@
 [![lines of code](https://tokei.rs/b1/github/Larsouille25/mona)](https://github.com/Aaronepower/tokei)
 [![codecov](https://codecov.io/gh/Larsouille25/mona/branch/main/graph/badge.svg)](https://github.com/Larsouille25/mona)
 [![MIT/Apache][licence-badge]](https://github.com/Larsouille25/mona/tree/main#license)
+[![Rust tests](https://github.com/Larsouille25/mona/actions/workflows/rust.yml/badge.svg)](https://github.com/Larsouille25/mona/actions/workflows/rust.yml)
 
 [licence-badge]: https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-lightgrey
 
