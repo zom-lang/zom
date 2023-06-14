@@ -1,7 +1,7 @@
 use std::fmt;
 use std::error::Error;
 
-use super::{ErrorKind, Position};
+use super::{ErrorKind, Position, MonaError};
 
 #[derive(Debug, PartialEq)]
 pub struct InvalidSyntaxError {
@@ -26,6 +26,10 @@ impl Error for InvalidSyntaxError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         None
     }
+}
+
+impl MonaError for InvalidSyntaxError {
+    
 }
 
 impl fmt::Display for InvalidSyntaxError {

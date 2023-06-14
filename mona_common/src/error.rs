@@ -6,7 +6,7 @@ use std::error::Error;
 use std::fmt;
 
 pub mod lexer;
-// pub mod parser;
+pub mod parser;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ErrorKind {
