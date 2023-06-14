@@ -103,13 +103,7 @@ pub fn parse(
     // we will add new AST nodes to already parsed ones
     let mut ast = parsed_tree.to_vec();
 
-    loop {
-        // look at the current token and determine what to parse
-        // based on its value
-        let cur_token = match rest.last() {
-            Some(token) => token.clone(),
-            None => break,
-        };
+    while let Some(cur_token) = rest.last() {
         let result = match cur_token {
             Func => parse_function(&mut rest, settings),
             Extern => parse_extern(&mut rest, settings),
