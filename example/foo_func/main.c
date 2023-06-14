@@ -4,7 +4,7 @@ This file is to test the output object code.
 
 #include <stdio.h>
 
-int foo();
+int foo(int);
 
 int main(void)
 {
