@@ -141,3 +141,45 @@ fn long_parser_test() -> Result<(), String> {
 
     Ok(())
 }
+
+#[test]
+#[should_panic]
+fn error_parser_test() {
+    let toks = vec![
+        Func,
+        OpenParen,
+        Ident("a".to_string()),
+        CloseParen,
+        Int(104),
+        Operator(OP_PLUS.to_string()),
+        Ident("a".to_string()),
+    ];
+
+    let (ast, toks_rest) = match parse(&toks, &[], &mut ParserSettings::default()) {
+        Ok(v) => v,
+        Err(err) => {
+            eprintln!("{}", err);
+            panic!()
+        }
+    };
+
+    if !toks_rest.is_empty() {
+        eprintln!("There is a rest.");
+        return;
+    }
+
+    let expected = vec![ASTNode::FunctionNode(Function {
+        prototype: Prototype {
+            name: "foo".to_string(),
+            args: vec!["a".to_string()],
+        },
+        body: Some(BinaryExpr(
+            OP_PLUS.to_string(),
+            Box::new(Expression::LiteralExpr(104)),
+            Box::new(Expression::VariableExpr("a".to_string())),
+        )),
+        is_anonymous: false,
+    })];
+
+    assert_eq!(ast, expected);
+}
