@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use crate::token::Token;
 use crate::token::*;
 
-pub use self::ASTNode::{ExternNode, FunctionNode};
+pub use self::ASTNode::FunctionNode;
 
 pub use self::Expression::{BinaryExpr, CallExpr, LiteralExpr, VariableExpr};
 
@@ -17,14 +17,13 @@ pub const ANONYMOUS_FUNCTION_NAME: &str = "anonymous";
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum ASTNode {
-    ExternNode(Prototype),
     FunctionNode(Function),
 }
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Function {
     pub prototype: Prototype,
-    pub body: Expression,
+    pub body: Option<Expression>,
     pub is_anonymous: bool,
 }
 
@@ -193,7 +192,7 @@ fn parse_extern(
     tokens.pop();
     let mut parsed_tokens = vec![Extern];
     let prototype = parse_try!(parse_prototype, tokens, settings, parsed_tokens);
-    Good(ExternNode(prototype), parsed_tokens)
+    Good(FunctionNode(Function { prototype: prototype, body: None, is_anonymous: false }), parsed_tokens)
 }
 
 fn parse_function(
@@ -209,7 +208,7 @@ fn parse_function(
     Good(
         FunctionNode(Function {
             prototype,
-            body,
+            body: Some(body),
             is_anonymous: false,
         }),
         parsed_tokens,
@@ -258,7 +257,7 @@ fn parse_expression(
     };
     let lambda = Function {
         prototype,
-        body: expression,
+        body: Some(expression),
         is_anonymous: true,
     };
     Good(FunctionNode(lambda), parsed_tokens)
