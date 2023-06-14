@@ -5,7 +5,7 @@ RM      = rm -f
 
 default: all
 
-all: prog chmod run
+all: buildMona clean prog chmod run
 
 prog: main.c
 	$(CC) $(CFLAGS) -c main.c
@@ -17,6 +17,9 @@ run: main.c
 
 chmod:
 	chmod +x prog
+
+buildMona:
+	cargo run -r -- bobj ../example/test.mn -o output.o
 
 clean:
 	$(RM) prog

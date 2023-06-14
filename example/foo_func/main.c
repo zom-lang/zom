@@ -9,6 +9,6 @@ int foo();
 int main(void)
 {
    printf ("Hello from your first program!\n");
-   printf ("foo = %i", foo());
+   printf ("foo = %i", foo(321));
    return 0;
 }
