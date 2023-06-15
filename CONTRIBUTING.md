@@ -1,5 +1,5 @@
 <!-- omit in toc -->
-# Contributing to Mona
+# Contributing to Zom
 
 First off, thanks for taking the time to contribute! ❤️
 
@@ -29,7 +29,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 ## Code of Conduct
 
 This project and everyone participating in it is governed by the
-[Mona Code of Conduct](https://github.com/Larsouille25/mona/blob/master/CODE_OF_CONDUCT.md).
+[Zom Code of Conduct](https://github.com/Larsouille25/mona/blob/master/CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Please report unacceptable behavior
 to <Larsouille25#9352> on Discord.
 
@@ -38,13 +38,13 @@ to <Larsouille25#9352> on Discord.
 
 > If you want to ask a question, we assume that you have read the available [Documentation](https://github.com/Larsouille25/mona/tree/main/docs).
 
-Before you ask a question, it is best to search for existing [Issues](https://github.com/Larsouille25/mona//issues) that might help you. In case you have found a suitable issue and still need clarification, you can write your question in this issue. It is also advisable to search the internet for answers first.
+Before you ask a question, it is best to search for existing [Issues](https://github.com/Larsouille25/mona/issues) that might help you. In case you have found a suitable issue and still need clarification, you can write your question in this issue. It is also advisable to search the internet for answers first.
 
 If you then still feel the need to ask a question and need clarification, we recommend the following:
 
-- Open an [Issue](https://github.com/Larsouille25/mona//issues/new).
+- Open an [Issue](https://github.com/Larsouille25/mona/issues/new).
 - Provide as much context as you can about what you're running into.
-- Provide project and platform versions (cargo, rustc, mona ...), depending on what seems relevant.
+- Provide project and platform versions (cargo, rustc, zomc ...), depending on what seems relevant.
 
 We will then take care of the issue as soon as possible.
 
@@ -110,7 +110,7 @@ Once it's filed:
 
 ### Suggesting Enhancements
 
-This section guides you through submitting an enhancement suggestion for Mona, **including completely new features and minor improvements to existing functionality**. Following these guidelines will help maintainers and the community to understand your suggestion and find related suggestions.
+This section guides you through submitting an enhancement suggestion for Zom, **including completely new features and minor improvements to existing functionality**. Following these guidelines will help maintainers and the community to understand your suggestion and find related suggestions.
 
 <!-- omit in toc -->
 #### Before Submitting an Enhancement
@@ -123,13 +123,13 @@ This section guides you through submitting an enhancement suggestion for Mona, *
 <!-- omit in toc -->
 #### How Do I Submit a Good Enhancement Suggestion?
 
-Enhancement suggestions are tracked as [GitHub issues](https://github.com/Larsouille25/mona//issues).
+Enhancement suggestions are tracked as [GitHub issues](https://github.com/Larsouille25/mona/issues).
 
 - Use a **clear and descriptive title** for the issue to identify the suggestion.
 - Provide a **step-by-step description of the suggested enhancement** in as many details as possible.
 - **Describe the current behavior** and **explain which behavior you expected to see instead** and why. At this point you can also tell which alternatives do not work for you.
 - You may want to **include screenshots and animated GIFs** which help you demonstrate the steps or point out the part which the suggestion is related to. <!-- this should only be included if the project has a GUI -->
-- **Explain why this enhancement would be useful** to most Mona users. You may also want to point out the other projects that solved it better and which could serve as inspiration.
+- **Explain why this enhancement would be useful** to most Zom users. You may also want to point out the other projects that solved it better and which could serve as inspiration.
 
 <!-- You might want to create an issue template for enhancement suggestions that can be used as a guide and that defines the structure of the information to be included. If you do so, reference it here in the description. -->
 
@@ -179,7 +179,7 @@ A BREAKING CHANGE can be part of commits of any _type_.
 4. _types_ other than `fix:` and `feat:` are allowed, for example [@commitlint/config-conventional](https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional) (based on the [Angular convention](https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#-commit-message-guidelines)) recommends `build:`, `chore:`, `ci:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`, and others.
 5. _footers_ other than `BREAKING CHANGE: <description>` may be provided and follow a convention similar to
   [git trailer format](https://git-scm.com/docs/git-interpret-trailers).
-6. _scopes_ can be the crate name your commit changes. e.g.: `mona`, `mona_fe`, `mona_common`, `mona_codegen`, `mona_compiler`.
+6. _scopes_ can be the crate name your commit changes. e.g.: `zomc`, `zom_fe`, `zom_common`, `zom_codegen`, `zom_compiler`.
 
 Additional types are not mandated by the Conventional Commits specification, and have no implicit effect in Semantic Versioning (unless they include a BREAKING CHANGE).
 <br /><br />

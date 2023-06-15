@@ -1,7 +1,7 @@
-# Example: Calling Mona code from C
+# Example: Calling Zom code from C
 
-In `test.mn`, there is a function, that takes a int in parameters and return the sum of 123 and the args passed.
-`main.c` call `foo(..)` (the Mona function) and print the result to stdout.
+In `test.zom`, there is a function, that takes a int in parameters and return the sum of 123 and the args passed.
+`main.c` call `foo(..)` (the Zom function) and print the result to stdout.
 
 ## Run the example
 To run this example you need `make`, `gcc`, `rust` and `cargo`.
@@ -9,14 +9,14 @@ To run this example you need `make`, `gcc`, `rust` and `cargo`.
 Just run `make` in this directory and you should see a similar output:
 ```bash
 $ make
-cargo run -r -q -- bobj test.mn -o output.o
+cargo run -r -q -- bobj test.zom -o output.o
 Wrote result to "output.o"!
 rm -f prog
 gcc -g -c main.c
 gcc -g -o prog main.o output.o
 chmod +x prog
 ./prog
-Example, call Mona from C!
+Example, call Zom from C!
 foo = 444
 ```
 

@@ -1,5 +1,5 @@
 - **Feature Name:** `operator-precedence` 
-- **Mona Issue:** Not related to an issue 
+- **Zom Issue:** Not related to an issue 
 - **Status:** `Implemented` since [05b2a4b](https://github.com/Larsouille25/mona/commit/05b2a4bc6c713ed7ca4371185d78e3863a458f2b)
 
 # Operator Precedence

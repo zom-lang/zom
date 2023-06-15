@@ -1,7 +1,7 @@
-# Documentation of Mona
+# Documentation of Zom
 
 ## Table of Content
-Table of Content of the documentation of the Mona programming Language
+Table of Content of the documentation of the Zom programming Language
 
 | Number |               Name               |
 | ------ | -------------------------------- | 
@@ -27,13 +27,13 @@ Table of Content of the documentation of the Mona programming Language
 [009]: /docs/lang/009-while-loop.md
 [010]: /docs/lang/010-operator-precedence.md
 
-## Mona improvement process
-If you want to improve the Mona syntax / grammar and you've already open a pull request here is the precess next steps :
+## Zom improvement process
+If you want to improve the Zom syntax / grammar and you've already open a pull request here is the precess next steps :
 
 1. You open the pull request with your proposed changes.
 2. Colaborators will review your proposal and make comments if needed.
-3. Your proposal will be accepted if it's in the way Mona wants to path.
-4. You're feature will be added to the documentation of Mona marked as `not implemented yet`
+3. Your proposal will be accepted if it's in the way Zom wants to path.
+4. You're feature will be added to the documentation of Zom marked as `not implemented yet`
 5. You're feature will then be developed and marked as `not yet released`.
 6. And in the future release(s), everyone could use the feature.
 
