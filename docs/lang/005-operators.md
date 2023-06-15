@@ -1,6 +1,6 @@
 - **Feature Name:** `operators` 
 - **Zom Issue:** Not related to an issue 
-- **Status:** `Implemented` since [30d89dc](https://github.com/Larsouille25/mona/commit/30d89dc09819236ed75ebd45ae2cab9cd98d41dd)
+- **Status:** `Implemented` since [30d89dc](https://github.com/zom-lang/zom/commit/30d89dc09819236ed75ebd45ae2cab9cd98d41dd)
 
 # Operators
 

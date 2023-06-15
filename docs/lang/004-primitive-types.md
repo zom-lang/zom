@@ -1,5 +1,5 @@
 - **Feature Name:** `primitive-types` 
-- **Zom Issue:** *Number doesn't correspond* [`mona#010`](https://github.com/Larsouille25/mona/issues/10)
+- **Zom Issue:** *Number doesn't correspond* [`zom#010`](https://github.com/zom-lang/zom/issues/10)
 - **Status:** `Not implemented yet`
 
 # Primitive types
