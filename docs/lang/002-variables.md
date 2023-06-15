@@ -1,11 +1,11 @@
 - **Feature Name:** `variables` 
-- **Mona Issue:** Not related to an issue 
+- **Zom Issue:** Not related to an issue 
 - **Status:** `Not yet implemented`
 
 
 # Variables
 
-A variable can have a `None` value beacue Mona uses a garbage collection system and by default, if you don't initialize the variable, the variable will have a `None` value but therefore it's mandatory to specify its type. The `None` value is possible because the variable will refer to nothing.
+A variable can have a `None` value beacue Zom uses a garbage collection system and by default, if you don't initialize the variable, the variable will have a `None` value but therefore it's mandatory to specify its type. The `None` value is possible because the variable will refer to nothing.
 
 ## Declaration
 

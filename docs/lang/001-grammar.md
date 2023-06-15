@@ -1,8 +1,8 @@
 - **Feature Name:** `grammar` 
-- **Mona Issue:** Not related to an issue 
+- **Zom Issue:** Not related to an issue 
 - **Status:** `Implemented` since [8ac7aa7](https://github.com/Larsouille25/mona/commit/8ac7aa7d8aa31c3274764db404ef990b527c2908)
 
-# Grammar of Mona Programming Language
+# Grammar of Zom Programming Language
 
 ## Grammar
 The grammar is kinda based of [Recursive Descent Parsing](http://en.wikipedia.org/wiki/Recursive_descent_parser) and [Operator-Precedence Parsing](http://en.wikipedia.org/wiki/Operator-precedence_parser) to produce [the Abstract Syntax Tree](http://en.wikipedia.org/wiki/Abstract_syntax_tree)

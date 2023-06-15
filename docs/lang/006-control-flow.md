@@ -1,11 +1,11 @@
 - **Feature Name:** `control-flow` 
-- **Mona Issue:** Not related to an issue 
+- **Zom Issue:** Not related to an issue 
 - **Status:** `Not yet implemented`
 
 ## Control Flow
 
 The ability to run some code depending on whether a condition is true and to run some code repeatedly while a condition is true are basic building blocks in most programming languages. 
-The most common constructs that let you control the flow of execution of Mona code are if expressions and loops.
+The most common constructs that let you control the flow of execution of Zom code are if expressions and loops.
 
 Documents related to the control flow :
 

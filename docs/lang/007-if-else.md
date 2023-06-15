@@ -1,5 +1,5 @@
 - **Feature Name:** `if-else` 
-- **Mona Issue:** Not related to an issue 
+- **Zom Issue:** Not related to an issue 
 - **Status:** `Not yet implemented`
 
 # If / Else
@@ -15,7 +15,7 @@ if *condition* {
   *code*
 }
 ```
-`*condition*` refers to a boolean operation and `*code*` refers to the Mona code you want to perform if the condition is true.
+`*condition*` refers to a boolean operation and `*code*` refers to the Zom code you want to perform if the condition is true.
 
 e.g.:
 ```
