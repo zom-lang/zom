@@ -1,9 +1,9 @@
 # ⚡ Zom Language
 
-[![lines of code](https://tokei.rs/b1/github/Larsouille25/mona)](https://github.com/Aaronepower/tokei)
-[![codecov](https://codecov.io/gh/Larsouille25/mona/branch/main/graph/badge.svg)](https://github.com/Larsouille25/mona)
-[![MIT/Apache][licence-badge]](https://github.com/Larsouille25/mona/tree/main#license)
-[![Rust tests](https://github.com/Larsouille25/mona/actions/workflows/rust.yml/badge.svg)](https://github.com/Larsouille25/mona/actions/workflows/rust.yml)
+[![lines of code](https://tokei.rs/b1/github/zom-lang/zom)](https://github.com/Aaronepower/tokei)
+[![codecov](https://codecov.io/gh/zom-lang/zom/branch/main/graph/badge.svg)](https://github.com/zom-lang/zom)
+[![MIT/Apache][licence-badge]](https://github.com/zom-lang/zom/tree/main#license)
+[![Rust tests](https://github.com/zom-lang/zom/actions/workflows/rust.yml/badge.svg)](https://github.com/zom-lang/zom/actions/workflows/rust.yml)
 
 [licence-badge]: https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-lightgrey
 
@@ -56,7 +56,7 @@ To build the source code of Zom, there are three steps :
 - [ ] ~~a JIT with LLVM ?~~
 - [x] A AOT compiler
 - [ ] Optimization and cleaning
-- [ ] A good error system for the parser and the compiler -> https://github.com/Larsouille25/mona/issues/4
+- [ ] A good error system for the parser and the compiler -> https://github.com/zom-lang/zom/issues/4
 - [ ] Implement the docs ;)
 
 ## Source layout:
