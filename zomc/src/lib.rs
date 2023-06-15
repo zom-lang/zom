@@ -3,7 +3,7 @@
 //! The front-end (lexer, parser, token, ast) is in the crate `zom_fe`.
 //! Custom errors are in crate `zom_common`.
 //!
-//! Zom repository, <https://github.com/Larsouille25/mona>
+//! Zom repository, <https://github.com/zom-lang/zom>
 
 mod ops;
 

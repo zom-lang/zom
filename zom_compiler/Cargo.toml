@@ -1,7 +1,7 @@
 [package]
 name = "zom_compiler"
 description = "Zom crate is responsible for the transformation of the LLVM IR to object files and then binary / lib."
-repository = "https://github.com/Larsouille25/mona/tree/main/mona_build"
+repository = "https://github.com/zom-lang/zom/tree/main/zom_compiler"
 
 version.workspace = true
 edition.workspace = true

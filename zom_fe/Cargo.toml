@@ -1,7 +1,7 @@
 [package]
 name = "zom_fe"
 description = "Zom crate, where the lexer, parser, token list and AST are."
-repository = "https://github.com/Larsouille25/mona/tree/main/mona_fe"
+repository = "https://github.com/zom-lang/zom/tree/main/zom_fe"
 
 version.workspace = true
 edition.workspace = true
