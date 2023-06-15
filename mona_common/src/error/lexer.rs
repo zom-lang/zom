@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt;
 
-use super::{ErrorKind, Position};
+use super::{ErrorKind, Position, MonaError};
 
 #[derive(Debug, PartialEq)]
 pub struct IllegalCharError {
@@ -24,6 +24,10 @@ impl Error for IllegalCharError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         None
     }
+}
+
+impl MonaError for IllegalCharError {
+    
 }
 
 impl fmt::Display for IllegalCharError {

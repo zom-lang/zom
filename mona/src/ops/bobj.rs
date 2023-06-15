@@ -49,7 +49,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
         };
     }
 
-    let source = match fs::read_to_string(mem::take(&mut args.source_file)) {
+    let source = match fs::read_to_string(&mut args.source_file) {
         Ok(src) => src,
         Err(_) => return Err(anyhow!("Error while trying to read the source file.")),
     };
@@ -61,7 +61,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
 
     let tokens = match lexer.make_tokens() {
         Ok(src) => src,
-        Err(_) => return Err(anyhow!("Error while trying to read the source file.")),
+        Err(err) => return Err(anyhow!(format!("\n{}\n", err))),
     };
 
     args.verbose.then(|| {
@@ -80,7 +80,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
                 return Err(anyhow!("There is rest after parsing."));
             }
         }
-        Err(_) => return Err(anyhow!("Parsing error occurs.")),
+        Err(err) => return Err(anyhow!(format!("\n{}\n", err))),
     }
 
     args.verbose.then(|| {

@@ -20,6 +20,7 @@ pretty_env_logger.workspace = true
 mona_compiler = { path = "../mona_compiler" }
 mona_codegen ={ path = "../mona_codegen" }
 mona_fe = { path = "../mona_fe" }
+mona_common = { path = "../mona_common" }
 
 inkwell.workspace = true
 

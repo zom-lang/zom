@@ -53,8 +53,16 @@ fn error<T>(message: &str) -> PartParsingResult<T> {
     Bad(message.to_string())
 }
 
+#[derive(Debug)]
 pub struct ParserSettings {
     operator_precedence: HashMap<String, i32>,
+    pub pos: usize
+}
+
+impl ParserSettings {
+    pub fn advance(&mut self) {
+        self.pos += 1;
+    }
 }
 
 impl Default for ParserSettings {
@@ -86,6 +94,7 @@ impl Default for ParserSettings {
 
         ParserSettings {
             operator_precedence,
+            pos: 0,
         }
     }
 }
@@ -147,24 +156,27 @@ macro_rules! parse_try(
 );
 
 macro_rules! expect_token (
-    ([ $($token:pat, $value:expr, $result:stmt);+ ] <= $tokens:ident, $parsed_tokens:ident, $error:expr) => (
+    ($settings:ident, [ $($token:pat, $value:expr, $result:stmt);+ ] <= $tokens:ident, $parsed_tokens:ident, $error:expr) => (
         match $tokens.pop() {
             $(
                 Some($token) => {
+                    $settings.advance();
                     $parsed_tokens.push($value);
                     $result
                 },
              )+
              None => {
-                 $parsed_tokens.reverse();
-                 $tokens.extend($parsed_tokens.into_iter());
-                 return NotComplete;
+                $settings.advance();
+                $parsed_tokens.reverse();
+                $tokens.extend($parsed_tokens.into_iter());
+                return NotComplete;
              },
-            _ => return error($error)
+            _ => { $settings.advance(); return error($error) }
         }
     );
 
-    ([ $($token:pat, $value:expr, $result:stmt);+ ] else $not_matched:block <= $tokens:ident, $parsed_tokens:ident) => (
+    ($settings:ident, [ $($token:pat, $value:expr, $result:stmt);+ ] else $not_matched:block <= $tokens:ident, $parsed_tokens:ident) => (
+        $settings.advance();
         match $tokens.last().map(|i| {i.clone()}) {
             $(
                 Some($token) => {
@@ -218,17 +230,19 @@ fn parse_function(
 
 fn parse_prototype(
     tokens: &mut Vec<Token>,
-    _settings: &mut ParserSettings,
+    settings: &mut ParserSettings,
 ) -> PartParsingResult<Prototype> {
     let mut parsed_tokens = Vec::new();
 
     let name = expect_token!(
+        settings,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
-        "expected function name in prototype"
+        format!("expected function name in prototype, tok pos = {}", settings.pos).as_str()
     );
 
     expect_token!(
+        settings,
         [OpenParen, OpenParen, ()] <= tokens,
         parsed_tokens,
         "expected '(' in prototype"
@@ -236,7 +250,8 @@ fn parse_prototype(
 
     let mut args = Vec::new();
     loop {
-        expect_token!([
+        expect_token!(
+            settings, [
             Ident(arg), Ident(arg.clone()), args.push(arg.clone());
             Comma, Comma, continue;
             CloseParen, CloseParen, break
@@ -284,12 +299,14 @@ fn parse_ident_expr(
     let mut parsed_tokens = Vec::new();
 
     let name = expect_token!(
+        settings,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
         "identificator expected"
     );
 
     expect_token!(
+        settings,
         [OpenParen, OpenParen, ()]
         else {return Good(VariableExpr(name), parsed_tokens)}
         <= tokens, parsed_tokens);
@@ -297,6 +314,7 @@ fn parse_ident_expr(
     let mut args = Vec::new();
     loop {
         expect_token!(
+            settings,
             [CloseParen, CloseParen, break;
              Comma, Comma, continue]
             else {
@@ -310,11 +328,12 @@ fn parse_ident_expr(
 
 fn parse_literal_expr(
     tokens: &mut Vec<Token>,
-    _settings: &mut ParserSettings,
+    settings: &mut ParserSettings,
 ) -> PartParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
     let value = expect_token!(
+        settings,
         [Int(val), Int(val), val] <= tokens,
         parsed_tokens,
         "literal expected"
@@ -334,6 +353,7 @@ fn parse_parenthesis_expr(
     let expr = parse_try!(parse_expr, tokens, settings, parsed_tokens);
 
     expect_token!(
+        settings,
         [CloseParen, CloseParen, ()] <= tokens,
         parsed_tokens,
         "')' expected"
