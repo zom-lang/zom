@@ -7,7 +7,7 @@
 
 [licence-badge]: https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-lightgrey
 
-Zom is a Ahead Of Time compiled programming language written in Rust, the code generation and compilation is made with LLVM.  
+Zom is a Ahead Of Time compiled programming language, the code generation and compilation is made with LLVM.  
 
 ## Features
 
