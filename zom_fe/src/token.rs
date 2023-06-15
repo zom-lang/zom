@@ -1,4 +1,4 @@
-//! This is the token of Mona
+//! This is the token of Zom
 //!
 //! It is in its own file because later on, there will be lot of tokens type.
 

@@ -8,7 +8,7 @@ int foo(int);
 
 int main(void)
 {
-   printf ("Example, call Mona from C!\n");
+   printf ("Example, call Zom from C!\n");
    printf ("foo = %i", foo(321));
    return 0;
 }
