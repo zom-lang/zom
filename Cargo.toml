@@ -1,13 +1,13 @@
-# Mona is a Ahead Of Time compiled programming language written in Rust, the code generation and compilation is made with LLVM. 
+# Zom is a Ahead Of Time compiled programming language written in Rust, the code generation and compilation is made with LLVM. 
 
 [workspace]
 
 members = [
-    "mona_fe",
-    "mona_common",
-    "mona_codegen",
-    "mona_compiler",
-    "mona",
+    "zomc",
+    "zom_fe",
+    "zom_common",
+    "zom_codegen",
+    "zom_compiler",
 ]
 
 [workspace.package]

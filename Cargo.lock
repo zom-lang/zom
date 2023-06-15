@@ -485,48 +485,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mona"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "clap",
- "inkwell",
- "log",
- "mona_codegen",
- "mona_common",
- "mona_compiler",
- "mona_fe",
- "pretty_env_logger",
-]
-
-[[package]]
-name = "mona_codegen"
-version = "0.0.0"
-dependencies = [
- "inkwell",
- "mona_fe",
-]
-
-[[package]]
-name = "mona_common"
-version = "0.0.0"
-
-[[package]]
-name = "mona_compiler"
-version = "0.0.0"
-dependencies = [
- "inkwell",
-]
-
-[[package]]
-name = "mona_fe"
-version = "0.0.0"
-dependencies = [
- "criterion",
- "mona_common",
-]
-
-[[package]]
 name = "num-traits"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1046,3 +1004,45 @@ name = "windows_x86_64_msvc"
 version = "0.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
+
+[[package]]
+name = "zom_codegen"
+version = "0.0.0"
+dependencies = [
+ "inkwell",
+ "zom_fe",
+]
+
+[[package]]
+name = "zom_common"
+version = "0.0.0"
+
+[[package]]
+name = "zom_compiler"
+version = "0.0.0"
+dependencies = [
+ "inkwell",
+]
+
+[[package]]
+name = "zom_fe"
+version = "0.0.0"
+dependencies = [
+ "criterion",
+ "zom_common",
+]
+
+[[package]]
+name = "zomc"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "inkwell",
+ "log",
+ "pretty_env_logger",
+ "zom_codegen",
+ "zom_common",
+ "zom_compiler",
+ "zom_fe",
+]
