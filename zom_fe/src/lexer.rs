@@ -38,18 +38,22 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    #[inline]
     pub fn pos(&self) -> usize {
         self.pos
     }
 
+    #[inline]
     pub fn column(&self) -> usize {
         self.column
     }
 
+    #[inline]
     pub fn filename(&self) -> String {
         self.filename.clone()
     }
 
+    #[inline]
     pub fn incr_pos(&mut self) {
         self.pos += 1;
         self.column += 1;
@@ -58,7 +62,7 @@ impl<'a> Lexer<'a> {
     pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Box<dyn Error>> {
         let mut tokens = Vec::new();
 
-        'main: while let Some(ch) = self.chars.next() {
+        while let Some(ch) = self.chars.next() {
             match ch {
                 '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' => {
                     tokens.push(self.lex_lki(ch)?);
@@ -78,17 +82,6 @@ impl<'a> Lexer<'a> {
                         self.pos += len;
                         self.column += len;
                         continue;
-                    }
-                }
-                '#' => {
-                    self.chars.next();
-                    loop {
-                        let ch = self.chars.next();
-                        self.incr_pos();
-
-                        if ch == Some('\n') {
-                            continue 'main;
-                        }
                     }
                 }
                 '(' => {
@@ -146,7 +139,6 @@ impl<'a> Lexer<'a> {
                     ))));
                 }
             }
-            self.column += 1;
         }
 
         Ok(tokens)
