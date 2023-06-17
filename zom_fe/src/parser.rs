@@ -13,8 +13,6 @@ pub use self::Expression::{BinaryExpr, CallExpr, LiteralExpr, VariableExpr};
 
 use self::PartParsingResult::{Bad, Good, NotComplete};
 
-pub const ANONYMOUS_FUNCTION_NAME: &str = "anonymous";
-
 #[derive(PartialEq, Clone, Debug)]
 pub enum ASTNode {
     FunctionNode(Function),
@@ -120,7 +118,7 @@ pub fn parse(
                 rest.pop();
                 continue;
             }
-            _ => parse_expression(&mut rest, settings),
+            _ => Bad("Expected a function definition or a declaration of an external function.".to_owned()),
         };
         match result {
             Good(ast_node, _) => ast.push(ast_node),
@@ -259,24 +257,6 @@ fn parse_prototype(
     }
 
     Good(Prototype { name, args }, parsed_tokens)
-}
-
-fn parse_expression(
-    tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
-) -> PartParsingResult<ASTNode> {
-    let mut parsed_tokens = Vec::new();
-    let expression = parse_try!(parse_expr, tokens, settings, parsed_tokens);
-    let prototype = Prototype {
-        name: ANONYMOUS_FUNCTION_NAME.to_string(),
-        args: vec![],
-    };
-    let lambda = Function {
-        prototype,
-        body: Some(expression),
-        is_anonymous: true,
-    };
-    Good(FunctionNode(lambda), parsed_tokens)
 }
 
 fn parse_primary_expr(
