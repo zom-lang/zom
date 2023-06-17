@@ -51,11 +51,7 @@ To build the source code of Zom, there are three steps :
 ## Work to be done :
 - [x] Lexer
 - [x] Parser
-- [ ] ~~Interpreter~~
-- [x] ~~Make a good [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)~~
-- [ ] ~~a JIT with LLVM ?~~
 - [x] A AOT compiler
-- [ ] Optimization and cleaning
 - [ ] A good error system for the parser and the compiler -> https://github.com/zom-lang/zom/issues/4
 - [ ] Implement the docs ;)
 
