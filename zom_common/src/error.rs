@@ -15,6 +15,7 @@ pub enum ErrorKind {
     Codegen,
     Compiler,
     General,
+    Internal,
 }
 
 /// This function return spaces * len
@@ -50,7 +51,7 @@ fn str_fix_len(string: String, len: usize) -> String {
 fn print_error(
     f: &mut fmt::Formatter<'_>,
     position: &Position,
-    kind: &ErrorKind,
+    _kind: &ErrorKind,
     name: String,
     details: String,
 ) -> fmt::Result {
@@ -63,8 +64,8 @@ fn print_error(
 
     writeln!(
         f,
-        "Err: {:?}, in file `{}` at line {} :",
-        kind, position.filename, position.line
+        "Err: {name}, in file `{}` at line {} :",
+        position.filename, position.line
     )
     .unwrap();
     writeln!(f, "{}|", str_fix_len("...".to_string(), margin)).unwrap();
@@ -86,25 +87,23 @@ fn print_error(
         spaces(position.column as usize)
     )
     .unwrap();
-    write!(f, "  {}{}", spaces(position.column as usize + margin), name).unwrap();
     if !details.is_empty() {
-        println!();
-        return write!(f, "        {}{}", spaces(position.column as usize), details);
+        return writeln!(f, "       {}{}", spaces(position.column as usize), details);
     }
     write!(f, "")
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Position {
-    index: u32,
-    line: u32,
-    column: u32,
+    index: usize,
+    line: usize,
+    column: usize,
     filename: String,
     filetext: String,
 }
 
 impl Position {
-    pub fn new(index: u32, line: u32, column: u32, filename: String, filetext: String) -> Position {
+    pub fn new(index: usize, line: usize, column: usize, filename: String, filetext: String) -> Position {
         Position {
             index,
             line,
