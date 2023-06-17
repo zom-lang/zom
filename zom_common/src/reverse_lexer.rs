@@ -12,7 +12,6 @@ pub fn reverse_lexe(tok_pos: usize, tokens: Vec<Token>, source_file: String, fil
     if token.is_none() {
         return Err("Unknow token, probably out of bounds.".to_owned())
     }
-    let token = token.unwrap();
 
     let mut char_pos: usize = 0;
     let mut token_pos: isize = -1;
