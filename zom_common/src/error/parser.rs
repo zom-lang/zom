@@ -37,7 +37,7 @@ impl fmt::Display for UnexpectedTokenError {
             &self.position,
             &self.kind,
             self.name.to_owned(),
-            String::new(),
+            self.details.clone(),
         )
     }
 }
