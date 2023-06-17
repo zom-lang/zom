@@ -13,6 +13,7 @@ authors.workspace = true
 [dependencies]
 inkwell.workspace = true
 zom_fe = { path = "../zom_fe" }
+zom_common ={ path = "../zom_common" }
 
 [features]
 default = ["llvm15-0"]

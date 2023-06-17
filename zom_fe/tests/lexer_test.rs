@@ -3,8 +3,8 @@ use std::error::Error;
 
 #[test]
 fn test_operators_lexing() -> Result<(), Box<dyn Error>> {
-    use zom_fe::token::Token::Operator;
-    use zom_fe::token::*;
+    use zom_common::token::Token::Operator;
+    use zom_common::token::*;
     let mut lexer = Lexer::new(
         "= + - * / % ^ == != > < => =< || &&",
         "test_operators_parsing".to_string(),
@@ -36,7 +36,7 @@ fn test_operators_lexing() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_lexing() -> Result<(), Box<dyn Error>> {
-    use zom_fe::token::*;
+    use zom_common::token::*;
     let mut lexer = Lexer::new(
         "func extern let () [] {} : ; , 123",
         "test_operators_parsing".to_string(),

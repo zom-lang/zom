@@ -8,13 +8,13 @@ use std::str::Chars;
 
 use std::mem;
 
-use crate::token::Token;
+use zom_common::token::Token;
 use zom_common::error::lexer::IllegalCharError;
 use zom_common::error::Position;
 
-use super::token::is_start_operator;
+use zom_common::token::is_start_operator;
 
-use super::token::*;
+use zom_common::token::*;
 
 #[derive(Debug)]
 pub struct Lexer<'a> {

@@ -1010,6 +1010,7 @@ name = "zom_codegen"
 version = "0.0.0"
 dependencies = [
  "inkwell",
+ "zom_common",
  "zom_fe",
 ]
 

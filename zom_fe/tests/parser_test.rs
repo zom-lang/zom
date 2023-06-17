@@ -3,9 +3,9 @@ use zom_fe::{
         parse, ASTNode,
         Expression::{self, BinaryExpr, VariableExpr},
         Function, ParserSettings, Prototype,
-    },
-    token::{Token::*, OP_PLUS},
+    }
 };
+use zom_common::token::{Token::*, OP_PLUS};
 
 #[test]
 fn short_parser_test() -> Result<(), String> {

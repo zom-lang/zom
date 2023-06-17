@@ -14,8 +14,9 @@ use inkwell::{
 
 use zom_fe::{
     parser::{ASTNode, Expression, Function, Prototype},
-    token::*,
 };
+
+use zom_common::token::*;
 
 /// Defines the `Expression` compiler.
 pub struct CodeGen<'a, 'ctx> {

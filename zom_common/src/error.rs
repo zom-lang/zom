@@ -125,6 +125,4 @@ impl Position {
     }
 }
 
-pub trait ZomError: Error {
-    
-}
+pub trait ZomError: Error {}

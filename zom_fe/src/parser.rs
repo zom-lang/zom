@@ -4,8 +4,8 @@
 
 use std::collections::HashMap;
 
-use crate::token::Token;
-use crate::token::*;
+use zom_common::token::Token;
+use zom_common::token::*;
 
 pub use self::ASTNode::FunctionNode;
 
