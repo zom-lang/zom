@@ -29,6 +29,10 @@ enum Command {
 
     /// Get the current target detected by LLVM.
     GetTarget,
+
+    /// A subcommand used when devlopment, to quickly access a function or thing like that.
+    #[cfg(debug_assertions)]
+    Dev,
 }
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
@@ -57,5 +61,7 @@ where
         Command::Bobj(args) => bobj::build(args),
         Command::Version => version::version(),
         Command::GetTarget => gettarget(),
+        #[cfg(debug_assertions)]
+        Command::Dev => ops::dev::dev(),
     }
 }
