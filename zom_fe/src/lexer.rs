@@ -21,7 +21,7 @@ pub struct Lexer<'a> {
     text: String,
     pos: usize, // position in the text
     chars: Box<Peekable<Chars<'a>>>,
-    line: u32,
+    line: usize,
     column: usize,
     filename: String,
 }
@@ -131,9 +131,9 @@ impl<'a> Lexer<'a> {
                 }
                 _ => {
                     return Err(Box::new(IllegalCharError::new(Position::new(
-                        self.pos as u32,
+                        self.pos,
                         self.line,
-                        self.column as u32,
+                        self.column,
                         mem::take(&mut self.filename),
                         mem::take(&mut self.text),
                     ))));
