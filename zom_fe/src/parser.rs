@@ -65,7 +65,7 @@ impl ParserSettings {
 
 impl Default for ParserSettings {
     fn default() -> Self {
-        let mut operator_precedence = HashMap::with_capacity(9);
+        let mut operator_precedence = HashMap::with_capacity(14);
 
         // Setup Operator Precedence according to the documentation
 
