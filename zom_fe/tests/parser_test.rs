@@ -1,11 +1,9 @@
-use zom_fe::{
-    parser::{
-        parse, ASTNode,
-        Expression::{self, BinaryExpr, VariableExpr},
-        Function, ParserSettings, Prototype,
-    }
-};
 use zom_common::token::{Token::*, OP_PLUS};
+use zom_fe::parser::{
+    parse, ASTNode,
+    Expression::{self, BinaryExpr, VariableExpr},
+    Function, ParserSettings, Prototype,
+};
 
 #[test]
 fn short_parser_test() -> Result<(), String> {
@@ -96,44 +94,33 @@ fn long_parser_test() -> Result<(), String> {
                 "e".to_string(),
                 "f".to_string(),
                 "g".to_string(),
-                ],
+            ],
         },
-        body: Some(
-            BinaryExpr(OP_PLUS.to_owned(), 
-                Box::new(
-                    BinaryExpr(
-                        OP_PLUS.to_owned(), 
-                        Box::new(
-                            BinaryExpr(
-                                OP_PLUS.to_owned(), 
-                                Box::new(
-                                    BinaryExpr(
-                                        OP_PLUS.to_owned(), 
-                                        Box::new(
-                                            BinaryExpr(
-                                                OP_PLUS.to_owned(), 
-                                                Box::new(
-                                                    BinaryExpr(
-                                                        OP_PLUS.to_owned(), 
-                                                        Box::new(VariableExpr("a".to_string())), 
-                                                        Box::new(VariableExpr("b".to_string()))
-                                                    )
-                                                ), 
-                                                Box::new(VariableExpr("c".to_string()))
-                                            )
-                                        ),
-                                        Box::new(VariableExpr("d".to_string()))
-                                    )
-                                ),
-                                Box::new(VariableExpr("e".to_string()))
-                            )
-                        ),
-                        Box::new(VariableExpr("f".to_string()))
-                    )
-                ),
-                Box::new(VariableExpr("g".to_string()))
-            )
-        ),
+        body: Some(BinaryExpr(
+            OP_PLUS.to_owned(),
+            Box::new(BinaryExpr(
+                OP_PLUS.to_owned(),
+                Box::new(BinaryExpr(
+                    OP_PLUS.to_owned(),
+                    Box::new(BinaryExpr(
+                        OP_PLUS.to_owned(),
+                        Box::new(BinaryExpr(
+                            OP_PLUS.to_owned(),
+                            Box::new(BinaryExpr(
+                                OP_PLUS.to_owned(),
+                                Box::new(VariableExpr("a".to_string())),
+                                Box::new(VariableExpr("b".to_string())),
+                            )),
+                            Box::new(VariableExpr("c".to_string())),
+                        )),
+                        Box::new(VariableExpr("d".to_string())),
+                    )),
+                    Box::new(VariableExpr("e".to_string())),
+                )),
+                Box::new(VariableExpr("f".to_string())),
+            )),
+            Box::new(VariableExpr("g".to_string())),
+        )),
         is_anonymous: false,
     })];
 

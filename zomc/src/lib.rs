@@ -1,4 +1,4 @@
-//! Zom is a AOT compiled programming language. 
+//! Zom is a AOT compiled programming language.
 //!
 //! The front-end (lexer, parser, token, ast) is in the crate `zom_fe`.
 //! Custom errors are in crate `zom_common`.

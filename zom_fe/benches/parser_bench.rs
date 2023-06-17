@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use zom_common::token::Token::*;
 use zom_fe::lexer::Lexer;
 use zom_fe::parser::{parse, ParserSettings};
-use zom_common::token::Token::*;
 
 fn simple_lexer_and_parser_benchmark(c: &mut Criterion) {
     c.bench_function("lexer + parser  1 + 1", |b| {

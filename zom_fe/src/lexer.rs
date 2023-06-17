@@ -8,9 +8,9 @@ use std::str::Chars;
 
 use std::mem;
 
-use zom_common::token::Token;
 use zom_common::error::lexer::IllegalCharError;
 use zom_common::error::Position;
+use zom_common::token::Token;
 
 use zom_common::token::is_start_operator;
 

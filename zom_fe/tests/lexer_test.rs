@@ -1,5 +1,5 @@
-use zom_fe::lexer::Lexer;
 use std::error::Error;
+use zom_fe::lexer::Lexer;
 
 #[test]
 fn test_operators_lexing() -> Result<(), Box<dyn Error>> {

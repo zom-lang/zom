@@ -1,5 +1,5 @@
-use std::fmt;
 use std::error::Error;
+use std::fmt;
 
 use super::{ErrorKind, Position, ZomError};
 
@@ -28,9 +28,7 @@ impl Error for UnexpectedTokenError {
     }
 }
 
-impl ZomError for UnexpectedTokenError {
-    
-}
+impl ZomError for UnexpectedTokenError {}
 
 impl fmt::Display for UnexpectedTokenError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

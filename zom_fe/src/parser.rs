@@ -54,7 +54,7 @@ fn error<T>(message: &str) -> PartParsingResult<T> {
 #[derive(Debug)]
 pub struct ParserSettings {
     operator_precedence: HashMap<String, i32>,
-    pub pos: usize
+    pub pos: usize,
 }
 
 impl ParserSettings {
@@ -118,7 +118,10 @@ pub fn parse(
                 rest.pop();
                 continue;
             }
-            _ => Bad("Expected a function definition or a declaration of an external function.".to_owned()),
+            _ => Bad(
+                "Expected a function definition or a declaration of an external function."
+                    .to_owned(),
+            ),
         };
         match result {
             Good(ast_node, _) => ast.push(ast_node),
@@ -236,7 +239,11 @@ fn parse_prototype(
         settings,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
-        format!("expected function name in prototype, tok pos = {}", settings.pos).as_str()
+        format!(
+            "expected function name in prototype, tok pos = {}",
+            settings.pos
+        )
+        .as_str()
     );
 
     expect_token!(
