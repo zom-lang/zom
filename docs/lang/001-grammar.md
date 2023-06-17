@@ -8,7 +8,7 @@
 The grammar is kinda based of [Recursive Descent Parsing](http://en.wikipedia.org/wiki/Recursive_descent_parser) and [Operator-Precedence Parsing](http://en.wikipedia.org/wiki/Operator-precedence_parser) to produce [the Abstract Syntax Tree](http://en.wikipedia.org/wiki/Abstract_syntax_tree)
 
 ```{.ebnf .notation}
-   program          : [[statement | expression] Delimiter ? ]*;
+   program          : [[statement] Delimiter ? ]*;
    statement        : [declaration | definition];
    declaration      : Extern prototype;
    definition       : Func prototype expression;
