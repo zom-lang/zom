@@ -10,17 +10,17 @@ A variable can have a `None` value beacue Zom uses a garbage collection system a
 ## Declaration
 
 ```
-let foo: int = 10;
+var foo: int = 10;
 ```
 This will declare a variable, with `foo` name, `int` type and a initial value of `10`. but it is not mandatory to set the type of the variable if you initialize with a value that the interpreter know :
 ```
-let foo = 10;
+var foo = 10;
 ```
 And that also declare a variable, with name `foo`, an `int` type and a stored value of `10`.
 
 ```
-let foo: float;
-let bar: int = None;
+var foo: float;
+var bar: int = None;
 ```
 This will declare a `foo` variable of type float and with a `None` value and `bar` is also a variable of type int and with a `None` value but in a more implicit way.
 
@@ -46,7 +46,7 @@ foo
 ## Syntax
 **Declaration :**
 ```
-let $ident(: $ident) = $primary_expr;
+var $ident(: $ident) = $primary_expr;
 ```
 > Things in parenthesis are sometimes optional, I let you read the `Declaration` documentation for variables.
 

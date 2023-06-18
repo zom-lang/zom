@@ -125,7 +125,7 @@ pub const KEY_FUNC: &str = "func";
 /// const for the keyword `extern`
 pub const KEY_EXTERN: &str = "extern";
 /// const for the keyword `let`
-pub const KEY_LET: &str = "let";
+pub const KEY_VAR: &str = "var";
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
@@ -154,7 +154,7 @@ pub enum Token {
     // Keywords
     Func,
     Extern,
-    Let,
+    Var,
 
     // Identifier
     Ident(String), // Identifier is a alphanumeric string

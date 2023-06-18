@@ -46,7 +46,7 @@ fn test_lexing() -> Result<(), Box<dyn Error>> {
     let expected = vec![
         Func,
         Extern,
-        Let,
+        Var,
         OpenParen,
         CloseParen,
         OpenBracket,

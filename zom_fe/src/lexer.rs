@@ -196,7 +196,7 @@ impl<'a> Lexer<'a> {
             match num_str.as_str() {
                 KEY_FUNC => Ok(Token::Func),
                 KEY_EXTERN => Ok(Token::Extern),
-                KEY_LET => Ok(Token::Let),
+                KEY_VAR => Ok(Token::Var),
                 _ => Ok(Token::Ident(num_str.clone())),
             }
         }
