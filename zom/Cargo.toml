@@ -1,7 +1,7 @@
 [package]
-name = "zomc"
+name = "zom"
 description = "Binary for the Zom Compiler."
-repository = "https://github.com/zom-lang/zom/tree/main/zomc"
+repository = "https://github.com/zom-lang/zom/tree/main/zom"
 
 version.workspace = true
 edition.workspace = true

@@ -23,7 +23,7 @@ Zom is a Ahead Of Time compiled programming language, the code generation and co
 
 After [build](#build-zom) Zom, just run it and you will see that :
 ```
-Usage: zomc <COMMAND>
+Usage: zom <COMMAND>
 
 Commands:
   bobj        Builds a given file into an object file
@@ -46,7 +46,7 @@ There are
 To build the source code of Zom, there are three steps :
 1. Clone the repository / download the source code
 2. Build with Cargo, in the root of the repository, `cargo build --all-targets --release`
-3. The binary, now is in `./target/release/zomc`, you can put it in your binary folder, use it like that etc...
+3. The binary, now is in `./target/release/zom`, you can put it in your binary folder, use it like that etc...
 
 ## Work to be done :
 - [x] Lexer
@@ -64,7 +64,7 @@ LICENSE-APACHE           - The Apache-2.0 license of Zom
 LICENSE-MIT              - The MIT license of Zom
 
 
-zomc/                    - Binary for the Zom Compiler.
+zom/                     - Binary for the Zom Compiler.
 zom_fe/                  - Crate where the lexer, parser, token list and AST are.
 zom_common/              - Common crate for Zom like, errors etc..
 zom_codegen/             - Crate responsible for the generation of the LLVM IR.

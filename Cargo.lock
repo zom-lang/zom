@@ -1006,6 +1006,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
 
 [[package]]
+name = "zom"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "inkwell",
+ "log",
+ "pretty_env_logger",
+ "zom_codegen",
+ "zom_common",
+ "zom_compiler",
+ "zom_fe",
+]
+
+[[package]]
 name = "zom_codegen"
 version = "0.0.0"
 dependencies = [
@@ -1031,19 +1046,4 @@ version = "0.0.0"
 dependencies = [
  "criterion",
  "zom_common",
-]
-
-[[package]]
-name = "zomc"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "clap",
- "inkwell",
- "log",
- "pretty_env_logger",
- "zom_codegen",
- "zom_common",
- "zom_compiler",
- "zom_fe",
 ]

@@ -1,4 +1,4 @@
-use zomc::{run_with_args, ExitStatus};
+use zom::{run_with_args, ExitStatus};
 
 fn main() -> Result<(), anyhow::Error> {
     pretty_env_logger::try_init()

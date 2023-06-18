@@ -3,7 +3,7 @@
 [workspace]
 
 members = [
-    "zomc",
+    "zom",
     "zom_fe",
     "zom_common",
     "zom_codegen",
