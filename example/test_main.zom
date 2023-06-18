@@ -1,2 +1,9 @@
+(* A 
+comment *)
 func main()
     1
+
+
+(* End of file 
+comment ! 
+*)
