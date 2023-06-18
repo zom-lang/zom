@@ -62,7 +62,7 @@ impl<'a> Lexer<'a> {
     pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Box<dyn Error>> {
         let mut tokens = Vec::new();
 
-        while let Some(ch) = self.chars.next() {
+        'main: while let Some(ch) = self.chars.next() {
             match ch {
                 '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' => {
                     tokens.push(self.lex_lki(ch)?);
@@ -85,6 +85,46 @@ impl<'a> Lexer<'a> {
                     }
                 }
                 '(' => {
+                    if let Some('*') = self.chars.peek() {
+                        println!("START OF A COMMENT !");
+
+                        // Eat the `*`.char
+                        self.chars.next();
+                        self.incr_pos();
+                        self.incr_pos();
+
+                        'comment: loop {
+                            self.incr_pos();
+
+                            let ch = self.chars.next();
+                            let window = &self.text.get(self.pos..self.pos + 2);
+
+                            if ch.is_none() {
+                                println!("end of file.");
+                                break 'comment;
+                            }
+
+                            if window.is_none() {
+                                continue;
+                            }
+                            let window = window.unwrap();
+
+                            let ch = ch.unwrap();
+                            
+                            println!("{:?}, win = {window:?}", ch);
+
+                            if window == "*)" {
+                                self.chars.next();
+                                self.incr_pos();
+                                self.chars.next();
+                                self.incr_pos();
+                                self.chars.next();
+                                self.incr_pos();
+                                continue 'main;
+                            }
+                        }
+                        continue 'main;
+                    }
                     tokens.push(Token::OpenParen);
                     self.incr_pos();
                 }
@@ -140,6 +180,8 @@ impl<'a> Lexer<'a> {
                 }
             }
         }
+
+        println!("{:?}", tokens);
 
         Ok(tokens)
     }
