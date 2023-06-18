@@ -14,3 +14,7 @@ Some steps need to be done before we can start to make a self-compiling compiler
 
 *and finally,*
 - [ ] Tranlate the Zom compiler written in Rust to a Zom Compiler written in Zom.
+
+## What the lang will look like ?
+
+You can find in `/docs/evolution.zom`, code that (for now don't compile) show how Zom will work.
