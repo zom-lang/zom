@@ -47,7 +47,7 @@ pub: const Error = struct {
             code = err_code,
         }
     }
-}
+};
 
 (* You can append structs, but you can only add child or functions,
    It can be used to inheritance, add function to a type in a library.
@@ -62,7 +62,7 @@ pub: Error += struct {
             self.name + self.code.as(string)
         }
     }
-}
+};
 
 (* this the declaration of an enum, you can add a public visibility with `pub:`,
    you can specify the type of the ordinal value, it can only be an integer litteral (sbyte, short, int, long, ubyte, ushort, uint, ulong)
@@ -73,7 +73,7 @@ pub: const ExitStatus = enum: ubyte {
     Failure = 1,
     FileNotFound = 100,
     UnknownFile,
-}
+};
 
 (* You can declare unions. It's kinda like enums but it can store memory. 
    The size of an union is the size of the largest thing it stores. *)
@@ -97,4 +97,14 @@ pub: const Token = union {
         Failure,
         Critical,
     }
-}
+};
+
+(* A sub module from a file, in this case `sub_module` *)
+pub: const mod_from_file = mod "sub_module";
+
+
+pub: const mod_in_same_file = mod {
+    func foo_bar() string {
+        "foo bar"
+    }
+};
