@@ -89,12 +89,20 @@ impl<'a> Lexer<'a> {
                         // Eat the `*` char
                         self.chars.next();
                         self.incr_pos();
-                        self.incr_pos();
+                        let mut comment = String::new();
 
                         'comment: loop {
-                            self.incr_pos();
-
                             let ch = self.chars.next();
+
+                            if ch == Some('\n') {
+                                self.line += 1;
+                                self.column = 0;
+                                self.pos += 1;
+                                continue 'comment;
+                            }else {
+                                self.incr_pos();
+                            }
+
                             let window = &self.text.get(self.pos..self.pos + 2);
 
                             if ch.is_none() {
@@ -107,15 +115,13 @@ impl<'a> Lexer<'a> {
                             let window = window.unwrap();
 
                             if window == "*)" {
-                                self.chars.next();
                                 self.incr_pos();
-                                self.chars.next();
-                                self.incr_pos();
-                                self.chars.next();
-                                self.incr_pos();
-                                continue 'main;
+                                break 'comment;
                             }
+                            comment.push(ch.unwrap());
                         }
+                        self.chars.next();
+                        self.incr_pos();
                         continue 'main;
                     }
                     tokens.push(Token::OpenParen);
@@ -158,7 +164,7 @@ impl<'a> Lexer<'a> {
                     self.column = 0;
                     self.pos += 1;
                 }
-                w if w.is_whitespace() => {
+                w if w.is_whitespace() && w != '\n' => {
                     self.incr_pos();
                     continue;
                 }

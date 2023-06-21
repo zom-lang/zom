@@ -1,5 +1,5 @@
 (* A 
-comment *)
+comment *)(*a glued comment*)
 func main()
     1
 
