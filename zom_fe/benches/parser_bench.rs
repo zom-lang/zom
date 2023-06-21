@@ -1,7 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use zom_common::token::Token::*;
 use zom_fe::lexer::Lexer;
-use zom_fe::parser::{parse, ParserSettings};
+use zom_fe::parser::{parse, ParserSettings, ParsingContext};
 
 fn simple_lexer_and_parser_benchmark(c: &mut Criterion) {
     c.bench_function("lexer + parser  1 + 1", |b| {
@@ -13,9 +13,11 @@ fn simple_lexer_and_parser_benchmark(c: &mut Criterion) {
                 .make_tokens()
                 .expect("An error was occured when benchmarking `simple_lexer_benchmark`.");
 
+            let mut parse_context = ParsingContext::new("<benches>.zom".to_string(), "1 + 1".to_string());
+
             let ast = Vec::new();
             let mut parser_settings = ParserSettings::default();
-            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings)
+            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings, &mut parse_context)
                 .expect("Parsing was failed");
         })
     });
@@ -32,9 +34,13 @@ fn lexer_and_parser_func_benchmark(c: &mut Criterion) {
                 .make_tokens()
                 .expect("An error was occured when benchmarking `simple_lexer_benchmark`.");
 
+
+            let mut parse_context = ParsingContext::new("<benches>.zom".to_string(), "func foo(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) a + b + c + d + e + f + g + h + i + j + k + l + m + n + o + p + q + r + s + t + u + v + w + x + y + z\n".to_string());
+
+
             let ast = Vec::new();
             let mut parser_settings = ParserSettings::default();
-            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings).expect("Parsing was failed");
+            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings, &mut parse_context).expect("Parsing was failed");
         })
     );
 }
@@ -44,9 +50,11 @@ fn simple_parser_benchmark(c: &mut Criterion) {
         b.iter(|| {
             let tokens = black_box(vec![Int(1), Operator("+".to_owned()), Int(1)]);
 
+            let mut parse_context = ParsingContext::new("<benches>.zom".to_string(), "1 + 1".to_string());
+
             let ast = Vec::new();
             let mut parser_settings = ParserSettings::default();
-            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings)
+            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings, &mut parse_context)
                 .expect("Parsing was failed");
         })
     });
@@ -163,10 +171,12 @@ fn parser_func_benchmark(c: &mut Criterion) {
                 Operator("+".to_owned()),
                 Ident("z".to_owned()),
             ]);
+            
+            let mut parse_context = ParsingContext::new("<benches>.zom".to_string(), "func foo(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) a + b + c + d + e + f + g + h + i + j + k + l + m + n + o + p + q + r + s + t + u + v + w + x + y + z\n".to_string());
 
             let ast = Vec::new();
             let mut parser_settings = ParserSettings::default();
-            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings)
+            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings, &mut parse_context)
                 .expect("Parsing was failed");
         })
     });

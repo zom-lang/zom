@@ -2,7 +2,7 @@ use zom_common::token::{Token::*, OP_PLUS};
 use zom_fe::parser::{
     parse, ASTNode,
     Expression::{self, BinaryExpr, VariableExpr},
-    Function, ParserSettings, Prototype,
+    Function, ParserSettings, Prototype, ParsingContext,
 };
 
 #[test]
@@ -18,7 +18,9 @@ fn short_parser_test() -> Result<(), String> {
         Ident("a".to_string()),
     ];
 
-    let (ast, toks_rest) = parse(&toks, &[], &mut ParserSettings::default())?;
+    let mut parse_context = ParsingContext::new("<tests>.zom".to_string(), "func foo(a) 104 + a".to_string());
+
+    let (ast, toks_rest) = parse(&toks, &[], &mut ParserSettings::default(), &mut parse_context)?;
 
     if !toks_rest.is_empty() {
         panic!("There is a rest.")
@@ -77,7 +79,13 @@ fn long_parser_test() -> Result<(), String> {
         Ident("g".to_owned()),
     ];
 
-    let (ast, toks_rest) = parse(&toks, &[], &mut ParserSettings::default())?;
+    let mut parse_context = ParsingContext::new(
+        "<tests>.zom".to_string(), 
+    "func foo(a, b, c, d, e, f, g) a + b + c + d + e + f + g".to_string()
+    );
+
+
+    let (ast, toks_rest) = parse(&toks, &[], &mut ParserSettings::default(), &mut parse_context)?;
 
     if !toks_rest.is_empty() {
         panic!("There is a rest.")
@@ -142,7 +150,12 @@ fn error_parser_test() {
         Ident("a".to_string()),
     ];
 
-    let (ast, toks_rest) = match parse(&toks, &[], &mut ParserSettings::default()) {
+    let mut parse_context = ParsingContext::new(
+        "<tests>.zom".to_string(), 
+    "func foo(a) 104 + a".to_string()
+    );
+
+    let (ast, toks_rest) = match parse(&toks, &[], &mut ParserSettings::default(), &mut parse_context) {
         Ok(v) => v,
         Err(err) => {
             eprintln!("{}", err);
