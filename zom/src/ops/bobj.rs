@@ -11,7 +11,7 @@ use zom_codegen::gen::CodeGen;
 use zom_compiler::compiler::Compiler;
 use zom_fe::{
     lexer::Lexer,
-    parser::{parse, ParserSettings},
+    parser::{parse, ParserSettings, ParsingContext},
 };
 
 use crate::ExitStatus;
@@ -68,7 +68,12 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
         println!("[+] Successfully lexes the input.");
     });
 
-    let parse_result = parse(tokens.as_slice(), &[], &mut ParserSettings::default());
+    let mut parse_context = ParsingContext::new(
+        args.source_file.to_str().unwrap().to_owned(), 
+        source
+    );
+
+    let parse_result = parse(tokens.as_slice(), &[], &mut ParserSettings::default(), &mut parse_context);
 
     let ast;
 
