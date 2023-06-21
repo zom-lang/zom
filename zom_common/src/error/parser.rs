@@ -1,6 +1,8 @@
 use std::error::Error;
 use std::fmt;
 
+use crate::{token::Token, reverse_lexer::reverse_lexe};
+
 use super::{ErrorKind, Position, ZomError};
 
 #[derive(Debug, PartialEq)]
@@ -18,6 +20,15 @@ impl UnexpectedTokenError {
             details,
             kind: ErrorKind::Parser,
             position,
+        }
+    }
+
+    pub fn from_pos(tok_pos: usize, tokens: Vec<Token>, source_file: &mut String, filename: &mut String, details: String)-> UnexpectedTokenError {
+        UnexpectedTokenError {
+            name: String::from("Unexpected Token Error"),
+            details,
+            kind: ErrorKind::Parser,
+            position: reverse_lexe(tok_pos, tokens, source_file.to_string(), filename.to_string()).expect("ERR: Couldn't reverse lexe the error."),
         }
     }
 }
