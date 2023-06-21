@@ -1,3 +1,4 @@
+(* Invalid Character Error *)
 
-func main(@)
+func main(🏎️)
     1

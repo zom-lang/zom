@@ -1,3 +1,5 @@
+(* Top Level Expression error *)
+
 1 + 8 * 2
 
 func foo_bar()
