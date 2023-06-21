@@ -114,43 +114,36 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
         &mut args.source_file.as_mut_os_str().to_str().unwrap(),
     ));
 
-    let compile_res = CodeGen::compile_ast(&context, &builder, &fpm, &module, &ast);
+    let gen_res = CodeGen::compile_ast(&context, &builder, &fpm, &module, &ast);
 
-    match compile_res {
-        Ok(funcs) => {
+    match gen_res {
+        Ok(_) => {
             args.verbose.then(|| {
                 println!("[+] Successfully generate the code.");
             });
             if args.emit_ir {
-                for fun in funcs {
-                    let str = fun.print_to_string();
-                    match args.output_file {
-                        Some(ref path) => {
-                            let mut file = File::create(path).expect("Couldn't open the file");
-                            file.write(str.to_bytes()).expect("Could write to the file");
-                        }
-                        None => return Err(anyhow!("Couldn't unwrap the file path")),
-                    }
+                match module.print_to_file(args.output_file.clone().unwrap().as_path()) {
+                    Ok(_) => {}
+                    Err(err) => return Err(anyhow!(format!("{}", err)))
                 }
                 args.verbose.then(|| {
                     println!("Wrote the result to {:?}!", args.output_file.unwrap());
                 });
-            } else {
-                match args.output_file {
-                    Some(ref path) => {
-                        Compiler::compile_default(module, path)
-                            .expect("Couldn't compile to object file");
-                        args.verbose.then(|| {
-                            println!("[+] Successfully compile the code.");
-                        });
-                        println!("Wrote result to {:?}!", path);
-                    }
-                    None => return Err(anyhow!("Couldn't unwrap the file path")),
+                return Ok(ExitStatus::Success)
+            }
+            match args.output_file {
+                Some(ref path) => {
+                    Compiler::compile_default(module, path)
+                        .expect("Couldn't compile to object file");
+                    args.verbose.then(|| {
+                        println!("[+] Successfully compile the code.");
+                    });
+                    println!("Wrote result to {:?}!", path);
+                    return Ok(ExitStatus::Success)
                 }
+                None => return Err(anyhow!("Couldn't unwrap the file path")),
             }
         }
         Err(err) => return Err(anyhow!(format!("{}", err))),
     }
-
-    Ok(ExitStatus::Success)
 }
