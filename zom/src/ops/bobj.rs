@@ -123,24 +123,28 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
                         Some(ref path) => {
                             let mut file = File::create(path).expect("Couldn't open the file");
                             file.write(str.to_bytes()).expect("Could write to the file");
-
-                            println!("Wrote the result to {:?}!", path);
                         }
                         None => return Err(anyhow!("Couldn't unwrap the file path")),
                     }
                 }
+                args.verbose.then(|| {
+                    println!("Wrote the result to {:?}!", args.output_file.unwrap());
+                });
             } else {
                 match args.output_file {
                     Some(ref path) => {
                         Compiler::compile_default(module, path)
                             .expect("Couldn't compile to object file");
+                        args.verbose.then(|| {
+                            println!("[+] Successfully compile the code.");
+                        });
                         println!("Wrote result to {:?}!", path);
                     }
                     None => return Err(anyhow!("Couldn't unwrap the file path")),
                 }
             }
         }
-        Err(_) => return Err(anyhow!("Error was occur when trying to generate the code")),
+        Err(err) => return Err(anyhow!(format!("{}", err))),
     }
 
     Ok(ExitStatus::Success)

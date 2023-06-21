@@ -134,14 +134,16 @@ pub enum Token {
     Operator(String),
 
     // Structural symbols
-    OpenParen,  // ` ( `
-    CloseParen, // ` ) `
 
-    OpenBracket,  // ` [ `
-    CloseBracket, // ` ] `
+    // in the Zom self compiling compiler change it to :
+    OpenParen,  // ` ( ` LParen
+    CloseParen, // ` ) `RParen
 
-    OpenBrace,  // ` { `
-    CloseBrace, // ` } `
+    OpenBracket,  // ` [ ` LBracket
+    CloseBracket, // ` ] ` RBracket
+
+    OpenBrace,  // ` { ` LBrace
+    CloseBrace, // ` } ` RBrace
 
     Colon,     // ` : `
     SemiColon, // ` ; `

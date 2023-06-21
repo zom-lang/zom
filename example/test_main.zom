@@ -3,6 +3,9 @@ comment *)
 func main()
     1
 
+func foo()
+    main()
+
 
 (* End of file 
 comment ! 

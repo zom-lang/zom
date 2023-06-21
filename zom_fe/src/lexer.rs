@@ -86,9 +86,7 @@ impl<'a> Lexer<'a> {
                 }
                 '(' => {
                     if let Some('*') = self.chars.peek() {
-                        println!("START OF A COMMENT !");
-
-                        // Eat the `*`.char
+                        // Eat the `*` char
                         self.chars.next();
                         self.incr_pos();
                         self.incr_pos();
@@ -100,7 +98,6 @@ impl<'a> Lexer<'a> {
                             let window = &self.text.get(self.pos..self.pos + 2);
 
                             if ch.is_none() {
-                                println!("end of file.");
                                 break 'comment;
                             }
 
@@ -108,10 +105,6 @@ impl<'a> Lexer<'a> {
                                 continue;
                             }
                             let window = window.unwrap();
-
-                            let ch = ch.unwrap();
-                            
-                            println!("{:?}, win = {window:?}", ch);
 
                             if window == "*)" {
                                 self.chars.next();
@@ -180,8 +173,6 @@ impl<'a> Lexer<'a> {
                 }
             }
         }
-
-        println!("{:?}", tokens);
 
         Ok(tokens)
     }
