@@ -1,12 +1,11 @@
 use std::{
-    fs::{self, File},
-    io::Write,
+    fs,
     mem,
     path::PathBuf,
 };
 
 use anyhow::anyhow;
-use inkwell::{context::Context, passes::PassManager, values::AnyValue};
+use inkwell::{context::Context, passes::PassManager};
 use zom_codegen::gen::CodeGen;
 use zom_compiler::compiler::Compiler;
 use zom_fe::{
