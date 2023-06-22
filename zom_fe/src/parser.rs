@@ -253,7 +253,7 @@ fn parse_function(
 
 fn parse_prototype(
     tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
+    _settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<Prototype> {
     let mut parsed_tokens = Vec::new();
@@ -340,7 +340,7 @@ fn parse_ident_expr(
 
 fn parse_literal_expr(
     tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
+    _settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
