@@ -29,20 +29,23 @@ You can use the keyword `unsigned` before a primitive type number and this will 
 > The `Default?` column tell that the interpreter when no type is given in a declaration will choose `signed int` by default or `signed long` if the number do not fit in 32 bits.
 
 Floating numbers, specified in the [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754) 
-|     Name    |                             Description                           |                                                        Range                                                       | Default? |
-| ----------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | -------- |
-|    `float`  | `float` is a single precision floating number (32bits)            | [`≈ 1.18 × 10^-38` to `≈ 3.4028235 × 10^38`](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) |    Yes   |
-|   `double`  | `double` is a double precision floating number (64bits)           | [`≈ -7.2 × 10^75` to `≈ 7.2 × 10^75`](https://en.wikipedia.org/wiki/Double-precision_floating-point_format)        |    No    |
+|  Name |                      Description                     | Default? |                             Range                           |
+| ----- | ---------------------------------------------------- | -------- |  ---------------------------------------------------------- |
+| `f32` | `f32` is a single precision floating number (32bits) |    Yes   | [`≈ 1.18 × 10^-38` to `≈ 3.4028235 × 10^38`][f32-wikipedia] |
+| `f64` | `f64` is a double precision floating number (64bits) |    No    | [`≈ -7.2 × 10^75` to `≈ 7.2 × 10^75`][f64-wikipedia]        |
 > The `Default?` column tell that the interpreter when no type is given in a declaration will choose `signed int` by default or `signed long` if the number do not fit in 32 bits.
+
+[f32-wikipedia]: https://en.wikipedia.org/wiki/Single-precision_floating-point_format
+[f64-wikipedia]: https://en.wikipedia.org/wiki/Double-precision_floating-point_format
 
 You can type a float number like that `123456,789012` or like that if the number is too big or it's complex to read it, `123_456,789_012`
 
 Others primitive types,
-|   Name   |                           Description                          |
-| -------- | -------------------------------------------------------------- |
-|  `bool`  | `bool` is a boolean value; either set to true (1) or false (0) |
-|  `char`  | `char` is a Unicode scalar value, that is 4 bytes each         |
-|   `str`  | `str` is a UTF-8-encoded,                                      | 
+|  Name  |                           Description                          |
+| ------ | -------------------------------------------------------------- |
+| `bool` | `bool` is a boolean value; either set to true (1) or false (0) |
+| `char` | `char` is a Unicode scalar value, that is 4 bytes each         |
+| `str`  | `str` is a UTF-8-encoded,                                      | 
 
 Boolean is either `true` or `false`.
 
