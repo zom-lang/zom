@@ -6,6 +6,8 @@
 
 Primitive types are types that are directly encoded in Zom.
 
+## Signed
+
 Signed numbers work with [two's complement](https://en.wikipedia.org/wiki/Two%27s_complement)
 |  Name  |             Description             |                           Range                          | Default?  |
 | ------ | ----------------------------------- | -------------------------------------------------------- | --------- |
@@ -18,7 +20,8 @@ Signed numbers work with [two's complement](https://en.wikipedia.org/wiki/Two%27
 > The `Default?` column tell that the interpreter when no type is given in a declaration will choose `signed int` by default or `signed long` if the number do not fit in 32 bits.
 You can type a number like that `123456` or like that if the number is big or it's complex to read it `123_456`.
 
-You can use the keyword `unsigned` before a primitive type number and this will remove the two's complement :
+## Unsigned
+
 |  Name  |           Description                |              Range              | Default? |
 | ------ | ------------------------------------ | ------------------------------- | -------- |
 | `u8`   | `u8` is a 8 bits unsigned integer    | 0 to 255                        |    No    |
@@ -27,6 +30,19 @@ You can use the keyword `unsigned` before a primitive type number and this will 
 | `u64`  | `u64` is a 64 bits unsigned integer  | 0 to 18_446_744_073_709_551_615 |    No    |
 | `i128` | `i128` is a 128 bits signed integer  | 0 to 340_282_366_920_938_463_463_374_607_431_768_211_455 |   No   |
 > The `Default?` column tell that the interpreter when no type is given in a declaration will choose `signed int` by default or `signed long` if the number do not fit in 32 bits.
+
+## Platform Spcific integer
+
+The pointer-sized integer type.
+
+The size of this primitive is how many bytes it takes to reference any location in memory. For example, on a 32 bit target, this is 4 bytes and on a 64 bit target, this is 8 bytes.
+
+|  Name   |       Description        |
+| ------- | ------------------------ |
+| `usize` | `usize` unsigned integer |
+| `isize` | `isize` signed integer   |
+
+## Floating Point Number
 
 Floating numbers, specified in the [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754) 
 |  Name |                      Description                     | Default? |                             Range                           |
