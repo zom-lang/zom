@@ -169,13 +169,16 @@ impl<'a> Lexer<'a> {
                     continue;
                 }
                 _ => {
-                    return Err(Box::new(IllegalCharError::new(Position::new(
+                    return Err(Box::new(IllegalCharError::new(
+                        Position::new(
                         self.pos,
                         self.line,
                         self.column,
                         mem::take(&mut self.filename),
                         mem::take(&mut self.text),
-                    ))));
+                        ),
+                        ch
+                    )));
                 }
             }
         }

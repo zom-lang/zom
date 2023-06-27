@@ -39,16 +39,25 @@ impl Error for UnexpectedTokenError {
     }
 }
 
-impl ZomError for UnexpectedTokenError {}
+impl ZomError for UnexpectedTokenError {
+    fn details(&self) -> &str {
+        self.details.as_str()
+    }
+
+    fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    fn position(&self) -> Option<Position> {
+        Some(self.position.clone())
+    }
+}
 
 impl fmt::Display for UnexpectedTokenError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         super::print_error(
             f,
-            &self.position,
-            &self.kind,
-            self.name.to_owned(),
-            self.details.clone(),
+            self
         )
     }
 }

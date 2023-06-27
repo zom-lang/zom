@@ -3,10 +3,11 @@
 //! This used to spawn custom (beautiful) error message when a component of Zom fails.
 
 use std::error::Error;
-use std::fmt;
+use std::fmt::{self, Display};
 
 pub mod lexer;
 pub mod parser;
+pub mod internal; 
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ErrorKind {
@@ -48,35 +49,30 @@ fn str_fix_len(string: String, len: usize) -> String {
     num_str
 }
 
-fn print_error(
-    f: &mut fmt::Formatter<'_>,
-    position: &Position,
-    _kind: &ErrorKind,
-    name: String,
-    details: String,
-) -> fmt::Result {
+/// Safety :
+/// We assume that the error in zom_err is knowed, if it's not then it will panic because there is an `unwrap()`.
+fn print_error(f: &mut fmt::Formatter<'_>, zom_err: &dyn ZomError) -> fmt::Result {
     let mut margin: usize = 5;
-    let num_str_len = position.line.to_string().len();
+    let num_str_len = zom_err.pos().line.to_string().len();
     if num_str_len > margin {
-        println!("margin = {margin}");
         margin += (num_str_len - margin) + 2
     }
 
     writeln!(
         f,
-        "Err: {name}, in file `{}` at line {} :",
-        position.filename, position.line
+        "error: in file `{}` at line {} :",
+        zom_err.pos().filename, zom_err.pos().line
     )
     .unwrap();
     writeln!(f, "{}|", str_fix_len("...".to_string(), margin)).unwrap();
     writeln!(
         f,
         "{}| {}",
-        str_fix_len(position.line.to_string(), margin),
-        position
+        str_fix_len(zom_err.pos().line.to_string(), margin),
+        zom_err.pos()
             .filetext
             .split('\n')
-            .nth((position.line - 1) as usize)
+            .nth((zom_err.pos().line - 1) as usize)
             .unwrap()
     )
     .unwrap();
@@ -84,17 +80,18 @@ fn print_error(
         f,
         "{}| {}^",
         str_fix_len("...".to_string(), margin),
-        spaces(position.column as usize)
+        spaces(zom_err.pos().column as usize)
     )
     .unwrap();
-    if !details.is_empty() {
-        return writeln!(f, "       {}{}", spaces(position.column as usize), details);
+    if !zom_err.details().is_empty() {
+        return writeln!(f, "       {}{}", spaces(zom_err.pos().column as usize), zom_err.details());
     }
     write!(f, "")
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Position {
+    /// The index when you iterate over the filetext.
     index: usize,
     line: usize,
     column: usize,
@@ -124,4 +121,26 @@ impl Position {
     }
 }
 
-pub trait ZomError: Error {}
+pub trait ZomError: Error + Display {
+    fn name(&self) -> &str;
+
+    fn details(&self) -> &str;
+
+    fn position(&self) -> Option<Position>;
+
+    /// Alias for `.position().unwrap()` so if the error was no position it will panic.
+    #[inline]
+    fn pos(&self) -> Position {
+        self.position().unwrap()
+    }
+
+    fn print_error(&self, f: &mut fmt::Formatter<'_>,) -> fmt::Result where Self: Sized {
+        if self.position().is_none() {
+            // this is a position less error.
+            todo!()
+        }
+        // it's not a position less error
+        
+        print_error(f, self)
+    }
+}

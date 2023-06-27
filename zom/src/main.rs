@@ -7,7 +7,7 @@ fn main() -> Result<(), anyhow::Error> {
     let status = match run_with_args(std::env::args_os()) {
         Ok(v) => v,
         Err(err) => {
-            println!("{}", err);
+            print!("{}", err);
             std::process::exit(1)
         }
     };
