@@ -5,7 +5,7 @@
 [![MIT/Apache][licence-badge]](https://github.com/zom-lang/zom/tree/main#license)
 [![Rust tests](https://github.com/zom-lang/zom/actions/workflows/rust.yml/badge.svg)](https://github.com/zom-lang/zom/actions/workflows/rust.yml)
 
-[licence-badge]: https://img.shields.io/badge/License-MIT%20OR%20Apache--2.0-lightgrey
+[licence-badge]: https://img.shields.io/badge/License-%20Apache--2.0%20with%20LLVM--Exception-lightblue
 
 Zom is a Ahead Of Time compiled programming language, the code generation and compilation is made with LLVM.  
 
