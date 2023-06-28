@@ -224,7 +224,7 @@ Software.
 ==============================================================================
 Software from third parties included in the Zom Language:
 ==============================================================================
-The LLVM Project contains third party software which is under different license
+The Zom Language contains third party software which is under different license
 terms. All such code will be identified clearly using at least one of two
 mechanisms:
 1) It will be in a separate directory tree with its own `LICENSE.txt` or
