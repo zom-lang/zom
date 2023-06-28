@@ -3,11 +3,17 @@ This is an example code of Zom Code It is not very
 usefull but that shows how it WILL probably work
  *)
 
-(* By default the std library is not imported, so you need to import what you want from the std lib. *)
-const stdio = @include("std::stdio::*");
+@include(std::error::Error);
+
+(* Extern function with `C` calling convention, so args are in the stack *)
+extern "C" func power(num: i32, pow: i32) i32;
+
+(* Extern function with `WATCOM_C` calling convention, so args are first in registers and next in the stack *)
+extern "WATCOM_C" func foo(bar: u8) u8;
 
 (* A function that could return an error *)
 func foo(bar: int) double ?! Error {
+    (* `var` are variables, mutables. non mutable variables are `const` *)
     var x: int = (10 + 9) * bar;
 
     if x >= 5 && is_greater_than(1, 2) {
@@ -24,8 +30,12 @@ func main() void {
        the error is propagate. So the calling function needs also to have a return error, 
        with the same type. In this case `func main() void ?! Error`.*)
     var test: double = try foo(9);
+
+    const foo: bool = is_greater_than(1, 9);
 }
 
+(* comptime functions can also be used as metadata for functions, like `@inline` *)
+@inline
 func is_greater_than(a: int, b: int) bool {
     (* It's a really dumb function but it's for demonstration of constant.language.values.zom *)
     if a > b {
@@ -80,17 +90,18 @@ pub: const ExitStatus = enum: ubyte {
 pub: const Token = union {
     (* Union can have zero type stores, like that, *)
     RParen,
-    LParen,
+    (* You can also override the ordinal value *)
+    LParen = 9,
     (* Or a single type *)
-    Op = string,
+    Op: string,
     (* Or a struct. *)
-    BinaryOp = struct {
+    BinaryOp: struct {
         left: ubyte,
         op: string,
         right: ubyte,
     },
     (* Or an enum *)
-    Status = enum {
+    Status: enum {
         Ok,
         Warning,
         Bad,
@@ -100,10 +111,10 @@ pub: const Token = union {
 };
 
 (* A sub module from a file, in this case `sub_module` *)
-pub: const mod_from_file = mod "sub_module";
+pub: const mod_from_file = module "sub_module";
 
 
-pub: const mod_in_same_file = mod {
+pub: const mod_in_same_file = module {
     func foo_bar() string {
         "foo bar"
     }
