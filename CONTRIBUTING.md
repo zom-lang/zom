@@ -153,6 +153,14 @@ Updating, improving and correcting the documentation
 
 -->
 
+1.  Fork the repository.
+2.  Git clone your fork, e.g.: `git clone https://github.com/YOUR_USERNAME/zom.git`
+3.  Make sure you have Rust installed, to check if you don't broke the source code and "compile" the doc.
+4.  Write the documentation for what do you want (function, structs, enum, const, modules ..)
+5.  Format the code with `cargo fmt`
+6.  Return to your fork and click on `Contribute` and `Open pull request`
+7.  Write a good and consice pull request
+
 ## Styleguides
 ### Commit Messages
 
