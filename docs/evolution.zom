@@ -119,3 +119,16 @@ pub: const mod_in_same_file = module {
         "foo bar"
     }
 };
+
+(* Imagine in an other package *)
+
+@include(core::comptime::expr);
+
+(* This is the definition of a comptime function, it can be used in Zom source code.
+   At compile time (comptime) the compiler will compile and call this function, this is
+   why it needs to be in its own package (they can be mutliple comptime functions in one
+   package). comptime functions can change the AST, interact with it etc..
+   But call of a comptime func in zom source code can only be in an other package.*)
+pub: func comptime @comptimeFuncAddition(a: expr, b: expr) expr {
+    a + b
+}
