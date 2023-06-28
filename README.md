@@ -1,8 +1,7 @@
 # ⚡ Zom Language
 
 [![lines of code](https://tokei.rs/b1/github/zom-lang/zom)](https://github.com/Aaronepower/tokei)
-[![codecov](https://codecov.io/gh/zom-lang/zom/branch/main/graph/badge.svg)](https://github.com/zom-lang/zom)
-[![MIT/Apache][licence-badge]](https://github.com/zom-lang/zom/tree/main#license)
+[![License][licence-badge]](https://github.com/zom-lang/zom/tree/main#license)
 [![Rust tests](https://github.com/zom-lang/zom/actions/workflows/rust.yml/badge.svg)](https://github.com/zom-lang/zom/actions/workflows/rust.yml)
 
 [licence-badge]: https://img.shields.io/badge/License-%20Apache--2.0%20with%20LLVM--Exception-lightblue
