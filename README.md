@@ -59,9 +59,8 @@ To build the source code of Zom, there are three steps :
 ```
 Cargo.toml               - Manifest for Cargo workspace
 
-COPYRIGHT                - Explanation of Licenses for Zom
-LICENSE-APACHE           - The Apache-2.0 license of Zom
-LICENSE-MIT              - The MIT license of Zom
+NOTICE                   - NOTICE file for the Apache-2.0 license for Zom
+LICENSE                  - The Apache-2.0 license of Zom with LLVM-Exception.
 
 
 zom/                     - Binary for the Zom Compiler.
@@ -77,13 +76,12 @@ docs/lang/000-readme.md  - Readme of the Zom Lang's doc
 
 ## License
 
-Licensed under either of
- * Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
- * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+Licensed under Apache License, Version 2.0 [LICENSE](/LICENSE) or <http://www.apache.org/licenses/LICENSE-2.0> 
+with LLVM-exception <https://foundation.llvm.org/relicensing/LICENSE.txt>
 
-at your option.
+This files may not be copied, modified, or distributed except according to those terms.
 
-> More informations [here](/COPYRIGHT).
+> More informations [here](/NOTICE).
 
 ## Contribution
 
