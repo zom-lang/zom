@@ -1,39 +1,29 @@
+use std::io::{self, stdout, Write};
 use anyhow::anyhow;
-use zom_common::{reverse_lexer::reverse_lexe, token::*, error::parser::UnexpectedTokenError};
+use zom_fe::lexer::Lexer;
 
 use crate::ExitStatus;
 
 pub fn dev() -> Result<ExitStatus, anyhow::Error> {
     println!("Development command.");
 
-    let tokens = vec![
-        OpenParen,
-        Ident("foo".to_owned()),
-        Operator("&&".to_string()),
-        Operator("+".to_string()),
-        Operator("+".to_string()),
-        Int(109),
-        Ident("baz".to_owned()),
-        Func,
-        Int(10991),
-    ];
+    let mut buffer = String::new();
 
-    // the source code is very weird but it's normal
-    let source_file = String::from(
-r#"(foo && + +  109
-    baz func 10991"#
-    );
-
-    let pos = reverse_lexe(7, tokens, source_file, "<DEV_TEST_REVERSE_LEXING.ZOM>".to_string());
-    if pos.is_err() {
-        let err = pos.err().unwrap();
-        return Err(anyhow!(err));
+    print!("input: ");
+    stdout().flush().expect("ERR: Flush the output failed.");
+    match io::stdin().read_line(&mut buffer) {
+        Ok(_) => {}
+        Err(err) => return Err(anyhow!(format!("{}", err)))
     }
-    let pos = pos.unwrap();
 
-    println!("calculed pos = {:?}\n\n", pos);
+    println!("buffer = {:?}", buffer);
 
-    eprintln!("{}", UnexpectedTokenError::new(pos, "Unexpected token.".to_owned()));
+    let mut lexer = Lexer::new(buffer.as_str(), "<dev_cmd>.zom".to_string());
+
+    match lexer.make_tokens() {
+        Ok(toks) => println!("toks = {:?}", toks),
+        Err(err) => return Err(anyhow!(format!("{}", err)))
+    }
 
     Ok(ExitStatus::Success)
 }
