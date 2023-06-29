@@ -8,7 +8,7 @@
 The grammar is kinda based of [Recursive Descent Parsing](http://en.wikipedia.org/wiki/Recursive_descent_parser) and [Operator-Precedence Parsing](http://en.wikipedia.org/wiki/Operator-precedence_parser) to produce [the Abstract Syntax Tree](http://en.wikipedia.org/wiki/Abstract_syntax_tree)
 
 ```{.ebnf .notation}
-   program          : [[statement] Delimiter ? ]*;
+   program          : [[statement] SemiColon ? ]*;
    statement        : [declaration | definition];
    declaration      : Extern prototype;
    definition       : Func prototype block_expr;
@@ -17,6 +17,6 @@ The grammar is kinda based of [Recursive Descent Parsing](http://en.wikipedia.or
    primary_expr     : [Ident | Number | call_expr | parenthesis_expr | block_expr];
    call_expr        : Ident OpenParen [expression Comma ?]* CloseParen;
    parenthesis_expr : OpenParen expression CloseParen;
-   block_expr       : OpenBrace (expression)* CloseBrace
+   block_expr       : OpenBrace (expression SemiColon)* expression CloseBrace
 ```
 > This is written with the the [Extended Backus–Naur form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) notation.
