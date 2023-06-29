@@ -62,7 +62,11 @@ pub struct ParsingContext {
 
 impl ParsingContext {
     pub fn new(filename: String, source_file: String) -> ParsingContext {
-        ParsingContext { pos: 0, filename, source_file }
+        ParsingContext {
+            pos: 0,
+            filename,
+            source_file,
+        }
     }
 
     pub fn filename(&self) -> String {
@@ -141,7 +145,17 @@ pub fn parse(
             _ => Bad(
                 // "Expected a function definition or a declaration of an external function."
                 //     .to_owned(),
-                format!("{}", UnexpectedTokenError::from_pos(context.pos, tokens.to_vec(), &mut context.source_file, &mut context.filename, "Expected a function definition or a declaration of an external function.".to_owned())),
+                format!(
+                    "{}",
+                    UnexpectedTokenError::from_pos(
+                        context.pos,
+                        tokens.to_vec(),
+                        &mut context.source_file,
+                        &mut context.filename,
+                        "Expected a function definition or a declaration of an external function."
+                            .to_owned()
+                    )
+                ),
             ),
         };
         match result {
@@ -384,7 +398,15 @@ fn parse_expr(
 ) -> PartParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
     let lhs = parse_try!(parse_primary_expr, tokens, settings, context, parsed_tokens);
-    let expr = parse_try!(parse_binary_expr, tokens, settings, context, parsed_tokens, 0, &lhs);
+    let expr = parse_try!(
+        parse_binary_expr,
+        tokens,
+        settings,
+        context,
+        parsed_tokens,
+        0,
+        &lhs
+    );
     Good(expr, parsed_tokens)
 }
 
@@ -422,7 +444,15 @@ fn parse_binary_expr(
             let binary_rhs = match tokens.last().cloned() {
                 Some(Operator(ref op)) => match settings.operator_precedence.get(op).copied() {
                     Some(pr) if pr > precedence => {
-                        parse_try!(parse_binary_expr, tokens, settings, context, parsed_tokens, pr, &rhs)
+                        parse_try!(
+                            parse_binary_expr,
+                            tokens,
+                            settings,
+                            context,
+                            parsed_tokens,
+                            pr,
+                            &rhs
+                        )
                     }
                     None => return error("unknown operator found"),
                     _ => break,

@@ -99,7 +99,7 @@ impl<'a> Lexer<'a> {
                                 self.column = 0;
                                 self.pos += 1;
                                 continue 'comment;
-                            }else {
+                            } else {
                                 self.incr_pos();
                             }
 
@@ -175,13 +175,13 @@ impl<'a> Lexer<'a> {
                 _ => {
                     return Err(Box::new(IllegalCharError::new(
                         Position::new(
-                        self.pos,
-                        self.line,
-                        self.column,
-                        mem::take(&mut self.filename),
-                        mem::take(&mut self.text),
+                            self.pos,
+                            self.line,
+                            self.column,
+                            mem::take(&mut self.filename),
+                            mem::take(&mut self.text),
                         ),
-                        ch
+                        ch,
                     )));
                 }
             }

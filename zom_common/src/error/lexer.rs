@@ -44,9 +44,6 @@ impl ZomError for IllegalCharError {
 
 impl fmt::Display for IllegalCharError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        super::print_error(
-            f,
-            self
-        )
+        super::print_error(f, self)
     }
 }

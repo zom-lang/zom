@@ -5,9 +5,9 @@
 use std::error::Error;
 use std::fmt::{self, Display};
 
+pub mod internal;
 pub mod lexer;
 pub mod parser;
-pub mod internal; 
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ErrorKind {
@@ -61,7 +61,8 @@ fn print_error(f: &mut fmt::Formatter<'_>, zom_err: &dyn ZomError) -> fmt::Resul
     writeln!(
         f,
         "error: in file `{}` at line {} :",
-        zom_err.pos().filename, zom_err.pos().line
+        zom_err.pos().filename,
+        zom_err.pos().line
     )
     .unwrap();
     writeln!(f, "{}|", str_fix_len("...".to_string(), margin)).unwrap();
@@ -69,7 +70,8 @@ fn print_error(f: &mut fmt::Formatter<'_>, zom_err: &dyn ZomError) -> fmt::Resul
         f,
         "{}| {}",
         str_fix_len(zom_err.pos().line.to_string(), margin),
-        zom_err.pos()
+        zom_err
+            .pos()
             .filetext
             .split('\n')
             .nth((zom_err.pos().line - 1) as usize)
@@ -84,7 +86,12 @@ fn print_error(f: &mut fmt::Formatter<'_>, zom_err: &dyn ZomError) -> fmt::Resul
     )
     .unwrap();
     if !zom_err.details().is_empty() {
-        return writeln!(f, "       {}{}", spaces(zom_err.pos().column as usize), zom_err.details());
+        return writeln!(
+            f,
+            "       {}{}",
+            spaces(zom_err.pos().column as usize),
+            zom_err.details()
+        );
     }
     write!(f, "")
 }
@@ -100,7 +107,13 @@ pub struct Position {
 }
 
 impl Position {
-    pub fn new(index: usize, line: usize, column: usize, filename: String, filetext: String) -> Position {
+    pub fn new(
+        index: usize,
+        line: usize,
+        column: usize,
+        filename: String,
+        filetext: String,
+    ) -> Position {
         Position {
             index,
             line,
@@ -134,13 +147,16 @@ pub trait ZomError: Error + Display {
         self.position().unwrap()
     }
 
-    fn print_error(&self, f: &mut fmt::Formatter<'_>,) -> fmt::Result where Self: Sized {
+    fn print_error(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
+    where
+        Self: Sized,
+    {
         if self.position().is_none() {
             // this is a position less error.
             todo!()
         }
         // it's not a position less error
-        
+
         print_error(f, self)
     }
 }

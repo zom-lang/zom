@@ -2,7 +2,7 @@ use zom_common::token::{Token::*, OP_PLUS};
 use zom_fe::parser::{
     parse, ASTNode,
     Expression::{self, BinaryExpr, VariableExpr},
-    Function, ParserSettings, Prototype, ParsingContext,
+    Function, ParserSettings, ParsingContext, Prototype,
 };
 
 #[test]
@@ -18,9 +18,15 @@ fn short_parser_test() -> Result<(), String> {
         Ident("a".to_string()),
     ];
 
-    let mut parse_context = ParsingContext::new("<tests>.zom".to_string(), "func foo(a) 104 + a".to_string());
+    let mut parse_context =
+        ParsingContext::new("<tests>.zom".to_string(), "func foo(a) 104 + a".to_string());
 
-    let (ast, toks_rest) = parse(&toks, &[], &mut ParserSettings::default(), &mut parse_context)?;
+    let (ast, toks_rest) = parse(
+        &toks,
+        &[],
+        &mut ParserSettings::default(),
+        &mut parse_context,
+    )?;
 
     if !toks_rest.is_empty() {
         panic!("There is a rest.")
@@ -80,12 +86,16 @@ fn long_parser_test() -> Result<(), String> {
     ];
 
     let mut parse_context = ParsingContext::new(
-        "<tests>.zom".to_string(), 
-    "func foo(a, b, c, d, e, f, g) a + b + c + d + e + f + g".to_string()
+        "<tests>.zom".to_string(),
+        "func foo(a, b, c, d, e, f, g) a + b + c + d + e + f + g".to_string(),
     );
 
-
-    let (ast, toks_rest) = parse(&toks, &[], &mut ParserSettings::default(), &mut parse_context)?;
+    let (ast, toks_rest) = parse(
+        &toks,
+        &[],
+        &mut ParserSettings::default(),
+        &mut parse_context,
+    )?;
 
     if !toks_rest.is_empty() {
         panic!("There is a rest.")
@@ -150,12 +160,15 @@ fn error_parser_test() {
         Ident("a".to_string()),
     ];
 
-    let mut parse_context = ParsingContext::new(
-        "<tests>.zom".to_string(), 
-    "func foo(a) 104 + a".to_string()
-    );
+    let mut parse_context =
+        ParsingContext::new("<tests>.zom".to_string(), "func foo(a) 104 + a".to_string());
 
-    let (ast, toks_rest) = match parse(&toks, &[], &mut ParserSettings::default(), &mut parse_context) {
+    let (ast, toks_rest) = match parse(
+        &toks,
+        &[],
+        &mut ParserSettings::default(),
+        &mut parse_context,
+    ) {
         Ok(v) => v,
         Err(err) => {
             eprintln!("{}", err);

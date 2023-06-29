@@ -13,12 +13,18 @@ fn simple_lexer_and_parser_benchmark(c: &mut Criterion) {
                 .make_tokens()
                 .expect("An error was occured when benchmarking `simple_lexer_benchmark`.");
 
-            let mut parse_context = ParsingContext::new("<benches>.zom".to_string(), "1 + 1".to_string());
+            let mut parse_context =
+                ParsingContext::new("<benches>.zom".to_string(), "1 + 1".to_string());
 
             let ast = Vec::new();
             let mut parser_settings = ParserSettings::default();
-            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings, &mut parse_context)
-                .expect("Parsing was failed");
+            parse(
+                tokens.as_slice(),
+                ast.as_slice(),
+                &mut parser_settings,
+                &mut parse_context,
+            )
+            .expect("Parsing was failed");
         })
     });
 }
@@ -50,12 +56,18 @@ fn simple_parser_benchmark(c: &mut Criterion) {
         b.iter(|| {
             let tokens = black_box(vec![Int(1), Operator("+".to_owned()), Int(1)]);
 
-            let mut parse_context = ParsingContext::new("<benches>.zom".to_string(), "1 + 1".to_string());
+            let mut parse_context =
+                ParsingContext::new("<benches>.zom".to_string(), "1 + 1".to_string());
 
             let ast = Vec::new();
             let mut parser_settings = ParserSettings::default();
-            parse(tokens.as_slice(), ast.as_slice(), &mut parser_settings, &mut parse_context)
-                .expect("Parsing was failed");
+            parse(
+                tokens.as_slice(),
+                ast.as_slice(),
+                &mut parser_settings,
+                &mut parse_context,
+            )
+            .expect("Parsing was failed");
         })
     });
 }

@@ -1,16 +1,23 @@
-use crate::{error::Position, token::{Token, *}};
-
+use crate::{
+    error::Position,
+    token::{Token, *},
+};
 
 /// This function reversly found the position in the sourcefile,
-/// using the position of the token position, the vector of tokens, 
+/// using the position of the token position, the vector of tokens,
 /// the sourcefile, (the filename is just to return a valid Position).
-/// 
-/// The vector of tokens needs to be the equivalent of the source file but lexed. 
+///
+/// The vector of tokens needs to be the equivalent of the source file but lexed.
 /// If it's not, you will have a position that point to garbage.
-pub fn reverse_lexe(tok_pos: usize, tokens: Vec<Token>, source_file: String, filename: String) -> Result<Position, String> {
+pub fn reverse_lexe(
+    tok_pos: usize,
+    tokens: Vec<Token>,
+    source_file: String,
+    filename: String,
+) -> Result<Position, String> {
     let token = tokens.get(tok_pos);
     if token.is_none() {
-        return Err("Unknow token, probably out of bounds.".to_owned())
+        return Err("Unknow token, probably out of bounds.".to_owned());
     }
 
     let mut char_pos: usize = 0;
@@ -25,9 +32,9 @@ pub fn reverse_lexe(tok_pos: usize, tokens: Vec<Token>, source_file: String, fil
     for ch in iter {
         char_pos += 1;
         column += 1;
-        if still_op { 
-            still_op = false; 
-            continue; 
+        if still_op {
+            still_op = false;
+            continue;
         }
 
         match ch {
@@ -71,14 +78,14 @@ pub fn reverse_lexe(tok_pos: usize, tokens: Vec<Token>, source_file: String, fil
 
         if tok_pos == token_pos as usize {
             break;
-        } 
+        }
     }
 
     Ok(Position::new(
         char_pos,
-        line, 
-        column - 1, 
-        filename, 
-        source_file
+        line,
+        column - 1,
+        filename,
+        source_file,
     ))
 }

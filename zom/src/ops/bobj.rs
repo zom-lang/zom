@@ -1,8 +1,4 @@
-use std::{
-    fs,
-    mem,
-    path::PathBuf,
-};
+use std::{fs, mem, path::PathBuf};
 
 use anyhow::anyhow;
 use inkwell::{context::Context, passes::PassManager};
@@ -67,12 +63,15 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
         println!("[+] Successfully lexes the input.");
     });
 
-    let mut parse_context = ParsingContext::new(
-        args.source_file.to_str().unwrap().to_owned(), 
-        source
-    );
+    let mut parse_context =
+        ParsingContext::new(args.source_file.to_str().unwrap().to_owned(), source);
 
-    let parse_result = parse(tokens.as_slice(), &[], &mut ParserSettings::default(), &mut parse_context);
+    let parse_result = parse(
+        tokens.as_slice(),
+        &[],
+        &mut ParserSettings::default(),
+        &mut parse_context,
+    );
 
     let ast;
 
@@ -123,12 +122,12 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
             if args.emit_ir {
                 match module.print_to_file(args.output_file.clone().unwrap().as_path()) {
                     Ok(_) => {}
-                    Err(err) => return Err(anyhow!(format!("{}", err)))
+                    Err(err) => return Err(anyhow!(format!("{}", err))),
                 }
                 args.verbose.then(|| {
                     println!("Wrote the result to {:?}!", args.output_file.unwrap());
                 });
-                return Ok(ExitStatus::Success)
+                return Ok(ExitStatus::Success);
             }
             match args.output_file {
                 Some(ref path) => {
@@ -138,7 +137,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
                         println!("[+] Successfully compile the code.");
                     });
                     println!("Wrote result to {:?}!", path);
-                    return Ok(ExitStatus::Success)
+                    return Ok(ExitStatus::Success);
                 }
                 None => return Err(anyhow!("Couldn't unwrap the file path")),
             }
