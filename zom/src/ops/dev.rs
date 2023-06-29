@@ -24,7 +24,7 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
     match lexer.make_tokens() {
         Ok(toks) => {
             tokens = toks;
-            println!("toks = {:?}", tokens);
+            println!("toks = {:?}\n\n", tokens);
         }
         Err(err) => return Err(anyhow!(format!("{}", err))),
     }

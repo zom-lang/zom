@@ -38,7 +38,10 @@ pub enum Expression {
     VariableExpr(String),
     BinaryExpr(String, Box<Expression>, Box<Expression>),
     CallExpr(String, Vec<Expression>),
-    BlockExpr(Vec<Expression>),
+    BlockExpr {
+        exprs: Vec<Expression>,
+        returned_expr: Option<Box<Expression>>,
+    },
 }
 
 pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), String>;
@@ -313,6 +316,7 @@ fn parse_primary_expr(
         Some(&Ident(_)) => parse_ident_expr(tokens, settings, context),
         Some(&Int(_)) => parse_literal_expr(tokens, settings, context),
         Some(&OpenParen) => parse_parenthesis_expr(tokens, settings, context),
+        Some(&OpenBrace) => parse_block_expr(tokens, settings, context),
         None => NotComplete,
         _ => error("unknow token when expecting an expression"),
     }
@@ -389,6 +393,33 @@ fn parse_parenthesis_expr(
     );
 
     Good(expr, parsed_tokens)
+}
+
+fn parse_block_expr(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Expression> {
+    // eat the opening brace
+    tokens.pop();
+    let mut parsed_tokens = vec![OpenBrace];
+
+    let mut exprs = vec![];
+
+    tokens.reverse();
+    println!("tokens = {:?}", tokens);
+    tokens.reverse();
+
+    exprs.push(parse_try!(parse_expr, tokens, settings, context, parsed_tokens));
+
+    expect_token!(
+        context,
+        [CloseBrace, CloseBrace, ()] <= tokens,
+        parsed_tokens,
+        "'}' expected"
+    );
+
+    Good(Expression::BlockExpr{ exprs, returned_expr: None }, parsed_tokens)
 }
 
 fn parse_expr(
