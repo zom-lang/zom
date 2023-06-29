@@ -36,7 +36,11 @@ pub struct Prototype {
 pub enum Expression {
     LiteralExpr(i32),
     VariableExpr(String),
-    BinaryExpr(String, Box<Expression>, Box<Expression>),
+    BinaryExpr{
+        op: String, 
+        lhs: Box<Expression>,
+        rhs: Box<Expression>, 
+    },
     CallExpr(String, Vec<Expression>),
     BlockExpr {
         exprs: Vec<Expression>
@@ -499,7 +503,7 @@ fn parse_binary_expr(
         }
 
         // merge LHS and RHS
-        result = BinaryExpr(operator, Box::new(result), Box::new(rhs));
+        result = BinaryExpr{op: operator, lhs: Box::new(result), rhs: Box::new(rhs)};
     }
 
     Good(result, parsed_tokens)

@@ -73,7 +73,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                 None => Err("Could not find a matching variable."),
             },
 
-            Expression::BinaryExpr(op, ref left, ref right) => {
+            Expression::BinaryExpr{op, lhs: ref left, rhs: ref right} => {
                 if op == &"=".to_owned() {
                     // handle assignement
                     let var_name = match *left.borrow() {
