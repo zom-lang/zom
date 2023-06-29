@@ -159,6 +159,10 @@ impl<'a> Lexer<'a> {
                     tokens.push(Token::Comma);
                     self.incr_pos();
                 }
+                '@' => {
+                    tokens.push(Token::At);
+                    self.incr_pos();
+                }
                 '\n' => {
                     self.line += 1;
                     self.column = 0;
@@ -239,6 +243,15 @@ impl<'a> Lexer<'a> {
                 KEY_FUNC => Ok(Token::Func),
                 KEY_EXTERN => Ok(Token::Extern),
                 KEY_VAR => Ok(Token::Var),
+                KEY_CONST => Ok(Token::Const),
+                KEY_STRUCT => Ok(Token::Struct),
+                KEY_ENUM => Ok(Token::Enum),
+                KEY_RETURN => Ok(Token::Return),
+                KEY_IF => Ok(Token::If),
+                KEY_ELSE => Ok(Token::Else),
+                KEY_WHILE => Ok(Token::While),
+                KEY_FOR => Ok(Token::For),
+                KEY_PUB => Ok(Token::Pub),
                 _ => Ok(Token::Ident(num_str.clone())),
             }
         }

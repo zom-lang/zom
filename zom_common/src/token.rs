@@ -16,8 +16,6 @@ pub const OP_MUL: &str = "*";
 pub const OP_DIV: &str = "/";
 /// Mod (remainder), `%`
 pub const OP_MOD: &str = "%";
-/// Power, `^`
-pub const OP_POWER: &str = "^";
 
 /// Equal, `=`, used to assignement
 pub const OP_EQ: &str = "=";
@@ -72,7 +70,6 @@ pub fn is_start_operator(maybe_start: char) -> bool {
         || OP_MUL.starts_with(maybe_start.as_str())
         || OP_DIV.starts_with(maybe_start.as_str())
         || OP_MOD.starts_with(maybe_start.as_str())
-        || OP_POWER.starts_with(maybe_start.as_str())
         || OP_EQ.starts_with(maybe_start.as_str())
         || OP_COMP_EQ.starts_with(maybe_start.as_str())
         || OP_COMP_NE.starts_with(maybe_start.as_str())
@@ -95,7 +92,6 @@ pub fn is_operator(maybe_op: &str) -> (bool, usize) {
         || maybe_op.starts_with(OP_MUL)
         || maybe_op.starts_with(OP_DIV)
         || maybe_op.starts_with(OP_MOD)
-        || maybe_op.starts_with(OP_POWER)
         || maybe_op.starts_with(OP_COMP_GT)
         || maybe_op.starts_with(OP_COMP_LT)
     {
@@ -122,15 +118,44 @@ pub fn is_operator(maybe_op: &str) -> (bool, usize) {
 
 /// const for the keyword `func`
 pub const KEY_FUNC: &str = "func";
+
 /// const for the keyword `extern`
 pub const KEY_EXTERN: &str = "extern";
+
 /// const for the keyword `let`
 pub const KEY_VAR: &str = "var";
+
+/// const for the keyword `const`
+pub const KEY_CONST: &str = "const";
+
+/// const for the keyword `struct`
+pub const KEY_STRUCT: &str = "struct";
+
+/// const for the keyword `enum`
+pub const KEY_ENUM: &str = "enum";
+
+/// const for the keyword `enum`
+pub const KEY_RETURN: &str = "return";
+
+/// const for the keyword `if`
+pub const KEY_IF: &str = "if";
+
+/// const for the keyword `else`
+pub const KEY_ELSE: &str = "else";
+
+/// const for the keyword `while`
+pub const KEY_WHILE: &str = "while";
+
+/// const for the keyword `for`
+pub const KEY_FOR: &str = "for";
+
+/// const for the keyword `pub`
+pub const KEY_PUB: &str = "pub";
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     // Operators
-    /// Operators, should only be an OP_**
+    /// Operators, should only be an OP_** constant.
     Operator(String),
 
     // Structural symbols
@@ -148,6 +173,7 @@ pub enum Token {
     Colon,     // ` : `
     SemiColon, // ` ; `
     Comma,     // ` , `
+    At,        // ` @ `
 
     // Literals
     Int(i32),
@@ -157,6 +183,15 @@ pub enum Token {
     Func,
     Extern,
     Var,
+    Const,
+    Struct,
+    Enum,
+    Return,
+    If,
+    Else,
+    While,
+    For,
+    Pub,
 
     // Identifier
     Ident(String), // Identifier is a alphanumeric string
