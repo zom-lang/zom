@@ -11,10 +11,10 @@ extern "C" func power(num: i32, pow: i32) i32;
 (* Extern function with `WATCOM_C` calling convention, so args are first in registers and next in the stack *)
 extern "WATCOM_C" func foo(bar: u8) u8;
 
-(* A function that return a result, if there is no error, double is returned but if there is an error, Error is return. *)
-func foo(bar: int) double ?! Error {
+(* A function that return a result, if there is no error, f64 is returned but if there is an error, Error is return. *)
+func foo(bar: i32) f64 ?! Error {
     (* `var` are variables, mutables. non mutable variables are `const` *)
-    var x: int = (10 + 9) * bar;
+    var x: i32 = (10 + 9) * bar;
 
     if x >= 5 && is_greater_than(1, 2) {
         printf("x is greater than 5");
@@ -29,14 +29,14 @@ func main() void {
        keyword, if there is no error, the expression is return but if there is an error,
        the error is propagate. So the calling function needs also to have a return error, 
        with the same type. In this case `func main() void ?! Error`.*)
-    var test: double = try foo(9);
+    var test: f64 = try foo(9);
 
     const foo: bool = is_greater_than(1, 9);
 }
 
 (* comptime functions can also be used as metadata for functions, like `@inline` *)
 @inline
-func is_greater_than(a: int, b: int) bool {
+func is_greater_than(a: i32, b: i32) bool {
     (* It's a really dumb function but it's for demonstration of constant.language.values.zom *)
     if a > b {
         return true;
@@ -49,9 +49,9 @@ func is_greater_than(a: int, b: int) bool {
    before the declaration of the struct.  *)
 pub: const Error = struct {
     name: string,
-    code: uint,
+    code: u32,
 
-    func new(name: string, err_code: uint) Error {
+    func new(name: string, err_code: u32) Error {
         Error {
             name,
             code = err_code,
@@ -67,7 +67,7 @@ pub: Error += struct {
     @child::Display: struct {
         func fmt(&self) string {
             (*                  |  here, the as() fuction takes a type in parameter and try to cast the type,
-                                |  from uint to string, because it's at compile-time, you will have a compile 
+                                |  from u32 to string, because it's at compile-time, you will have a compile 
                                 V  error, if that doesn't work. (NOT ACTUALLY SURE ABOUT THAT)*)
             self.name + self.code.as(string)
         }
@@ -75,10 +75,10 @@ pub: Error += struct {
 };
 
 (* this the declaration of an enum, you can add a public visibility with `pub:`,
-   you can specify the type of the ordinal value, it can only be an integer litteral (sbyte, short, int, long, ubyte, ushort, uint, ulong)
+   you can specify the type of the ordinal value, it can only be an integer litteral (i8, i16, i32, i64, i128, u8, u16, u32, u64, u128)
    you can override the ordinal value for an enum (like Success, Failure or FileNotFound)
    or you can let the compiler choose for you (like UnknownFile) *)
-pub: const ExitStatus = enum: ubyte {
+pub: const ExitStatus = enum: u8 {
     Success = 0,
     Failure = 1,
     FileNotFound = 100,
@@ -96,9 +96,9 @@ pub: const Token = union {
     Op: string,
     (* Or a struct. *)
     BinaryOp: struct {
-        left: ubyte,
+        left: u8,
         op: string,
-        right: ubyte,
+        right: u8,
     },
     (* Or an enum *)
     Status: enum {
