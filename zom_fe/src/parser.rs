@@ -38,6 +38,7 @@ pub enum Expression {
     VariableExpr(String),
     BinaryExpr(String, Box<Expression>, Box<Expression>),
     CallExpr(String, Vec<Expression>),
+    BlockExpr(Vec<Expression>),
 }
 
 pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), String>;
