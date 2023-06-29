@@ -11,11 +11,12 @@ The grammar is kinda based of [Recursive Descent Parsing](http://en.wikipedia.or
    program          : [[statement] Delimiter ? ]*;
    statement        : [declaration | definition];
    declaration      : Extern prototype;
-   definition       : Func prototype expression;
+   definition       : Func prototype block_expr;
    prototype        : Ident OpenParen [Ident Comma ?]* CloseParen;
    expression       : [primary_expr (Op primary_expr)*];
-   primary_expr     : [Ident | Number | call_expr | parenthesis_expr];
+   primary_expr     : [Ident | Number | call_expr | parenthesis_expr | block_expr];
    call_expr        : Ident OpenParen [expression Comma ?]* CloseParen;
    parenthesis_expr : OpenParen expression CloseParen;
+   block_expr       : OpenBrace (expression)* CloseBrace
 ```
 > This is written with the the [Extended Backus–Naur form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) notation.
