@@ -11,7 +11,7 @@ extern "C" func power(num: i32, pow: i32) i32;
 (* Extern function with `WATCOM_C` calling convention, so args are first in registers and next in the stack *)
 extern "WATCOM_C" func foo(bar: u8) u8;
 
-(* A function that could return an error *)
+(* A function that return a result, if there is no error, double is returned but if there is an error, Error is return. *)
 func foo(bar: int) double ?! Error {
     (* `var` are variables, mutables. non mutable variables are `const` *)
     var x: int = (10 + 9) * bar;
@@ -40,7 +40,7 @@ func is_greater_than(a: int, b: int) bool {
     (* It's a really dumb function but it's for demonstration of constant.language.values.zom *)
     if a > b {
         return true;
-    }else {
+    } else {
         return false;
     }
 }
