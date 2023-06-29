@@ -39,8 +39,7 @@ pub enum Expression {
     BinaryExpr(String, Box<Expression>, Box<Expression>),
     CallExpr(String, Vec<Expression>),
     BlockExpr {
-        exprs: Vec<Expression>,
-        returned_expr: Option<Box<Expression>>,
+        exprs: Vec<Expression>
     },
 }
 
@@ -257,7 +256,7 @@ fn parse_function(
     tokens.pop();
     let mut parsed_tokens = vec![Func];
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
-    let body = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
+    let body = parse_try!(parse_block_expr, tokens, settings, context, parsed_tokens);
 
     Good(
         FunctionNode(Function {
@@ -318,7 +317,7 @@ fn parse_primary_expr(
         Some(&OpenParen) => parse_parenthesis_expr(tokens, settings, context),
         Some(&OpenBrace) => parse_block_expr(tokens, settings, context),
         None => NotComplete,
-        _ => error("unknow token when expecting an expression"),
+        tok => error(format!("unknow token when expecting an expression, {:?}", tok).as_str()),
     }
 }
 
@@ -406,11 +405,16 @@ fn parse_block_expr(
 
     let mut exprs = vec![];
 
-    tokens.reverse();
-    println!("tokens = {:?}", tokens);
-    tokens.reverse();
+    while Some(&CloseBrace) != tokens.last() {
+        exprs.push(parse_try!(parse_expr, tokens, settings, context, parsed_tokens));
 
-    exprs.push(parse_try!(parse_expr, tokens, settings, context, parsed_tokens));
+        expect_token!(
+            context,
+            [SemiColon, SemiColon, ()] <= tokens,
+            parsed_tokens,
+            "';' expected"
+        );
+    }
 
     expect_token!(
         context,
@@ -419,7 +423,7 @@ fn parse_block_expr(
         "'}' expected"
     );
 
-    Good(Expression::BlockExpr{ exprs, returned_expr: None }, parsed_tokens)
+    Good(Expression::BlockExpr{ exprs }, parsed_tokens)
 }
 
 fn parse_expr(
