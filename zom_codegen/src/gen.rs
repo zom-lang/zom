@@ -177,6 +177,9 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     None => Err("Unknown function."),
                 }
             }
+            _ => {
+                return Err("expression not covered by the codegen.")
+            }
         }
     }
 
