@@ -1,0 +1,43 @@
+---
+title: Compilation pipeline of Zom v0.4.0
+---
+flowchart TB
+    lexer("Lexer")
+    parser("Parser")
+    typecheck("Type Checker")
+    scheme_exp("Scheme expanssion")
+    codegen("LLVM-IR gen")
+    compile("Compilation to obj")
+    link("Link .obj")
+    bin("Binary result")
+    metadata("Metadata")
+
+    subgraph fe ["Front end (Zom)"]
+        direction TB
+        lexer --> parser ;
+        parser --> typecheck;
+    end
+
+    subgraph se ["Scheme Expanssion (Zom)"]
+        direction TB
+        typecheck --> scheme_exp;
+        scheme_exp --"As many time needed"--> scheme_exp
+    end
+    
+    subgraph be ["Back End (Rust)"]
+        direction TB
+        scheme_exp --"Serializer / Deserializer"--> codegen;
+        codegen --> compile
+    end
+
+    fe -..-> metadata
+    se -..-> metadata
+    be -..-> metadata
+
+    metadata --> lnk
+
+    subgraph lnk ["Link (Rust)"]
+        direction TB
+        compile --"LLD"--> link;
+        link --> bin
+    end
