@@ -2,15 +2,19 @@
 title: Compilation pipeline of Zom v0.4.0
 ---
 flowchart TB
-    lexer("Lexer")
-    parser("Parser")
-    typecheck("Type Checker")
-    scheme_exp("Scheme expanssion")
-    codegen("LLVM-IR gen")
-    compile("Compilation to obj")
-    link("Link .obj")
-    bin("Binary result")
-    metadata("Metadata")
+    classDef Rust fill:#dea584;
+    classDef Zom fill:#E7DB3C;
+    classDef Other fill:lightblue;
+    lexer("Lexer"):::Zom
+    parser("Parser"):::Zom
+    typecheck("Type Checker"):::Zom
+    scheme_exp("Scheme expanssion"):::Zom
+    codegen("LLVM-IR gen"):::Rust
+    compile("Compilation to obj"):::Rust
+    link("Link .obj"):::Rust
+    bin("Binary / Library Result"):::Other
+    metadata("Metadata"):::Other
+
 
     subgraph fe ["Front end (Zom)"]
         direction TB
