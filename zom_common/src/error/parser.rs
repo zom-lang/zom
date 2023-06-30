@@ -11,15 +11,17 @@ pub struct UnexpectedTokenError {
     details: String,
     kind: ErrorKind,
     position: Position,
+    token: Token,
 }
 
-impl UnexpectedTokenError {
-    pub fn new(position: Position, details: String) -> UnexpectedTokenError {
+impl  UnexpectedTokenError  {
+    pub fn new(position: Position, details: String, token: Token) -> UnexpectedTokenError {
         UnexpectedTokenError {
             name: String::from("Unexpected Token Error"),
             details,
             kind: ErrorKind::Parser,
             position,
+            token,
         }
     }
 
@@ -29,6 +31,7 @@ impl UnexpectedTokenError {
         source_file: &mut String,
         filename: &mut String,
         details: String,
+        token: Token,
     ) -> UnexpectedTokenError {
         UnexpectedTokenError {
             name: String::from("Unexpected Token Error"),
@@ -41,6 +44,7 @@ impl UnexpectedTokenError {
                 filename.to_string(),
             )
             .expect("ERR: Couldn't reverse lexe the error."),
+            token,
         }
     }
 }

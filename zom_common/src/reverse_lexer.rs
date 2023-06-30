@@ -17,7 +17,7 @@ pub fn reverse_lexe(
 ) -> Result<Position, String> {
     let token = tokens.get(tok_pos);
     if token.is_none() {
-        return Err("Unknow token, probably out of bounds.".to_owned());
+        return Err(format!("Unknow token (pos {} but vec len {}, token = {token:?}), probably out of bounds.\n {tokens:?}", tok_pos, tokens.len()));
     }
 
     let mut char_pos: usize = 0;
