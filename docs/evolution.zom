@@ -132,3 +132,47 @@ pub: const mod_in_same_file = module {
 pub: func comptime @comptimeFuncAddition(a: expr, b: expr) expr {
     a + b
 }
+
+(* The same thing as `@comptimeFuncAddition` but a better way I think, because, see the next example. *)
+pub: scheme @addition {
+    ($a:expr, $b:expr): {
+        $a + $b
+    },
+    (* It's possible to have multiple implementation of the same scheme. *)
+    ($a:expr, $b:expr, $c:expr): {
+        $a + $b + $c
+    }
+}
+
+(* In this example, a vector is created an is filled with args passed, like so :
+   `@vec[1, 2, 3, 4, 5, 6, 7]` *)
+pub: scheme @vec {
+    [ ($a:expr,)* ]: {
+        var vec = Vec::new();
+        (
+            vec.push($a);
+        )*
+        vec
+    }
+}
+
+(* Or in this one, a function to directly add assembly in the 
+   scope that this schematic is called. like so :
+   ```zom
+   @asm{ 
+    lea 0x7b(%rdi),%eax
+    ret
+   }
+   ``` *)
+pub: scheme @asm {
+    { ($operand)* (($option ,)*)? } : {
+        (* compiler built-in *)
+    }
+}
+
+(* Pros of this system are :
+    - non depandant on std or core libraries
+    - more flexible
+    - allow variadic number of args
+  Cons of this system :
+    - complex *)
