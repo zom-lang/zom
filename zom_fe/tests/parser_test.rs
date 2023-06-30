@@ -1,4 +1,4 @@
-use zom_common::token::{Token::*, OP_PLUS};
+use zom_common::{token::{Token::*, OP_PLUS}, error::ZomError};
 use zom_fe::parser::{
     parse, ASTNode,
     Expression::{self, BinaryExpr},
@@ -6,7 +6,7 @@ use zom_fe::parser::{
 };
 
 #[test]
-fn short_parser_test() -> Result<(), String> {
+fn short_parser_test() -> Result<(), Box<dyn ZomError>> {
     let toks = vec![
         Func,
         Ident("foo".to_string()),
@@ -19,7 +19,7 @@ fn short_parser_test() -> Result<(), String> {
     ];
 
     let mut parse_context =
-        ParsingContext::new("<tests>.zom".to_string(), "func foo(a) 104 + a".to_string());
+        ParsingContext::new("<tests>.zom".to_string(), "func foo(a) 104 + a".to_string(), toks.clone());
 
     let (ast, toks_rest) = parse(
         &toks,
@@ -51,7 +51,7 @@ fn short_parser_test() -> Result<(), String> {
 }
 
 #[test]
-fn long_parser_test() -> Result<(), String> {
+fn long_parser_test() -> Result<(), Box<dyn ZomError>> {
     let toks = vec![
         Func,
         Ident("foo".to_owned()),
@@ -88,6 +88,7 @@ fn long_parser_test() -> Result<(), String> {
     let mut parse_context = ParsingContext::new(
         "<tests>.zom".to_string(),
         "func foo(a, b, c, d, e, f, g) a + b + c + d + e + f + g".to_string(),
+        toks.clone()
     );
 
     let (_ast, toks_rest) = parse(
@@ -161,7 +162,7 @@ fn error_parser_test() {
     ];
 
     let mut parse_context =
-        ParsingContext::new("<tests>.zom".to_string(), "func foo(a) 104 + a".to_string());
+        ParsingContext::new("<tests>.zom".to_string(), "func foo(a) 104 + a".to_string(), toks.clone());
 
     let (ast, toks_rest) = match parse(
         &toks,
