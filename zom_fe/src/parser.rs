@@ -49,6 +49,7 @@ pub enum Expression {
 
 pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), String>;
 
+#[derive(Debug)]
 enum PartParsingResult<T> {
     Good(T, Vec<Token>),
     NotComplete,
@@ -144,10 +145,6 @@ pub fn parse(
         let result = match cur_token {
             Func => parse_function(&mut rest, settings, context),
             Extern => parse_extern(&mut rest, settings, context),
-            SemiColon => {
-                rest.pop();
-                continue;
-            }
             _ => Bad(
                 // "Expected a function definition or a declaration of an external function."
                 //     .to_owned(),
@@ -409,15 +406,34 @@ fn parse_block_expr(
 
     let mut exprs = vec![];
 
-    while Some(&CloseBrace) != tokens.last() {
-        exprs.push(parse_try!(parse_expr, tokens, settings, context, parsed_tokens));
+    while Some(&CloseBrace) != tokens.last() || !tokens.is_empty() { // TODO: Make possible to have an block_expr in a block_expr but not follewed by a semi colon.
+        println!("In the block expr loop");
+        let res_expr = parse_expr(tokens, settings, context);
+        match res_expr {
+            Good(expr, toks) => {
+                parsed_tokens.extend(toks.into_iter());
+                println!("expr = {:#?}", expr);
+                println!("parsed_toks = {:#?}\n\n", parsed_tokens);
+                exprs.push(expr);
+            }
+            NotComplete => {
+                parsed_tokens.reverse();
+                tokens.extend(parsed_tokens.into_iter());
+                return NotComplete;
+            }
+            Bad(msg) => return Bad(msg),
+        }
 
-        expect_token!(
-            context,
-            [SemiColon, SemiColon, ()] <= tokens,
-            parsed_tokens,
-            "';' expected"
-        );
+        // exprs.push(parse_try!(parse_expr, tokens, settings, context, parsed_tokens));
+
+        if parsed_tokens.last() != Some(&CloseBrace) {
+            expect_token!(
+                context,
+                [SemiColon, SemiColon, ()] <= tokens,
+                parsed_tokens,
+                "';' expected"
+            );
+        }
     }
 
     expect_token!(
