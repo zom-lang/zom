@@ -29,7 +29,7 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
         Err(err) => return Err(anyhow!(format!("{}", err))),
     }
 
-    let mut parse_context = ParsingContext::new("<dev_cmd>.zom".to_owned(), buffer);
+    let mut parse_context = ParsingContext::new("<dev_cmd>.zom".to_owned(), buffer, tokens.clone());
 
     let ast_result = parse(
         tokens.as_slice(),

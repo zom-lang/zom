@@ -4,9 +4,12 @@
 
 use std::collections::HashMap;
 
+use zom_common::error::ZomError;
 use zom_common::error::parser::UnexpectedTokenError;
 use zom_common::token::Token;
 use zom_common::token::*;
+
+use crate::FromContext;
 
 pub use self::ASTNode::FunctionNode;
 
@@ -47,41 +50,35 @@ pub enum Expression {
     },
 }
 
-pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), String>;
+pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), Box<dyn ZomError>>;
 
 #[derive(Debug)]
 enum PartParsingResult<T> {
     Good(T, Vec<Token>),
     NotComplete,
-    Bad(String),
+    Bad(Box<dyn ZomError>),
 }
 
-fn error<T>(message: &str) -> PartParsingResult<T> {
-    Bad(message.to_string())
+fn error<T>(err: Box<dyn ZomError>) -> PartParsingResult<T> {
+    Bad(err)
 }
 
 #[derive(Debug)]
 pub struct ParsingContext {
-    pos: usize,
-    filename: String,
-    source_file: String,
+    pub pos: usize,
+    pub filename: String,
+    pub source_file: String,
+    pub full_tokens: Vec<Token>
 }
 
 impl ParsingContext {
-    pub fn new(filename: String, source_file: String) -> ParsingContext {
+    pub fn new(filename: String, source_file: String, full_tokens: Vec<Token>) -> ParsingContext {
         ParsingContext {
             pos: 0,
             filename,
             source_file,
+            full_tokens,
         }
-    }
-
-    pub fn filename(&self) -> String {
-        self.filename.clone()
-    }
-
-    pub fn source_file(&self) -> String {
-        self.source_file.clone()
     }
 
     pub fn advance(&mut self) {
@@ -146,19 +143,12 @@ pub fn parse(
             Func => parse_function(&mut rest, settings, context),
             Extern => parse_extern(&mut rest, settings, context),
             _ => Bad(
-                // "Expected a function definition or a declaration of an external function."
-                //     .to_owned(),
-                format!(
-                    "{}",
-                    UnexpectedTokenError::from_pos(
-                        context.pos,
-                        tokens.to_vec(),
-                        &mut context.source_file,
-                        &mut context.filename,
-                        "Expected a function definition or a declaration of an external function."
-                            .to_owned()
-                    )
-                ),
+                Box::new(UnexpectedTokenError::from_context(
+                    context,
+                    "Expected a function definition or a declaration of an external function."
+                        .to_owned(),
+                    cur_token.clone()
+                ))
             ),
         };
         match result {
@@ -189,7 +179,7 @@ macro_rules! parse_try(
                 $tokens.extend($parsed_tokens.into_iter());
                 return NotComplete;
             },
-            Bad(message) => return Bad(message)
+            Bad(error) => return Bad(error)
         }
     )
 );
@@ -210,7 +200,7 @@ macro_rules! expect_token (
                 $tokens.extend($parsed_tokens.into_iter());
                 return NotComplete;
              },
-            _ => { $context.advance(); return error($error) }
+            _ => { $context.advance(); return $error }
         }
     );
 
@@ -280,18 +270,28 @@ fn parse_prototype(
         context,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
-        format!(
-            "expected function name in prototype, tok pos = {}",
-            context.pos
+        error(
+            Box::new(UnexpectedTokenError::from_context(
+                context,
+                "Expected function name in prototype"
+                    .to_owned(),
+                tokens.last().unwrap().clone()
+            ))
         )
-        .as_str()
     );
 
     expect_token!(
         context,
         [OpenParen, OpenParen, ()] <= tokens,
         parsed_tokens,
-        "expected '(' in prototype"
+        error(
+            Box::new(UnexpectedTokenError::from_context(
+                context,
+                "Expected '(' in prototype"
+                    .to_owned(),
+                tokens.last().unwrap().clone()
+            ))
+        )
     );
 
     let mut args = Vec::new();
@@ -301,7 +301,17 @@ fn parse_prototype(
             Ident(arg), Ident(arg.clone()), args.push(arg.clone());
             Comma, Comma, continue;
             CloseParen, CloseParen, break
-        ] <= tokens, parsed_tokens, "expected ')' in prototype");
+        ] <= tokens, 
+             parsed_tokens, 
+            error(
+                Box::new(UnexpectedTokenError::from_context(
+                    context,
+                    "Expected ')' in prototype"
+                        .to_owned(),
+                    tokens.last().unwrap().clone()
+                ))
+            )
+        );
     }
 
     Good(Prototype { name, args }, parsed_tokens)
@@ -318,7 +328,14 @@ fn parse_primary_expr(
         Some(&OpenParen) => parse_parenthesis_expr(tokens, settings, context),
         Some(&OpenBrace) => parse_block_expr(tokens, settings, context),
         None => NotComplete,
-        tok => error(format!("unknow token when expecting an expression, {:?}", tok).as_str()),
+        tok => 
+        error(
+            Box::new(UnexpectedTokenError::from_context(
+                context,
+                format!("unknow token when expecting an expression, found {:?}", tok),
+                tokens.last().unwrap().clone()
+            ))
+        ),
     }
 }
 
@@ -333,7 +350,15 @@ fn parse_ident_expr(
         context,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
-        "identificator expected"
+        // "identificator expected"
+        error(
+            Box::new(UnexpectedTokenError::from_context(
+                context,
+                "identificator expected"
+                    .to_owned(),
+                tokens.last().unwrap().clone()
+            ))
+        )
     );
 
     expect_token!(
@@ -368,7 +393,15 @@ fn parse_literal_expr(
         context,
         [Int(val), Int(val), val] <= tokens,
         parsed_tokens,
-        "literal expected"
+        // "literal expected"
+        error(
+            Box::new(UnexpectedTokenError::from_context(
+                context,
+                "Literal expected"
+                    .to_owned(),
+                tokens.last().unwrap().clone()
+            ))
+        )
     );
 
     Good(LiteralExpr(value), parsed_tokens)
@@ -389,7 +422,15 @@ fn parse_parenthesis_expr(
         context,
         [CloseParen, CloseParen, ()] <= tokens,
         parsed_tokens,
-        "')' expected"
+        // "')' expected"
+        error(
+            Box::new(UnexpectedTokenError::from_context(
+                context,
+                "Expected ')' in parenthesis expression"
+                    .to_owned(),
+                tokens.last().unwrap().clone()
+            ))
+        )
     );
 
     Good(expr, parsed_tokens)
@@ -431,7 +472,15 @@ fn parse_block_expr(
                 context,
                 [SemiColon, SemiColon, ()] <= tokens,
                 parsed_tokens,
-                "';' expected"
+                // "';' expected"
+                error(
+                    Box::new(UnexpectedTokenError::from_context(
+                        context,
+                        "Expected ';'"
+                            .to_owned(),
+                        tokens.last().unwrap().clone()
+                    ))
+                )
             );
         }
     }
@@ -440,7 +489,14 @@ fn parse_block_expr(
         context,
         [CloseBrace, CloseBrace, ()] <= tokens,
         parsed_tokens,
-        "'}' expected"
+        error(
+            Box::new(UnexpectedTokenError::from_context(
+                context,
+                "Expected '}'"
+                    .to_owned(),
+                tokens.last().unwrap().clone()
+            ))
+        )
     );
 
     Good(Expression::BlockExpr{ exprs }, parsed_tokens)
@@ -482,7 +538,15 @@ fn parse_binary_expr(
         let (operator, precedence) = match tokens.last() {
             Some(Operator(op)) => match settings.operator_precedence.get(op) {
                 Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
-                None => return error("unknown operator found"),
+                None => return 
+                error(
+                    Box::new(UnexpectedTokenError::from_context(
+                        context,
+                        "Unknown operator found"
+                            .to_owned(),
+                        tokens.last().unwrap().clone()
+                    ))
+                ),
                 _ => break,
             },
             _ => break,
@@ -509,7 +573,15 @@ fn parse_binary_expr(
                             &rhs
                         )
                     }
-                    None => return error("unknown operator found"),
+                    None => return 
+                    error(
+                        Box::new(UnexpectedTokenError::from_context(
+                            context,
+                            "unknown operator found"
+                                .to_owned(),
+                            tokens.last().unwrap().clone()
+                        ))
+                    ),
                     _ => break,
                 },
                 _ => break,

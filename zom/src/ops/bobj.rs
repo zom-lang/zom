@@ -64,7 +64,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
     });
 
     let mut parse_context =
-        ParsingContext::new(args.source_file.to_str().unwrap().to_owned(), source);
+        ParsingContext::new(args.source_file.to_str().unwrap().to_owned(), source, tokens.clone());
 
     let parse_result = parse(
         tokens.as_slice(),
