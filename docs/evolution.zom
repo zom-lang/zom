@@ -147,11 +147,11 @@ pub: scheme @addition {
 (* In this example, a vector is created an is filled with args passed, like so :
    `@vec[1, 2, 3, 4, 5, 6, 7]` *)
 pub: scheme @vec {
-    [ ($a:expr,)* ]: {
+    [ $b:($a:expr,)* ]: {
         var vec = Vec::new();
-        (
+        $b(
             vec.push($a);
-        )*
+        )
         vec
     }
 }
@@ -165,7 +165,7 @@ pub: scheme @vec {
    }
    ``` *)
 pub: scheme @asm {
-    { ($operand)* (($option ,)*)? } : {
+    { $a:($operand)* $_:( $b:($option ,)* )? } : {
         (* compiler built-in *)
     }
 }
@@ -174,5 +174,7 @@ pub: scheme @asm {
     - non depandant on std or core libraries
     - more flexible
     - allow variadic number of args
+    - allow optional fields.
+    - allow multiple brackets : () [] {}
   Cons of this system :
     - complex *)
