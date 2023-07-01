@@ -63,8 +63,11 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
         println!("[+] Successfully lexes the input.");
     });
 
-    let mut parse_context =
-        ParsingContext::new(args.source_file.to_str().unwrap().to_owned(), source, tokens.clone());
+    let mut parse_context = ParsingContext::new(
+        args.source_file.to_str().unwrap().to_owned(),
+        source,
+        tokens.clone(),
+    );
 
     let parse_result = parse(
         tokens.as_slice(),

@@ -4,8 +4,8 @@
 
 use std::collections::HashMap;
 
-use zom_common::error::ZomError;
 use zom_common::error::parser::UnexpectedTokenError;
+use zom_common::error::ZomError;
 use zom_common::token::Token;
 use zom_common::token::*;
 
@@ -13,7 +13,7 @@ use crate::FromContext;
 
 pub use self::ASTNode::FunctionNode;
 
-pub use self::Expression::{BinaryExpr, CallExpr, LiteralExpr, VariableExpr, BlockExpr};
+pub use self::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
 use self::PartParsingResult::{Bad, Good, NotComplete};
 
@@ -39,14 +39,14 @@ pub struct Prototype {
 pub enum Expression {
     LiteralExpr(i32),
     VariableExpr(String),
-    BinaryExpr{
-        op: String, 
+    BinaryExpr {
+        op: String,
         lhs: Box<Expression>,
-        rhs: Box<Expression>, 
+        rhs: Box<Expression>,
     },
     CallExpr(String, Vec<Expression>),
     BlockExpr {
-        exprs: Vec<Expression>
+        exprs: Vec<Expression>,
     },
 }
 
@@ -55,7 +55,11 @@ impl Expression {
         match self {
             &LiteralExpr(_) => true,
             &VariableExpr(_) => true,
-            &BinaryExpr { op: _, rhs: _, lhs: _ } => true,
+            &BinaryExpr {
+                op: _,
+                rhs: _,
+                lhs: _,
+            } => true,
             &CallExpr(_, _) => true,
             &BlockExpr { exprs: _ } => false,
         }
@@ -80,7 +84,7 @@ pub struct ParsingContext {
     pub pos: usize,
     pub filename: String,
     pub source_file: String,
-    pub full_tokens: Vec<Token>
+    pub full_tokens: Vec<Token>,
 }
 
 impl ParsingContext {
@@ -154,14 +158,12 @@ pub fn parse(
         let result = match cur_token {
             Func => parse_function(&mut rest, settings, context),
             Extern => parse_extern(&mut rest, settings, context),
-            _ => Bad(
-                Box::new(UnexpectedTokenError::from_context(
-                    context,
-                    "Expected a function definition or a declaration of an external function."
-                        .to_owned(),
-                    cur_token.clone()
-                ))
-            ),
+            _ => Bad(Box::new(UnexpectedTokenError::from_context(
+                context,
+                "Expected a function definition or a declaration of an external function."
+                    .to_owned(),
+                cur_token.clone(),
+            ))),
         };
         match result {
             Good(ast_node, _) => ast.push(ast_node),
@@ -282,28 +284,22 @@ fn parse_prototype(
         context,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
-        error(
-            Box::new(UnexpectedTokenError::from_context(
-                context,
-                "Expected function name in prototype"
-                    .to_owned(),
-                tokens.last().unwrap().clone()
-            ))
-        )
+        error(Box::new(UnexpectedTokenError::from_context(
+            context,
+            "Expected function name in prototype".to_owned(),
+            tokens.last().unwrap().clone()
+        )))
     );
 
     expect_token!(
         context,
         [OpenParen, OpenParen, ()] <= tokens,
         parsed_tokens,
-        error(
-            Box::new(UnexpectedTokenError::from_context(
-                context,
-                "Expected '(' in prototype"
-                    .to_owned(),
-                tokens.last().unwrap().clone()
-            ))
-        )
+        error(Box::new(UnexpectedTokenError::from_context(
+            context,
+            "Expected '(' in prototype".to_owned(),
+            tokens.last().unwrap().clone()
+        )))
     );
 
     let mut args = Vec::new();
@@ -313,8 +309,8 @@ fn parse_prototype(
             Ident(arg), Ident(arg.clone()), args.push(arg.clone());
             Comma, Comma, continue;
             CloseParen, CloseParen, break
-        ] <= tokens, 
-             parsed_tokens, 
+        ] <= tokens,
+             parsed_tokens,
             error(
                 Box::new(UnexpectedTokenError::from_context(
                     context,
@@ -340,14 +336,11 @@ fn parse_primary_expr(
         Some(&OpenParen) => parse_parenthesis_expr(tokens, settings, context),
         Some(&OpenBrace) => parse_block_expr(tokens, settings, context),
         None => NotComplete,
-        tok => 
-        error(
-            Box::new(UnexpectedTokenError::from_context(
-                context,
-                format!("unknow token when expecting an expression, found {:?}", tok),
-                tokens.last().unwrap().clone()
-            ))
-        ),
+        tok => error(Box::new(UnexpectedTokenError::from_context(
+            context,
+            format!("unknow token when expecting an expression, found {:?}", tok),
+            tokens.last().unwrap().clone(),
+        ))),
     }
 }
 
@@ -363,14 +356,11 @@ fn parse_ident_expr(
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
         // "identificator expected"
-        error(
-            Box::new(UnexpectedTokenError::from_context(
-                context,
-                "identificator expected"
-                    .to_owned(),
-                tokens.last().unwrap().clone()
-            ))
-        )
+        error(Box::new(UnexpectedTokenError::from_context(
+            context,
+            "identificator expected".to_owned(),
+            tokens.last().unwrap().clone()
+        )))
     );
 
     expect_token!(
@@ -406,14 +396,11 @@ fn parse_literal_expr(
         [Int(val), Int(val), val] <= tokens,
         parsed_tokens,
         // "literal expected"
-        error(
-            Box::new(UnexpectedTokenError::from_context(
-                context,
-                "Literal expected"
-                    .to_owned(),
-                tokens.last().unwrap().clone()
-            ))
-        )
+        error(Box::new(UnexpectedTokenError::from_context(
+            context,
+            "Literal expected".to_owned(),
+            tokens.last().unwrap().clone()
+        )))
     );
 
     Good(LiteralExpr(value), parsed_tokens)
@@ -435,14 +422,11 @@ fn parse_parenthesis_expr(
         [CloseParen, CloseParen, ()] <= tokens,
         parsed_tokens,
         // "')' expected"
-        error(
-            Box::new(UnexpectedTokenError::from_context(
-                context,
-                "Expected ')' in parenthesis expression"
-                    .to_owned(),
-                tokens.last().unwrap().clone()
-            ))
-        )
+        error(Box::new(UnexpectedTokenError::from_context(
+            context,
+            "Expected ')' in parenthesis expression".to_owned(),
+            tokens.last().unwrap().clone()
+        )))
     );
 
     Good(expr, parsed_tokens)
@@ -471,14 +455,11 @@ fn parse_block_expr(
                 [SemiColon, SemiColon, ()] <= tokens,
                 parsed_tokens,
                 // "';' expected"
-                error(
-                    Box::new(UnexpectedTokenError::from_context(
-                        context,
-                        "Expected ';'"
-                            .to_owned(),
-                        tokens.last().unwrap().clone()
-                    ))
-                )
+                error(Box::new(UnexpectedTokenError::from_context(
+                    context,
+                    "Expected ';'".to_owned(),
+                    tokens.last().unwrap().clone()
+                )))
             );
         }
     }
@@ -487,17 +468,14 @@ fn parse_block_expr(
         context,
         [CloseBrace, CloseBrace, ()] <= tokens,
         parsed_tokens,
-        error(
-            Box::new(UnexpectedTokenError::from_context(
-                context,
-                "Expected '}'"
-                    .to_owned(),
-                tokens.last().unwrap().clone()
-            ))
-        )
+        error(Box::new(UnexpectedTokenError::from_context(
+            context,
+            "Expected '}'".to_owned(),
+            tokens.last().unwrap().clone()
+        )))
     );
 
-    Good(Expression::BlockExpr{ exprs }, parsed_tokens)
+    Good(Expression::BlockExpr { exprs }, parsed_tokens)
 }
 
 fn parse_expr(
@@ -536,15 +514,13 @@ fn parse_binary_expr(
         let (operator, precedence) = match tokens.last() {
             Some(Operator(op)) => match settings.operator_precedence.get(op) {
                 Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
-                None => return 
-                error(
-                    Box::new(UnexpectedTokenError::from_context(
+                None => {
+                    return error(Box::new(UnexpectedTokenError::from_context(
                         context,
-                        "Unknown operator found"
-                            .to_owned(),
-                        tokens.last().unwrap().clone()
-                    ))
-                ),
+                        "Unknown operator found".to_owned(),
+                        tokens.last().unwrap().clone(),
+                    )))
+                }
                 _ => break,
             },
             _ => break,
@@ -571,15 +547,13 @@ fn parse_binary_expr(
                             &rhs
                         )
                     }
-                    None => return 
-                    error(
-                        Box::new(UnexpectedTokenError::from_context(
+                    None => {
+                        return error(Box::new(UnexpectedTokenError::from_context(
                             context,
-                            "unknown operator found"
-                                .to_owned(),
-                            tokens.last().unwrap().clone()
-                        ))
-                    ),
+                            "unknown operator found".to_owned(),
+                            tokens.last().unwrap().clone(),
+                        )))
+                    }
                     _ => break,
                 },
                 _ => break,
@@ -589,7 +563,11 @@ fn parse_binary_expr(
         }
 
         // merge LHS and RHS
-        result = BinaryExpr{op: operator, lhs: Box::new(result), rhs: Box::new(rhs)};
+        result = BinaryExpr {
+            op: operator,
+            lhs: Box::new(result),
+            rhs: Box::new(rhs),
+        };
     }
 
     Good(result, parsed_tokens)

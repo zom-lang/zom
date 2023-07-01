@@ -14,7 +14,7 @@ pub struct UnexpectedTokenError {
     token: Token,
 }
 
-impl  UnexpectedTokenError  {
+impl UnexpectedTokenError {
     pub fn new(position: Position, details: String, token: Token) -> UnexpectedTokenError {
         UnexpectedTokenError {
             name: String::from("Unexpected Token Error"),

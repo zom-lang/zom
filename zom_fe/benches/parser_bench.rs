@@ -13,8 +13,11 @@ fn simple_lexer_and_parser_benchmark(c: &mut Criterion) {
                 .make_tokens()
                 .expect("An error was occured when benchmarking `simple_lexer_benchmark`.");
 
-            let mut parse_context =
-                ParsingContext::new("<benches>.zom".to_string(), "1 + 1".to_string(), tokens.clone());
+            let mut parse_context = ParsingContext::new(
+                "<benches>.zom".to_string(),
+                "1 + 1".to_string(),
+                tokens.clone(),
+            );
 
             let ast = Vec::new();
             let mut parser_settings = ParserSettings::default();
@@ -55,8 +58,11 @@ fn simple_parser_benchmark(c: &mut Criterion) {
         b.iter(|| {
             let tokens = black_box(vec![Int(1), Operator("+".to_owned()), Int(1)]);
 
-            let mut parse_context =
-                ParsingContext::new("<benches>.zom".to_string(), "1 + 1".to_string(), tokens.clone());
+            let mut parse_context = ParsingContext::new(
+                "<benches>.zom".to_string(),
+                "1 + 1".to_string(),
+                tokens.clone(),
+            );
 
             let ast = Vec::new();
             let mut parser_settings = ParserSettings::default();
@@ -182,7 +188,7 @@ fn parser_func_benchmark(c: &mut Criterion) {
                 Operator("+".to_owned()),
                 Ident("z".to_owned()),
             ]);
-            
+
             let mut parse_context = ParsingContext::new("<benches>.zom".to_string(), "func foo(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) a + b + c + d + e + f + g + h + i + j + k + l + m + n + o + p + q + r + s + t + u + v + w + x + y + z\n".to_string(), tokens.clone());
 
             let ast = Vec::new();
