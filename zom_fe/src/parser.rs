@@ -13,7 +13,7 @@ use crate::FromContext;
 
 pub use self::ASTNode::FunctionNode;
 
-pub use self::Expression::{BinaryExpr, CallExpr, LiteralExpr, VariableExpr};
+pub use self::Expression::{BinaryExpr, CallExpr, LiteralExpr, VariableExpr, BlockExpr};
 
 use self::PartParsingResult::{Bad, Good, NotComplete};
 
@@ -48,6 +48,18 @@ pub enum Expression {
     BlockExpr {
         exprs: Vec<Expression>
     },
+}
+
+impl Expression {
+    pub fn is_semicolon_needed(&self) -> bool {
+        match self {
+            &LiteralExpr(_) => true,
+            &VariableExpr(_) => true,
+            &BinaryExpr { op: _, rhs: _, lhs: _ } => true,
+            &CallExpr(_, _) => true,
+            &BlockExpr { exprs: _ } => false,
+        }
+    }
 }
 
 pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), Box<dyn ZomError>>;
@@ -447,27 +459,13 @@ fn parse_block_expr(
 
     let mut exprs = vec![];
 
-    while Some(&CloseBrace) != tokens.last() || !tokens.is_empty() { // TODO: Make possible to have an block_expr in a block_expr but not follewed by a semi colon.
-        println!("In the block expr loop");
-        let res_expr = parse_expr(tokens, settings, context);
-        match res_expr {
-            Good(expr, toks) => {
-                parsed_tokens.extend(toks.into_iter());
-                println!("expr = {:#?}", expr);
-                println!("parsed_toks = {:#?}\n\n", parsed_tokens);
-                exprs.push(expr);
-            }
-            NotComplete => {
-                parsed_tokens.reverse();
-                tokens.extend(parsed_tokens.into_iter());
-                return NotComplete;
-            }
-            Bad(msg) => return Bad(msg),
-        }
+    while Some(&CloseBrace) != tokens.last() {
+        let expr = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
+        let is_semi_needed = expr.is_semicolon_needed();
 
-        // exprs.push(parse_try!(parse_expr, tokens, settings, context, parsed_tokens));
+        exprs.push(expr);
 
-        if parsed_tokens.last() != Some(&CloseBrace) {
+        if is_semi_needed {
             expect_token!(
                 context,
                 [SemiColon, SemiColon, ()] <= tokens,
