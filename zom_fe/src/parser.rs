@@ -307,14 +307,29 @@ fn parse_prototype(
         expect_token!(
             context, [
             Ident(arg), Ident(arg.clone()), args.push(arg.clone());
-            Comma, Comma, continue;
             CloseParen, CloseParen, break
         ] <= tokens,
              parsed_tokens,
             error(
                 Box::new(UnexpectedTokenError::from_context(
                     context,
-                    "Expected ')' in prototype"
+                    "Expected an identifier in prototype"
+                        .to_owned(),
+                    tokens.last().unwrap().clone()
+                ))
+            )
+        );
+
+        expect_token!(
+            context, [
+            Comma, Comma, {};
+            CloseParen, CloseParen, break
+        ] <= tokens,
+             parsed_tokens,
+            error(
+                Box::new(UnexpectedTokenError::from_context(
+                    context,
+                    "Expected ',' in prototype"
                         .to_owned(),
                     tokens.last().unwrap().clone()
                 ))
@@ -373,12 +388,28 @@ fn parse_ident_expr(
     loop {
         expect_token!(
             context,
-            [CloseParen, CloseParen, break;
-             Comma, Comma, continue]
+            [CloseParen, CloseParen, break]
             else {
                 args.push(parse_try!(parse_expr, tokens, settings, context, parsed_tokens));
             }
-            <= tokens, parsed_tokens);
+            <= tokens, parsed_tokens
+        );
+
+        expect_token!(
+            context, [
+            Comma, Comma, {};
+            CloseParen, CloseParen, break
+        ] <= tokens,
+             parsed_tokens,
+            error(
+                Box::new(UnexpectedTokenError::from_context(
+                    context,
+                    "Expected ',' in function call"
+                        .to_owned(),
+                    tokens.last().unwrap().clone()
+                ))
+            )
+        );
     }
 
     Good(CallExpr(name, args), parsed_tokens)
