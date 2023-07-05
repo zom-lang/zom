@@ -147,9 +147,9 @@ pub: scheme @addition {
 (* In this example, a vector is created an is filled with args passed, like so :
    `@vec[1, 2, 3, 4, 5, 6, 7]` *)
 pub: scheme @vec {
-    [ $b:($a:expr,)* ]: {
+    [ $($a:expr),* ]: {
         var vec = Vec::new();
-        $b(
+        $(
             vec.push($a);
         )
         vec
@@ -165,7 +165,7 @@ pub: scheme @vec {
    }
    ``` *)
 pub: scheme @asm {
-    { $a:($operand)* $_:( $b:($option ,)* )? } : {
+    { $($operand)* $( $($option),* )? } : {
         (* compiler built-in *)
     }
 }
