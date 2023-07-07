@@ -16,10 +16,10 @@ The grammar is kinda based of [Recursive Descent Parsing](http://en.wikipedia.or
    primary_expr     : [$Ident | Number | call_expr | parenthesis_expr | block_expr];
    call_expr        : $Ident OpenParen [expression Comma ?]* CloseParen;
    parenthesis_expr : OpenParen expression CloseParen;
-   var_stmt         : var $Ident ( : type )? = expression
-   const_stmt       : const $Ident ( : type )? = expression
+   var_stmt         : var $Ident ( : type )? = expression;
+   const_stmt       : const $Ident ( : type )? = expression;
    statement        : [var_stmt | const_stmt | expression];
-   block_expr       : OpenBrace ( statement SemiColon)* (expression)? CloseBrace
+   block_expr       : OpenBrace ( statement SemiColon)* (expression)? CloseBrace;
    type             : [$ident];
 ```
 > This is written with the the [Extended Backus–Naur form](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) notation.
