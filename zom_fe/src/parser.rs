@@ -26,7 +26,6 @@ pub enum ASTNode {
 pub struct Function {
     pub prototype: Prototype,
     pub body: Option<Expression>,
-    pub is_anonymous: bool,
 }
 
 #[derive(PartialEq, Clone, Debug)]
@@ -66,7 +65,15 @@ impl Expression {
     }
 }
 
+#[derive(PartialEq, Clone, Debug)]
+pub enum Statement {
+    Var,
+    Const,
+    Expr(Expression),
+}
+
 pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), Box<dyn ZomError>>;
+pub type ParsingResult2 = Result<Vec<ASTNode>, Vec<Box<dyn ZomError>>>;
 
 #[derive(Debug)]
 enum PartParsingResult<T> {
@@ -246,7 +253,6 @@ fn parse_extern(
         FunctionNode(Function {
             prototype,
             body: None,
-            is_anonymous: false,
         }),
         parsed_tokens,
     )
@@ -267,7 +273,6 @@ fn parse_function(
         FunctionNode(Function {
             prototype,
             body: Some(body),
-            is_anonymous: false,
         }),
         parsed_tokens,
     )

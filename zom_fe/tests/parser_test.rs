@@ -47,8 +47,7 @@ fn short_parser_test() -> Result<(), Box<dyn ZomError>> {
             op: OP_PLUS.to_string(),
             lhs: Box::new(Expression::LiteralExpr(104)),
             rhs: Box::new(Expression::VariableExpr("a".to_string())),
-        }),
-        is_anonymous: false,
+        })
     })];
 
     assert_eq!(ast, expected);
@@ -200,8 +199,7 @@ fn error_parser_test() {
             op: OP_PLUS.to_string(),
             rhs: Box::new(Expression::LiteralExpr(104)),
             lhs: Box::new(Expression::VariableExpr("a".to_string())),
-        }),
-        is_anonymous: false,
+        })
     })];
 
     assert_eq!(ast, expected);
