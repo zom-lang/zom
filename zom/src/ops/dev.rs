@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use std::io::{self, stdout, Write};
+use std::fs;
 use zom_fe::lexer::Lexer;
 use zom_fe::parser::{parse, ParserSettings, ParsingContext};
 
@@ -8,14 +8,10 @@ use crate::ExitStatus;
 pub fn dev() -> Result<ExitStatus, anyhow::Error> {
     println!("Development command.");
 
-    let mut buffer = String::new();
-
-    print!("input: ");
-    stdout().flush().expect("ERR: Flush the output failed.");
-    match io::stdin().read_line(&mut buffer) {
-        Ok(_) => {}
-        Err(err) => return Err(anyhow!(format!("{}", err))),
-    }
+    let buffer = match fs::read_to_string("example/test_main.zom") {
+        Ok(src) => src,
+        Err(_) => return Err(anyhow!("Error while trying to read the source file.")),
+    };
 
     println!("buffer = {:?}", buffer);
 
