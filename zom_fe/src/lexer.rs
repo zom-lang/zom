@@ -84,6 +84,18 @@ impl<'a> Lexer<'a> {
                         continue;
                     }
                 }
+                '#' => {
+                    self.chars.next();
+                    loop {
+                        let ch = self.chars.next();
+                        println!("char in slc = {:?}", ch);
+                        self.incr_pos();
+    
+                        if ch == Some('\n') {
+                            continue 'main;
+                        }
+                    }
+                }
                 '(' => {
                     if let Some('*') = self.chars.peek() {
                         // Eat the `*` char

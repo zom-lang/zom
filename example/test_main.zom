@@ -1,11 +1,12 @@
 (* A 
 comment *)(*a glued comment*)
-func main()
-    123
-
-func foo()
-    main()
-
+func main() {
+    # A single line commment :)
+    123;
+}
+func foo(){
+    main();
+}
 
 (* End of file 
 comment ! 
