@@ -69,7 +69,7 @@ impl Expression {
 pub enum Statement {
     Var,
     Const,
-    Expr(Expression),
+    Return,
 }
 
 pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), Box<dyn ZomError>>;
@@ -120,9 +120,9 @@ impl Default for ParserSettings {
 
         // Setup Operator Precedence according to the documentation
 
-        operator_precedence.insert(OP_MUL.to_owned(), PRECEDE_MUL_DIV_MOD);
-        operator_precedence.insert(OP_DIV.to_owned(), PRECEDE_MUL_DIV_MOD);
-        operator_precedence.insert(OP_MOD.to_owned(), PRECEDE_MUL_DIV_MOD);
+        operator_precedence.insert(OP_MUL.to_owned(), PRECEDE_MUL_DIV_REM);
+        operator_precedence.insert(OP_DIV.to_owned(), PRECEDE_MUL_DIV_REM);
+        operator_precedence.insert(OP_REM.to_owned(), PRECEDE_MUL_DIV_REM);
 
         operator_precedence.insert(OP_PLUS.to_owned(), PRECEDE_ADD_SUB);
         operator_precedence.insert(OP_MINUS.to_owned(), PRECEDE_ADD_SUB);

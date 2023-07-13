@@ -15,7 +15,7 @@ pub const OP_MUL: &str = "*";
 /// Div, `/`
 pub const OP_DIV: &str = "/";
 /// Mod (remainder), `%`
-pub const OP_MOD: &str = "%";
+pub const OP_REM: &str = "%";
 
 /// Equal, `=`, used to assignement
 pub const OP_EQ: &str = "=";
@@ -41,7 +41,7 @@ pub const OP_AND: &str = "&&";
 pub const OP_MAX_LENGHT: usize = 2;
 
 /// Operator Precedence Value for Mul, Div and MOD
-pub const PRECEDE_MUL_DIV_MOD: i32 = 60;
+pub const PRECEDE_MUL_DIV_REM: i32 = 60;
 
 /// Operator Precedence Value for ADD and SUB
 pub const PRECEDE_ADD_SUB: i32 = 40;
@@ -69,7 +69,7 @@ pub fn is_start_operator(maybe_start: char) -> bool {
         || OP_MINUS.starts_with(maybe_start.as_str())
         || OP_MUL.starts_with(maybe_start.as_str())
         || OP_DIV.starts_with(maybe_start.as_str())
-        || OP_MOD.starts_with(maybe_start.as_str())
+        || OP_REM.starts_with(maybe_start.as_str())
         || OP_EQ.starts_with(maybe_start.as_str())
         || OP_COMP_EQ.starts_with(maybe_start.as_str())
         || OP_COMP_NE.starts_with(maybe_start.as_str())
@@ -91,7 +91,7 @@ pub fn is_operator(maybe_op: &str) -> (bool, usize) {
         || maybe_op.starts_with(OP_MINUS)
         || maybe_op.starts_with(OP_MUL)
         || maybe_op.starts_with(OP_DIV)
-        || maybe_op.starts_with(OP_MOD)
+        || maybe_op.starts_with(OP_REM)
         || maybe_op.starts_with(OP_COMP_GT)
         || maybe_op.starts_with(OP_COMP_LT)
     {

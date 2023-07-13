@@ -17,7 +17,7 @@ fn test_operators_lexing() -> Result<(), Box<dyn Error>> {
         Operator(OP_MINUS.to_string()),
         Operator(OP_MUL.to_string()),
         Operator(OP_DIV.to_string()),
-        Operator(OP_MOD.to_string()),
+        Operator(OP_REM.to_string()),
         Operator(OP_COMP_EQ.to_string()),
         Operator(OP_COMP_NE.to_string()),
         Operator(OP_COMP_GT.to_string()),
