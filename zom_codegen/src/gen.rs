@@ -185,7 +185,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                     None => Err("Unknown function."),
                 }
             }
-            _ => return Err("expression not covered by the codegen."),
+            _ => Err("expression not covered by the codegen."),
         }
     }
 
@@ -240,7 +240,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         }
 
         // compile body
-        let body = self.compile_expr(&self.function.body.as_ref().unwrap())?;
+        let body = self.compile_expr(self.function.body.as_ref().unwrap())?;
 
         self.builder.build_return(Some(&body));
 
@@ -300,7 +300,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
                         builder,
                         fpm: pass_manager,
                         module,
-                        function: &fun,
+                        function: fun,
                         fn_value_opt: None,
                         variables: HashMap::new(),
                     };

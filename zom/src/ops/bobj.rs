@@ -140,11 +140,11 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
                         println!("[+] Successfully compile the code.");
                     });
                     println!("Wrote result to {:?}!", path);
-                    return Ok(ExitStatus::Success);
+                    Ok(ExitStatus::Success)
                 }
-                None => return Err(anyhow!("Couldn't unwrap the file path")),
+                None => Err(anyhow!("Couldn't unwrap the file path")),
             }
         }
-        Err(err) => return Err(anyhow!(format!("{}", err))),
+        Err(err) => Err(anyhow!(format!("{}", err))),
     }
 }

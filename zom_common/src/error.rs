@@ -74,7 +74,7 @@ fn print_error(f: &mut fmt::Formatter<'_>, zom_err: &dyn ZomError) -> fmt::Resul
             .pos()
             .filetext
             .split('\n')
-            .nth((zom_err.pos().line - 1) as usize)
+            .nth(zom_err.pos().line - 1)
             .unwrap()
     )
     .unwrap();
@@ -82,14 +82,14 @@ fn print_error(f: &mut fmt::Formatter<'_>, zom_err: &dyn ZomError) -> fmt::Resul
         f,
         "{}| {}^",
         str_fix_len("...".to_string(), margin),
-        spaces(zom_err.pos().column as usize)
+        spaces(zom_err.pos().column)
     )
     .unwrap();
     if !zom_err.details().is_empty() {
         return writeln!(
             f,
             "       {}{}",
-            spaces(zom_err.pos().column as usize),
+            spaces(zom_err.pos().column),
             zom_err.details()
         );
     }

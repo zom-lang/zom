@@ -44,7 +44,7 @@ impl Compiler {
 
         module.set_triple(&compiler.triple);
 
-        target_machine.write_to_file(&module, FileType::Object, &output)
+        target_machine.write_to_file(&module, FileType::Object, output)
     }
 
     pub fn compile_default(
