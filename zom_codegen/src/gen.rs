@@ -203,7 +203,7 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
 
         // set arguments names
         for (i, arg) in fn_val.get_param_iter().enumerate() {
-            arg.set_name(proto.args[i].as_str());
+            arg.set_name(&proto.args[i].name);
         }
 
         // finally return built prototype
@@ -231,12 +231,12 @@ impl<'a, 'ctx> CodeGen<'a, 'ctx> {
         self.variables.reserve(proto.args.len());
 
         for (i, arg) in function.get_param_iter().enumerate() {
-            let arg_name = proto.args[i].as_str();
+            let arg_name = proto.args[i].name.as_str();
             let alloca = self.create_entry_block_alloca(arg_name);
 
             self.builder.build_store(alloca, arg);
 
-            self.variables.insert(proto.args[i].clone(), alloca);
+            self.variables.insert(proto.args[i].name.clone(), alloca);
         }
 
         // compile body

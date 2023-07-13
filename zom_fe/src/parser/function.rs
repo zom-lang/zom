@@ -5,7 +5,7 @@ use zom_common::{
     token::Token::{self, Extern, Func},
 };
 
-use crate::{expect_token, parse_try, parser::error, FromContext};
+use crate::{expect_token, parse_try, parser::{error, parse_type}, FromContext};
 
 use super::{
     expr::{parse_block_expr, Expression},
@@ -27,13 +27,13 @@ pub struct Function {
 #[derive(PartialEq, Clone, Debug)]
 pub struct Arg {
     pub name: String,
-    pub type_: Type,
+    pub type_arg: Type,
 }
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Prototype {
     pub name: String,
-    pub args: Vec<String>,
+    pub args: Vec<Arg>,
 }
 
 pub(super) fn parse_extern(
@@ -76,7 +76,7 @@ pub(super) fn parse_function(
 
 pub(super) fn parse_prototype(
     tokens: &mut Vec<Token>,
-    _settings: &mut ParserSettings,
+    settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<Prototype> {
     let mut parsed_tokens = Vec::new();
@@ -105,9 +105,10 @@ pub(super) fn parse_prototype(
 
     let mut args = Vec::new();
     loop {
+        let name_arg;
         expect_token!(
             context, [
-            Ident(arg), Ident(arg.clone()), args.push(arg.clone());
+            Ident(arg), Ident(arg.clone()), name_arg = arg;
             CloseParen, CloseParen, break
         ] <= tokens,
              parsed_tokens,
@@ -120,6 +121,26 @@ pub(super) fn parse_prototype(
                 ))
             )
         );
+
+        expect_token!(
+            context, [
+            Colon, Colon, {};
+            CloseParen, CloseParen, break
+        ] <= tokens,
+             parsed_tokens,
+            error(
+                Box::new(UnexpectedTokenError::from_context(
+                    context,
+                    "Expected ':' in argument of a prototype"
+                        .to_owned(),
+                    tokens.last().unwrap().clone()
+                ))
+            )
+        );
+
+        let type_arg = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
+
+        args.push(Arg{ name: name_arg, type_arg});
 
         expect_token!(
             context, [
