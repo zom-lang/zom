@@ -1,3 +1,5 @@
+//! This module parse function
+
 use zom_common::{
     error::parser::UnexpectedTokenError,
     token::Token::{self, Extern, Func},
