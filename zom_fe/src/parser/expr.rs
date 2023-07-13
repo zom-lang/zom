@@ -31,16 +31,16 @@ pub enum Expression {
 
 impl Expression {
     pub fn is_semicolon_needed(&self) -> bool {
-        match self {
-            &LiteralExpr(_) => true,
-            &VariableExpr(_) => true,
-            &BinaryExpr {
+        match *self {
+            LiteralExpr(_) => true,
+            VariableExpr(_) => true,
+            BinaryExpr {
                 op: _,
                 rhs: _,
                 lhs: _,
             } => true,
-            &CallExpr(_, _) => true,
-            &BlockExpr { exprs: _ } => false,
+            CallExpr(_, _) => true,
+            BlockExpr { exprs: _ } => false,
         }
     }
 }

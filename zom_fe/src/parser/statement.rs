@@ -1,6 +1,6 @@
 //! This module contains parsing for statements.
 
-use super::{expr::Expression, Type};
+use super::{expr::Expression, types::Type};
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum Statement {

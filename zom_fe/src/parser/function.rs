@@ -5,11 +5,11 @@ use zom_common::{
     token::Token::{self, Extern, Func},
 };
 
-use crate::{expect_token, parse_try, parser::{error, parse_type}, FromContext};
+use crate::{expect_token, parse_try, parser::{error, types::parse_type}, FromContext};
 
 use super::{
     expr::{parse_block_expr, Expression},
-    ASTNode, ParserSettings, ParsingContext, PartParsingResult, Type,
+    ASTNode, ParserSettings, ParsingContext, PartParsingResult, types::Type,
 };
 
 pub use self::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};

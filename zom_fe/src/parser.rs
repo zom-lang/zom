@@ -23,15 +23,11 @@ use self::PartParsingResult::{Bad, Good, NotComplete};
 pub mod expr;
 pub mod function;
 pub mod statement;
+pub mod types;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum ASTNode {
     FunctionNode(Function),
-}
-
-#[derive(PartialEq, Clone, Debug)]
-pub enum Type {
-    Simple(String),
 }
 
 pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), Box<dyn ZomError>>;
@@ -203,40 +199,3 @@ macro_rules! expect_token (
         }
     )
 );
-
-fn parse_type(
-    tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
-    context: &mut ParsingContext,
-) -> PartParsingResult<Type> {
-    match tokens.last() {
-        Some(&Ident(_)) => parse_type_simple(tokens, settings, context),
-        None => NotComplete,
-        tok => error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            format!("unknow token when expecting a type, found {:?}", tok),
-            tokens.last().unwrap().clone(),
-        ))),
-    }
-}
-
-fn parse_type_simple(
-    tokens: &mut Vec<Token>,
-    _settings: &mut ParserSettings,
-    context: &mut ParsingContext,
-) -> PartParsingResult<Type> {
-    let mut parsed_tokens = Vec::new();
-
-    let name: String = expect_token!(
-        context,
-        [Ident(name), Ident(name.clone()), name] <= tokens,
-        parsed_tokens,
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "Type name expected".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
-    );
-
-    Good(Type::Simple(name), parsed_tokens)
-}
