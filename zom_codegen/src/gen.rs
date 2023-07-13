@@ -12,7 +12,7 @@ use inkwell::{
     IntPredicate,
 };
 
-use zom_fe::parser::{ASTNode, Expression, Function, Prototype};
+use zom_fe::parser::{ASTNode, function::{Function, Prototype}, expr::Expression};
 
 use zom_common::token::*;
 

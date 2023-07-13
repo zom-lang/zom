@@ -4,8 +4,8 @@ use zom_common::{
 };
 use zom_fe::parser::{
     parse, ASTNode,
-    Expression::{self, BinaryExpr},
-    Function, ParserSettings, ParsingContext, Prototype,
+    expr::Expression::{self, BinaryExpr},
+    ParserSettings, ParsingContext, function::{Function, Prototype},
 };
 
 #[test]

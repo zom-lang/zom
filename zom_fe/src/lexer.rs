@@ -88,7 +88,6 @@ impl<'a> Lexer<'a> {
                     self.chars.next();
                     loop {
                         let ch = self.chars.next();
-                        println!("char in slc = {:?}", ch);
                         self.incr_pos();
     
                         if ch == Some('\n') {
