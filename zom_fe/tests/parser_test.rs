@@ -3,9 +3,9 @@ use zom_common::{
     token::{Token::*, OP_PLUS},
 };
 use zom_fe::parser::{
-    parse, ASTNode,
     expr::Expression::{self, BinaryExpr},
-    ParserSettings, ParsingContext, function::{Function, Prototype},
+    function::{Function, Prototype},
+    parse, ASTNode, ParserSettings, ParsingContext,
 };
 
 #[test]
@@ -47,7 +47,7 @@ fn short_parser_test() -> Result<(), Box<dyn ZomError>> {
             op: OP_PLUS.to_string(),
             lhs: Box::new(Expression::LiteralExpr(104)),
             rhs: Box::new(Expression::VariableExpr("a".to_string())),
-        })
+        }),
     })];
 
     assert_eq!(ast, expected);
@@ -199,7 +199,7 @@ fn error_parser_test() {
             op: OP_PLUS.to_string(),
             rhs: Box::new(Expression::LiteralExpr(104)),
             lhs: Box::new(Expression::VariableExpr("a".to_string())),
-        })
+        }),
     })];
 
     assert_eq!(ast, expected);

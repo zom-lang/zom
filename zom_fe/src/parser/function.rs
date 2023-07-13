@@ -1,8 +1,14 @@
-use zom_common::{token::Token::{self, Extern, Func}, error::parser::UnexpectedTokenError};
+use zom_common::{
+    error::parser::UnexpectedTokenError,
+    token::Token::{self, Extern, Func},
+};
 
-use crate::{expect_token, parser::error, FromContext, parse_try};
+use crate::{expect_token, parse_try, parser::error, FromContext};
 
-use super::{PartParsingResult, ParsingContext, ParserSettings, ASTNode, expr::{parse_block_expr, Expression}, Type};
+use super::{
+    expr::{parse_block_expr, Expression},
+    ASTNode, ParserSettings, ParsingContext, PartParsingResult, Type,
+};
 
 pub use self::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
@@ -132,4 +138,3 @@ pub(super) fn parse_prototype(
 
     Good(Prototype { name, args }, parsed_tokens)
 }
-

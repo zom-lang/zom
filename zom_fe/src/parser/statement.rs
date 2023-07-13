@@ -1,6 +1,6 @@
 //! This module contains parsing for statements.
 
-use super::{Type, expr::Expression};
+use super::{expr::Expression, Type};
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum Statement {
@@ -12,7 +12,7 @@ pub enum Statement {
     Const {
         name: String,
         type_: Option<Type>,
-        expr: Expression
+        expr: Expression,
     },
     Return,
 }

@@ -13,14 +13,16 @@ use crate::FromContext;
 
 pub use self::ASTNode::FunctionNode;
 
-pub use crate::parser::expr::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
+pub use crate::parser::expr::Expression::{
+    BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr,
+};
 
+use self::function::{parse_extern, parse_function, Function};
 use self::PartParsingResult::{Bad, Good, NotComplete};
-use self::function::{Function, parse_function, parse_extern};
 
 pub mod expr;
-pub mod statement;
 pub mod function;
+pub mod statement;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum ASTNode {
@@ -29,7 +31,7 @@ pub enum ASTNode {
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum Type {
-    Simple(String)
+    Simple(String),
 }
 
 pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), Box<dyn ZomError>>;

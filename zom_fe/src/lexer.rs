@@ -89,7 +89,7 @@ impl<'a> Lexer<'a> {
                     loop {
                         let ch = self.chars.next();
                         self.incr_pos();
-    
+
                         if ch == Some('\n') {
                             continue 'main;
                         }

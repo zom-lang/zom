@@ -4,15 +4,15 @@ use zom_common::error::parser::UnexpectedTokenError;
 use zom_common::token::Token;
 use zom_common::token::*;
 
-use crate::{FromContext, expect_token, parse_try};
+use crate::{expect_token, parse_try, FromContext};
 
-use self::Expression::{BinaryExpr, CallExpr, BlockExpr, LiteralExpr, VariableExpr};
+use self::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
 use crate::parser::PartParsingResult::{Bad, Good, NotComplete};
 
 use crate::parser::PartParsingResult;
 
-use super::{ParserSettings, ParsingContext, error};
+use super::{error, ParserSettings, ParsingContext};
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum Expression {
