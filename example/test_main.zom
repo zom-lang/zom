@@ -4,7 +4,7 @@ func main() {
     # A single line commment :)
     123;
 }
-func foo(){
+func foo(bar: i32){
     main();
 }
 
