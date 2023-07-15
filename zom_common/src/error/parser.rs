@@ -26,19 +26,20 @@ impl UnexpectedTokenError {
     }
 
     pub fn from_pos(
-        tok_pos: usize,
-        tokens: Vec<Token>,
-        source_file: &mut String,
-        filename: &mut String,
+        _tok_pos: usize,
+        _tokens: Vec<Token>,
+        _source_file: &mut String,
+        _filename: &mut String,
         details: String,
-        token: Token,
+        _token: Token,
     ) -> UnexpectedTokenError {
         UnexpectedTokenError {
             name: String::from("Unexpected Token Error"),
             details,
             kind: ErrorKind::Parser,
             position: todo!(),
-            token,
+            #[allow(unreachable_code)]
+            token: _token,
         }
     }
 }

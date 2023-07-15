@@ -154,13 +154,14 @@ pub const KEY_PUB: &str = "pub";
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
-    token_type: TokenType,
-    span: RangeInclusive<usize>
+    /// `tt` means token type.
+    pub tt: TokenType,
+    pub span: RangeInclusive<usize>
 }
 
 impl Token {
     pub fn new(tt: TokenType, span: RangeInclusive<usize>) -> Token {
-        Token { token_type: tt, span }
+        Token { tt, span }
     }
 }
 

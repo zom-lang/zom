@@ -121,7 +121,7 @@ pub fn parse(
     let mut ast = parsed_tree.to_vec();
 
     while let Some(cur_token) = rest.last() {
-        let result = match cur_token {
+        let result = match cur_token.tt {
             Func => parse_function(&mut rest, settings, context),
             Extern => parse_extern(&mut rest, settings, context),
             _ => Bad(Box::new(UnexpectedTokenError::from_context(
@@ -170,9 +170,9 @@ macro_rules! expect_token (
     ($context:ident, [ $($token:pat, $value:expr, $result:stmt);+ ] <= $tokens:ident, $parsed_tokens:ident, $error:expr) => (
         match $tokens.pop() {
             $(
-                Some($token) => {
+                Some(Token { tt: $token, span}) => {
                     $context.advance();
-                    $parsed_tokens.push($value);
+                    $parsed_tokens.push(Token { tt: $value, span });
                     $result
                 },
              )+
@@ -190,9 +190,9 @@ macro_rules! expect_token (
         $context.advance();
         match $tokens.last().map(|i| {i.clone()}) {
             $(
-                Some($token) => {
+                Some(Token { tt: $token, span}) => {
                     $tokens.pop();
-                    $parsed_tokens.push($value);
+                    $parsed_tokens.push(Token { tt: $value, span });
                     $result
                 },
              )+

@@ -50,10 +50,10 @@ pub(super) fn parse_primary_expr(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
     match tokens.last() {
-        Some(&Ident(_)) => parse_ident_expr(tokens, settings, context),
-        Some(&Int(_)) => parse_literal_expr(tokens, settings, context),
-        Some(&OpenParen) => parse_parenthesis_expr(tokens, settings, context),
-        Some(&OpenBrace) => parse_block_expr(tokens, settings, context),
+        Some(Token { tt: Ident(_),  ..}) => parse_ident_expr(tokens, settings, context),
+        Some(Token { tt: Int(_),  ..}) => parse_literal_expr(tokens, settings, context),
+        Some(Token { tt: OpenParen,  ..}) => parse_parenthesis_expr(tokens, settings, context),
+        Some(Token { tt: OpenBrace,  ..}) => parse_block_expr(tokens, settings, context),
         None => NotComplete,
         tok => error(Box::new(UnexpectedTokenError::from_context(
             context,
@@ -147,8 +147,8 @@ pub(super) fn parse_parenthesis_expr(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
     // eat the opening parenthesis
+    let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
-    let mut parsed_tokens = vec![OpenParen];
 
     let expr = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
 
@@ -195,13 +195,13 @@ pub(super) fn parse_binary_expr(
 ) -> PartParsingResult<Expression> {
     // start with LHS value
     let mut result = lhs.clone();
-    let mut parsed_tokens = Vec::new();
+    let mut parsed_tokens: Vec<Token> = Vec::new();
 
     loop {
         // continue until the current token is not an operator
         // or it is an operator with precedence lesser than expr_precedence
         let (operator, precedence) = match tokens.last() {
-            Some(Operator(op)) => match settings.operator_precedence.get(op) {
+            Some(Token { tt: Operator(op), span: _ }) => match settings.operator_precedence.get(op) {
                 Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
                 None => {
                     return error(Box::new(UnexpectedTokenError::from_context(
@@ -214,8 +214,8 @@ pub(super) fn parse_binary_expr(
             },
             _ => break,
         };
+        parsed_tokens.push(tokens.last().unwrap().clone());
         tokens.pop();
-        parsed_tokens.push(Operator(operator.clone()));
 
         // parse primary RHS expression
         let mut rhs = parse_try!(parse_primary_expr, tokens, settings, context, parsed_tokens);
@@ -224,7 +224,7 @@ pub(super) fn parse_binary_expr(
         // bigger than the current one
         loop {
             let binary_rhs = match tokens.last().cloned() {
-                Some(Operator(ref op)) => match settings.operator_precedence.get(op).copied() {
+                Some(Token { tt: Operator(ref op), span: _ }) => match settings.operator_precedence.get(op).copied() {
                     Some(pr) if pr > precedence => {
                         parse_try!(
                             parse_binary_expr,

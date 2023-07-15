@@ -87,7 +87,7 @@ pub(super) fn parse_type(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Type> {
     match tokens.last() {
-        Some(&Ident(_)) => parse_primitive_type(tokens, settings, context),
+        Some(Token { tt: Ident(_), .. }) => parse_primitive_type(tokens, settings, context),
         None => NotComplete,
         tok => error(Box::new(UnexpectedTokenError::from_context(
             context,

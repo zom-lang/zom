@@ -1,4 +1,4 @@
-use zom_common::{token::Token::{self, *}, error::parser::UnexpectedTokenError};
+use zom_common::{token::{Token, TokenType::*}, error::parser::UnexpectedTokenError};
 
 use crate::{expect_token, parse_try, parser::{error, statement::parse_statement}, FromContext};
 
@@ -18,12 +18,16 @@ pub(super) fn parse_block_expr(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
     // eat the opening brace
+    let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     tokens.pop();
-    let mut parsed_tokens = vec![OpenBrace];
 
     let mut stmts = vec![];
 
-    while Some(&CloseBrace) != tokens.last() {
+    // while Some(Token {tt: CloseBrace }) != tokens.last().cloned() 
+    loop {
+        if let Some(Token { tt: CloseParen, .. }) = tokens.last() {
+            break;
+        }
         let stmt = parse_try!(parse_statement, tokens, settings, context, parsed_tokens);
         let semi = stmt.is_semi_need();
 

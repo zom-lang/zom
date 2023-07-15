@@ -2,7 +2,7 @@
 
 use zom_common::{
     error::parser::UnexpectedTokenError,
-    token::Token::{self, Extern, Func},
+    token::Token,
 };
 
 use crate::{expect_token, parse_try, parser::{error, types::parse_type}, FromContext};
@@ -42,8 +42,8 @@ pub(super) fn parse_extern(
     context: &mut ParsingContext,
 ) -> PartParsingResult<ASTNode> {
     // eat Extern token
+    let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     tokens.pop();
-    let mut parsed_tokens = vec![Extern];
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
     Good(
         ASTNode::FunctionNode(Function {
@@ -60,8 +60,8 @@ pub(super) fn parse_function(
     context: &mut ParsingContext,
 ) -> PartParsingResult<ASTNode> {
     // eat Def token
+    let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
-    let mut parsed_tokens = vec![Func];
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
     let body = parse_try!(parse_block_expr, tokens, settings, context, parsed_tokens);
 

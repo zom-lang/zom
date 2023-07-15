@@ -1,6 +1,6 @@
 //! This module contains parsing for statements.
 
-use zom_common::token::Token::{self, *};
+use zom_common::token::{Token, TokenType::Return};
 
 use crate::{parse_try, parser::expr::parse_expr};
 
@@ -40,7 +40,7 @@ pub(super) fn parse_statement(
 ) -> PartParsingResult<Statement> {
     let mut parsed_tokens = vec![];
     match tokens.last() {
-        Some(Return) => todo!("Implement the return statement"),
+        Some(Token { tt: Return, span: _ }) => todo!("Implement the return statement"),
         None => NotComplete,
         _ => Good(Statement::Expr(parse_try!(parse_expr, tokens, settings, context, parsed_tokens)), parsed_tokens),
     }
