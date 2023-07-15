@@ -199,3 +199,8 @@ comptime OFFSET_FOO_BAR: u32 = 10;
 comptime {
     # A block of code executed at compile time.
 }
+
+const testPacked = packed struct {
+    # ...
+}
+# A `packed` struct is like the keyword `packed` in LLVM, it's a struct where the size is the size of all fields without any padding / offset. (I think ..)
