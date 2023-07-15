@@ -20,7 +20,3 @@ criterion.workspace = true
 name = "lexer_bench"
 harness = false
 
-[[bench]]
-name = "parser_bench"
-harness = false
-
