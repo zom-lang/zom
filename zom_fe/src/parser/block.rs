@@ -23,11 +23,14 @@ pub(super) fn parse_block_expr(
 
     let mut stmts = vec![];
 
-    // while Some(Token {tt: CloseBrace }) != tokens.last().cloned() 
     loop {
-        if let Some(Token { tt: CloseParen, .. }) = tokens.last() {
-            break;
+        match tokens.last() {
+            Some(Token { tt, span: _ }) if tt == &CloseBrace => {
+                break;
+            }
+            _ => {}
         }
+
         let stmt = parse_try!(parse_statement, tokens, settings, context, parsed_tokens);
         let semi = stmt.is_semi_need();
 
@@ -40,7 +43,6 @@ pub(super) fn parse_block_expr(
                 context,
                 [SemiColon, SemiColon, ()] <= tokens,
                 parsed_tokens,
-                // "';' expected"
                 error(Box::new(UnexpectedTokenError::from_context(
                     context,
                     "Expected ';'".to_owned(),
