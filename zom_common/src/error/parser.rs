@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt;
 
-use crate::{reverse_lexer::reverse_lexe, token::Token};
+use crate::token::Token;
 
 use super::{ErrorKind, Position, ZomError};
 
@@ -37,13 +37,7 @@ impl UnexpectedTokenError {
             name: String::from("Unexpected Token Error"),
             details,
             kind: ErrorKind::Parser,
-            position: reverse_lexe(
-                tok_pos,
-                tokens,
-                source_file.to_string(),
-                filename.to_string(),
-            )
-            .expect("ERR: Couldn't reverse lexe the error."),
+            position: todo!(),
             token,
         }
     }
