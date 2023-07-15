@@ -191,3 +191,11 @@ pub: scheme @asm {
     - allow many separators, like  . , - : ; / |
   Cons of this system :
     - complex *)
+
+# A `comptime` constant is a constant replaced in the code a compile time,
+# it can be used to add a name to a magic value.
+comptime OFFSET_FOO_BAR: u32 = 10;
+
+comptime {
+    # A block of code executed at compile time.
+}
