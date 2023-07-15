@@ -2,7 +2,8 @@
 comment *)(*a glued comment*)
 func main() {
     # A single line commment :)
-    123;
+    boo();
+    a + 123;
 }
 func foo(bar: i32){
     main();

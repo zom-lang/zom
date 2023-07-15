@@ -24,6 +24,7 @@ pub mod expr;
 pub mod function;
 pub mod statement;
 pub mod types;
+pub mod block;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum ASTNode {

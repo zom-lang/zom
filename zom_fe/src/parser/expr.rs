@@ -12,6 +12,7 @@ use crate::parser::PartParsingResult::{Bad, Good, NotComplete};
 
 use crate::parser::PartParsingResult;
 
+use super::block::{BlockCodeExpr, parse_block_expr};
 use super::{error, ParserSettings, ParsingContext};
 
 #[derive(PartialEq, Clone, Debug)]
@@ -24,9 +25,7 @@ pub enum Expression {
         rhs: Box<Expression>,
     },
     CallExpr(String, Vec<Expression>),
-    BlockExpr {
-        exprs: Vec<Expression>,
-    },
+    BlockExpr(BlockCodeExpr),
 }
 
 impl Expression {
@@ -40,7 +39,7 @@ impl Expression {
                 lhs: _,
             } => true,
             CallExpr(_, _) => true,
-            BlockExpr { exprs: _ } => false,
+            BlockExpr(_) => false,
         }
     }
 }
@@ -166,52 +165,6 @@ pub(super) fn parse_parenthesis_expr(
     );
 
     Good(expr, parsed_tokens)
-}
-
-pub(super) fn parse_block_expr(
-    tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
-    context: &mut ParsingContext,
-) -> PartParsingResult<Expression> {
-    // eat the opening brace
-    tokens.pop();
-    let mut parsed_tokens = vec![OpenBrace];
-
-    let mut exprs = vec![];
-
-    while Some(&CloseBrace) != tokens.last() {
-        let expr = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
-        let is_semi_needed = expr.is_semicolon_needed();
-
-        exprs.push(expr);
-
-        if is_semi_needed {
-            expect_token!(
-                context,
-                [SemiColon, SemiColon, ()] <= tokens,
-                parsed_tokens,
-                // "';' expected"
-                error(Box::new(UnexpectedTokenError::from_context(
-                    context,
-                    "Expected ';'".to_owned(),
-                    tokens.last().unwrap().clone()
-                )))
-            );
-        }
-    }
-
-    expect_token!(
-        context,
-        [CloseBrace, CloseBrace, ()] <= tokens,
-        parsed_tokens,
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "Expected '}'".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
-    );
-
-    Good(Expression::BlockExpr { exprs }, parsed_tokens)
 }
 
 pub(super) fn parse_expr(
