@@ -53,7 +53,11 @@ pub(super) fn parse_primary_expr(
         Some(Token { tt: Ident(_), .. }) => parse_ident_expr(tokens, settings, context),
         Some(Token { tt: Int(_), .. }) => parse_literal_expr(tokens, settings, context),
         Some(Token { tt: OpenParen, .. }) => parse_parenthesis_expr(tokens, settings, context),
-        Some(Token { tt: OpenBrace, .. }) => parse_block_expr(tokens, settings, context),
+        Some(Token { tt: OpenBrace, .. }) => match parse_block_expr(tokens, settings, context) {
+            Good(block, parsed_tokens) => Good(BlockExpr(block), parsed_tokens),
+            NotComplete => NotComplete,
+            Bad(err) => Bad(err)
+        },
         None => NotComplete,
         tok => error(Box::new(UnexpectedTokenError::from_context(
             context,

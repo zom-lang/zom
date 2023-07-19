@@ -200,3 +200,15 @@ macro_rules! expect_token (
         }
     )
 );
+
+/// This macro is to test the equality of a token but without checking the span.
+/// return true if it's equal or false if it's not.
+#[macro_export]
+macro_rules! token_parteq(
+    ($left:expr, $right:expr) => (
+        match $left {
+            Some(Token { tt, span: _}) if tt == $right => true,
+            _ => false
+        }
+    )
+);

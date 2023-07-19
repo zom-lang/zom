@@ -6,7 +6,7 @@ use zom_common::{
 use crate::{
     expect_token, parse_try,
     parser::{error, statement::parse_statement},
-    FromContext,
+    FromContext, token_parteq,
 };
 
 use super::{
@@ -17,27 +17,25 @@ use crate::parser::PartParsingResult::*;
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct BlockCodeExpr {
-    code: Vec<Statement>,
-    returned_expr: Box<Expression>,
+    pub code: Vec<Statement>,
+    pub returned_expr: Option<Box<Expression>>,
 }
 
 pub(super) fn parse_block_expr(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
-) -> PartParsingResult<Expression> {
+) -> PartParsingResult<BlockCodeExpr> {
     // eat the opening brace
     let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     tokens.pop();
 
-    let mut stmts = vec![];
+    let mut code = vec![];
+    let mut returned_expr: Option<Box<Expression>> = None;
 
     loop {
-        match tokens.last() {
-            Some(Token { tt, span: _ }) if tt == &CloseBrace => {
-                break;
-            }
-            _ => {}
+        if token_parteq!(tokens.last(), &CloseBrace) {
+            break;
         }
 
         let stmt = parse_try!(parse_statement, tokens, settings, context, parsed_tokens);
@@ -45,7 +43,20 @@ pub(super) fn parse_block_expr(
 
         // FIXME: Allow Binary operation in expression, in statements to allow `a = <expr>`..
 
-        stmts.push(stmt);
+        if !token_parteq!(tokens.last(), &SemiColon) &&
+            token_parteq!(tokens.last(), &CloseBrace) &&
+            match stmt {
+            Statement::Expr(_) => true,
+            _ => false
+        } {
+            match stmt {
+                Statement::Expr(ref e) => returned_expr = Some(Box::new(e.clone())),
+                _ => {}
+            }
+            break;
+        }
+
+        code.push(stmt);
 
         if semi {
             expect_token!(
@@ -72,8 +83,10 @@ pub(super) fn parse_block_expr(
         )))
     );
 
-    println!("res = {stmts:?}");
+    println!("code = {code:#?}");
 
-    todo!()
-    // Good(Expression::BlockExpr { exprs }, parsed_tokens)
+    Good(BlockCodeExpr {
+        code,
+        returned_expr,
+    }, parsed_tokens)
 }

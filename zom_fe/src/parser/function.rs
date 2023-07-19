@@ -9,7 +9,7 @@ use crate::{
 };
 
 use super::{
-    block::parse_block_expr, expr::Expression, types::Type, ASTNode, ParserSettings,
+    block::{parse_block_expr, BlockCodeExpr}, expr::Expression, types::Type, ASTNode, ParserSettings,
     ParsingContext, PartParsingResult,
 };
 
@@ -22,7 +22,7 @@ use zom_common::token::*;
 #[derive(PartialEq, Clone, Debug)]
 pub struct Function {
     pub prototype: Prototype,
-    pub body: Option<Expression>,
+    pub body: Option<BlockCodeExpr>,
 }
 
 #[derive(PartialEq, Clone, Debug)]
@@ -60,7 +60,7 @@ pub(super) fn parse_function(
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<ASTNode> {
-    // eat Def token
+    // eat Func token
     let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
@@ -125,8 +125,7 @@ pub(super) fn parse_prototype(
 
         expect_token!(
             context, [
-            Colon, Colon, {};
-            CloseParen, CloseParen, break
+            Colon, Colon, {}
         ] <= tokens,
              parsed_tokens,
             error(
