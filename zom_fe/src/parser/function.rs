@@ -1,11 +1,13 @@
 //! This module parse function
 
+use std::ops::RangeInclusive;
+
 use zom_common::{error::parser::UnexpectedTokenError, token::Token};
 
 use crate::{
     expect_token, parse_try,
     parser::{error, types::parse_type},
-    FromContext,
+    FromContext, impl_span,
 };
 
 use super::{
@@ -23,19 +25,28 @@ use zom_common::token::*;
 pub struct Function {
     pub prototype: Prototype,
     pub body: Option<BlockCodeExpr>,
+    pub span: RangeInclusive<usize>,
 }
+
+impl_span!(Function);
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Arg {
     pub name: String,
     pub type_arg: Type,
+    pub span: RangeInclusive<usize>,
 }
+
+impl_span!(Arg);
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Prototype {
     pub name: String,
     pub args: Vec<Arg>,
+    pub span: RangeInclusive<usize>,
 }
+
+impl_span!(Prototype);
 
 pub(super) fn parse_extern(
     tokens: &mut Vec<Token>,
@@ -45,11 +56,17 @@ pub(super) fn parse_extern(
     // eat Extern token
     let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     tokens.pop();
+
+    let start = parsed_tokens.last().unwrap().span.start().clone();
+
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
+
+    let end = parsed_tokens.last().unwrap().span.start().clone();
     Good(
         ASTNode::FunctionNode(Function {
             prototype,
             body: None,
+            span: start..=end
         }),
         parsed_tokens,
     )
@@ -63,13 +80,18 @@ pub(super) fn parse_function(
     // eat Func token
     let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
+
+    let start = parsed_tokens.last().unwrap().span.start().clone();
+
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
     let body = parse_try!(parse_block_expr, tokens, settings, context, parsed_tokens);
 
+    let end = parsed_tokens.last().unwrap().span.start().clone();
     Good(
         ASTNode::FunctionNode(Function {
             prototype,
             body: Some(body),
+            span: start..=end
         }),
         parsed_tokens,
     )
@@ -92,6 +114,8 @@ pub(super) fn parse_prototype(
             tokens.last().unwrap().clone()
         )))
     );
+
+    let start = parsed_tokens.last().unwrap().span.start().clone();
 
     expect_token!(
         context,
@@ -122,6 +146,7 @@ pub(super) fn parse_prototype(
                 ))
             )
         );
+        let start = parsed_tokens.last().unwrap().span.start().clone();
 
         expect_token!(
             context, [
@@ -137,12 +162,13 @@ pub(super) fn parse_prototype(
                 ))
             )
         );
-
         let type_arg = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
+        let end = parsed_tokens.last().unwrap().span.end().clone();
 
         args.push(Arg {
             name: name_arg,
             type_arg,
+            span: start..=end
         });
 
         expect_token!(
@@ -162,5 +188,7 @@ pub(super) fn parse_prototype(
         );
     }
 
-    Good(Prototype { name, args }, parsed_tokens)
+    let end = parsed_tokens.last().unwrap().span.start().clone();
+
+    Good(Prototype { name, args, span: start..=end }, parsed_tokens)
 }

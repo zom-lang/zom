@@ -1,3 +1,5 @@
+use std::ops::RangeInclusive;
+
 use zom_common::{
     error::parser::UnexpectedTokenError,
     token::{Token, TokenType::*},
@@ -6,7 +8,7 @@ use zom_common::{
 use crate::{
     expect_token, parse_try,
     parser::{error, statement::parse_statement},
-    FromContext, token_parteq,
+    FromContext, token_parteq, impl_span,
 };
 
 use super::{
@@ -19,7 +21,10 @@ use crate::parser::PartParsingResult::*;
 pub struct BlockCodeExpr {
     pub code: Vec<Statement>,
     pub returned_expr: Option<Box<Expression>>,
+    pub span: RangeInclusive<usize>,
 }
+
+impl_span!(BlockCodeExpr);
 
 pub(super) fn parse_block_expr(
     tokens: &mut Vec<Token>,
@@ -83,10 +88,9 @@ pub(super) fn parse_block_expr(
         )))
     );
 
-    println!("code = {code:#?}");
-
     Good(BlockCodeExpr {
         code,
         returned_expr,
+        span: *parsed_tokens[0].span.start()..=*parsed_tokens.last().unwrap().span.end()
     }, parsed_tokens)
 }

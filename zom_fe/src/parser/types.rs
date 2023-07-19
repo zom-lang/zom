@@ -29,6 +29,7 @@ macro_rules! match_primitype {
     );
 }
 
+// For now, PrimitiveType doesn't store the span because no error requires it to.
 #[derive(PartialEq, Clone, Debug)]
 pub enum PrimitiveType {
     Void,

@@ -1,5 +1,9 @@
 use anyhow::anyhow;
-use std::io::{self, stdout, Write};
+use std::io::{
+    // self,
+    stdout,
+    Write
+};
 use zom_fe::lexer::Lexer;
 use zom_fe::parser::{parse, ParserSettings, ParsingContext};
 
@@ -8,14 +12,14 @@ use crate::ExitStatus;
 pub fn dev() -> Result<ExitStatus, anyhow::Error> {
     println!("Development command.");
 
-    let mut buffer = String::new();
+    let mut buffer = String::from("func foo(bar: i16, baz: str) {} extern test(a: u32, b: u32)");
 
     print!("input: ");
     stdout().flush().expect("ERR: Flush the output failed.");
-    match io::stdin().read_line(&mut buffer) {
-        Ok(_) => {}
-        Err(err) => return Err(anyhow!(format!("{}", err))),
-    }
+    // match io::stdin().read_line(&mut buffer) {
+    //     Ok(_) => {}
+    //     Err(err) => return Err(anyhow!(format!("{}", err))),
+    // }
 
     buffer = buffer.replace("\\n", "\n");
 

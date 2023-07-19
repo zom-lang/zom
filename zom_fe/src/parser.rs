@@ -3,6 +3,7 @@
 //! It is entirely made for Zom, without using dependencies.
 
 use std::collections::HashMap;
+use std::ops::RangeInclusive;
 
 use zom_common::error::parser::UnexpectedTokenError;
 use zom_common::error::ZomError;
@@ -170,7 +171,7 @@ macro_rules! expect_token (
     ($context:ident, [ $($token:pat, $value:expr, $result:stmt);+ ] <= $tokens:ident, $parsed_tokens:ident, $error:expr) => (
         match $tokens.pop() {
             $(
-                Some(Token { tt: $token, span}) => {
+                Some(Token { tt: $token, span }) => {
                     $context.advance();
                     $parsed_tokens.push(Token { tt: $value, span });
                     $result
@@ -209,6 +210,24 @@ macro_rules! token_parteq(
         match $left {
             Some(Token { tt, span: _}) if tt == $right => true,
             _ => false
+        }
+    )
+);
+
+pub trait CodeLocation {
+    fn span(&self) -> RangeInclusive<usize>;
+}
+
+#[macro_export]
+macro_rules! impl_span(
+    ($ast:ident) => (
+        impl_span!($ast, span);
+    );
+    ($ast:ident, $span_field:ident) => (
+        impl crate::parser::CodeLocation for $ast {
+            fn span(&self) -> RangeInclusive<usize> {
+                self.span.clone()
+            }
         }
     )
 );
