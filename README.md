@@ -46,14 +46,6 @@ To build the source code of Zom, there are three steps :
 1. Clone the repository / download the source code
 2. Build with Cargo, in the root of the repository, `cargo build --all-targets --release`
 3. The binary, now is in `./target/release/zom`, you can put it in your binary folder, use it like that etc...
-
-## Work to be done :
-- [x] Lexer
-- [x] Parser
-- [x] A AOT compiler
-- [ ] A good error system for the parser and the compiler -> https://github.com/zom-lang/zom/issues/4
-- [ ] Implement the docs ;)
-
 ## Source layout:
 ```
 Cargo.toml               - Manifest for Cargo workspace
