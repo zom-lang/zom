@@ -28,8 +28,8 @@ impl UnexpectedTokenError {
     pub fn from_pos(
         _tok_pos: usize,
         _tokens: Vec<Token>,
-        _source_file: &mut String,
-        _filename: &mut String,
+        _source_file: &mut str,
+        _filename: &mut str,
         details: String,
         _token: Token,
     ) -> UnexpectedTokenError {
@@ -37,7 +37,7 @@ impl UnexpectedTokenError {
             name: String::from("Unexpected Token Error"),
             details,
             kind: ErrorKind::Parser,
-            position: Position { index: _tok_pos, line: 1, column: 1, filename: "A REWORD OF THE ERROR SYSTEM IS NEEDED".to_owned(), filetext: _source_file.clone() },
+            position: Position { index: _tok_pos, line: 1, column: 1, filename: "A REWORD OF THE ERROR SYSTEM IS NEEDED".to_owned(), filetext: _source_file.to_string() },
             token: _token,
         }
     }
