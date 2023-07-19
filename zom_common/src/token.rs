@@ -156,7 +156,7 @@ pub const KEY_PUB: &str = "pub";
 pub struct Token {
     /// `tt` means token type.
     pub tt: TokenType,
-    pub span: RangeInclusive<usize>
+    pub span: RangeInclusive<usize>,
 }
 
 impl Token {

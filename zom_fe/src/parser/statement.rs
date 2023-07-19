@@ -4,7 +4,7 @@ use zom_common::token::{Token, TokenType::Return};
 
 use crate::{parse_try, parser::expr::parse_expr};
 
-use super::{expr::Expression, ParserSettings, ParsingContext, PartParsingResult, types::Type};
+use super::{expr::Expression, types::Type, ParserSettings, ParsingContext, PartParsingResult};
 
 use crate::parser::PartParsingResult::*;
 
@@ -40,8 +40,20 @@ pub(super) fn parse_statement(
 ) -> PartParsingResult<Statement> {
     let mut parsed_tokens = vec![];
     match tokens.last() {
-        Some(Token { tt: Return, span: _ }) => todo!("Implement the return statement"),
+        Some(Token {
+            tt: Return,
+            span: _,
+        }) => todo!("Implement the return statement"),
         None => NotComplete,
-        _ => Good(Statement::Expr(parse_try!(parse_expr, tokens, settings, context, parsed_tokens)), parsed_tokens),
+        _ => Good(
+            Statement::Expr(parse_try!(
+                parse_expr,
+                tokens,
+                settings,
+                context,
+                parsed_tokens
+            )),
+            parsed_tokens,
+        ),
     }
 }

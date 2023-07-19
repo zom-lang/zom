@@ -12,7 +12,7 @@ use crate::parser::PartParsingResult::{Bad, Good, NotComplete};
 
 use crate::parser::PartParsingResult;
 
-use super::block::{BlockCodeExpr, parse_block_expr};
+use super::block::{parse_block_expr, BlockCodeExpr};
 use super::{error, ParserSettings, ParsingContext};
 
 #[derive(PartialEq, Clone, Debug)]
@@ -50,10 +50,10 @@ pub(super) fn parse_primary_expr(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
     match tokens.last() {
-        Some(Token { tt: Ident(_),  ..}) => parse_ident_expr(tokens, settings, context),
-        Some(Token { tt: Int(_),  ..}) => parse_literal_expr(tokens, settings, context),
-        Some(Token { tt: OpenParen,  ..}) => parse_parenthesis_expr(tokens, settings, context),
-        Some(Token { tt: OpenBrace,  ..}) => parse_block_expr(tokens, settings, context),
+        Some(Token { tt: Ident(_), .. }) => parse_ident_expr(tokens, settings, context),
+        Some(Token { tt: Int(_), .. }) => parse_literal_expr(tokens, settings, context),
+        Some(Token { tt: OpenParen, .. }) => parse_parenthesis_expr(tokens, settings, context),
+        Some(Token { tt: OpenBrace, .. }) => parse_block_expr(tokens, settings, context),
         None => NotComplete,
         tok => error(Box::new(UnexpectedTokenError::from_context(
             context,
@@ -201,7 +201,10 @@ pub(super) fn parse_binary_expr(
         // continue until the current token is not an operator
         // or it is an operator with precedence lesser than expr_precedence
         let (operator, precedence) = match tokens.last() {
-            Some(Token { tt: Operator(op), span: _ }) => match settings.operator_precedence.get(op) {
+            Some(Token {
+                tt: Operator(op),
+                span: _,
+            }) => match settings.operator_precedence.get(op) {
                 Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
                 None => {
                     return error(Box::new(UnexpectedTokenError::from_context(
@@ -224,7 +227,10 @@ pub(super) fn parse_binary_expr(
         // bigger than the current one
         loop {
             let binary_rhs = match tokens.last().cloned() {
-                Some(Token { tt: Operator(ref op), span: _ }) => match settings.operator_precedence.get(op).copied() {
+                Some(Token {
+                    tt: Operator(ref op),
+                    span: _,
+                }) => match settings.operator_precedence.get(op).copied() {
                     Some(pr) if pr > precedence => {
                         parse_try!(
                             parse_binary_expr,

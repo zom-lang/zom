@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use std::io::{stdout, Write, self};
+use std::io::{self, stdout, Write};
 use zom_fe::lexer::Lexer;
 use zom_fe::parser::{parse, ParserSettings, ParsingContext};
 
@@ -25,11 +25,11 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
 
     let tokens = match lexer.make_tokens() {
         Ok(v) => v,
-        Err(_) => return Err(anyhow!("Error while trying to lexe the buffer"))
+        Err(_) => return Err(anyhow!("Error while trying to lexe the buffer")),
     };
 
     println!("tokens = {tokens:#?}");
-    
+
     // let buffer = match fs::read_to_string("example/test_main.zom") {
     //     Ok(src) => src,
     //     Err(_) => return Err(anyhow!("Error while trying to read the source file.")),

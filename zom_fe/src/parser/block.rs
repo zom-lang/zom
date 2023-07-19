@@ -1,15 +1,24 @@
-use zom_common::{token::{Token, TokenType::*}, error::parser::UnexpectedTokenError};
+use zom_common::{
+    error::parser::UnexpectedTokenError,
+    token::{Token, TokenType::*},
+};
 
-use crate::{expect_token, parse_try, parser::{error, statement::parse_statement}, FromContext};
+use crate::{
+    expect_token, parse_try,
+    parser::{error, statement::parse_statement},
+    FromContext,
+};
 
-use super::{expr::Expression, ParserSettings, ParsingContext, PartParsingResult, statement::Statement};
+use super::{
+    expr::Expression, statement::Statement, ParserSettings, ParsingContext, PartParsingResult,
+};
 
 use crate::parser::PartParsingResult::*;
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct BlockCodeExpr {
     code: Vec<Statement>,
-    returned_expr: Box<Expression>
+    returned_expr: Box<Expression>,
 }
 
 pub(super) fn parse_block_expr(

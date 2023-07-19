@@ -37,7 +37,13 @@ impl UnexpectedTokenError {
             name: String::from("Unexpected Token Error"),
             details,
             kind: ErrorKind::Parser,
-            position: Position { index: _tok_pos, line: 1, column: 1, filename: "A REWORD OF THE ERROR SYSTEM IS NEEDED".to_owned(), filetext: _source_file.to_string() },
+            position: Position {
+                index: _tok_pos,
+                line: 1,
+                column: 1,
+                filename: "A REWORD OF THE ERROR SYSTEM IS NEEDED".to_owned(),
+                filetext: _source_file.to_string(),
+            },
             token: _token,
         }
     }

@@ -85,22 +85,23 @@ impl<'a> Lexer<'a> {
                     let (is_op, len) = is_operator(window);
 
                     if is_op {
-                        tokens.push(Token::new(Operator(window[..len].to_owned()), self.pos..=(self.pos + len - 1)));
+                        tokens.push(Token::new(
+                            Operator(window[..len].to_owned()),
+                            self.pos..=(self.pos + len - 1),
+                        ));
                         self.pos += len;
                         self.column += len;
                         continue;
                     }
                 }
-                '#' => {
-                    loop {
-                        let ch = self.chars.next();
-                        self.incr_pos();
+                '#' => loop {
+                    let ch = self.chars.next();
+                    self.incr_pos();
 
-                        if ch == Some('\n') {
-                            continue 'main;
-                        }
+                    if ch == Some('\n') {
+                        continue 'main;
                     }
-                }
+                },
                 '(' => {
                     if let Some('*') = self.chars.peek() {
                         // Eat the `*` char

@@ -1,15 +1,16 @@
 //! This module parse function
 
-use zom_common::{
-    error::parser::UnexpectedTokenError,
-    token::Token,
+use zom_common::{error::parser::UnexpectedTokenError, token::Token};
+
+use crate::{
+    expect_token, parse_try,
+    parser::{error, types::parse_type},
+    FromContext,
 };
 
-use crate::{expect_token, parse_try, parser::{error, types::parse_type}, FromContext};
-
 use super::{
-    expr::Expression,
-    ASTNode, ParserSettings, ParsingContext, PartParsingResult, types::Type, block::parse_block_expr,
+    block::parse_block_expr, expr::Expression, types::Type, ASTNode, ParserSettings,
+    ParsingContext, PartParsingResult,
 };
 
 pub use self::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
@@ -140,7 +141,10 @@ pub(super) fn parse_prototype(
 
         let type_arg = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
 
-        args.push(Arg{ name: name_arg, type_arg});
+        args.push(Arg {
+            name: name_arg,
+            type_arg,
+        });
 
         expect_token!(
             context, [

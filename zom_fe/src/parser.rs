@@ -20,11 +20,11 @@ pub use crate::parser::expr::Expression::{
 use self::function::{parse_extern, parse_function, Function};
 use self::PartParsingResult::{Bad, Good, NotComplete};
 
+pub mod block;
 pub mod expr;
 pub mod function;
 pub mod statement;
 pub mod types;
-pub mod block;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum ASTNode {

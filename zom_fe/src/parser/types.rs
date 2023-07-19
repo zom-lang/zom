@@ -1,16 +1,10 @@
 //! This module is responsible for the parsing of types.
 
-use zom_common::{
-    error::parser::UnexpectedTokenError,
-    token::Token,
-};
+use zom_common::{error::parser::UnexpectedTokenError, token::Token};
 
 use crate::{expect_token, parser::error, FromContext};
 
-use super::{
-    expr::Expression,
-    ParserSettings, ParsingContext, PartParsingResult,
-};
+use super::{expr::Expression, ParserSettings, ParsingContext, PartParsingResult};
 
 pub use self::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
@@ -22,7 +16,6 @@ use zom_common::token::*;
 pub enum Type {
     PrimitiveType(PrimitiveType),
 }
-
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum PrimitiveType {
@@ -54,7 +47,7 @@ pub enum PrimitiveType {
     Char,
 
     // String slice
-    Str, 
+    Str,
 }
 
 pub const BOOL_TYPE_NAME: &str = "bool";
@@ -139,6 +132,6 @@ fn parse_primitive_type(
 
         CHAR_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::Char), parsed_tokens),
         STR_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::Str), parsed_tokens),
-        _ => panic!("NEED TO REMAKE THE ERROR SYSTEM")
+        _ => panic!("NEED TO REMAKE THE ERROR SYSTEM"),
     }
 }
