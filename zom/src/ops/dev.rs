@@ -12,7 +12,7 @@ use crate::ExitStatus;
 pub fn dev() -> Result<ExitStatus, anyhow::Error> {
     println!("Development command.");
 
-    let mut buffer = String::from("func foo(bar: i16, baz: str) {} extern test(a: u32, b: u32)");
+    let mut buffer = String::from("func foo(bar: i16, baz: str) { bar = 132; } extern test(a: u32, b: u32)");
 
     print!("input: ");
     stdout().flush().expect("ERR: Flush the output failed.");
