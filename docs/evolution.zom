@@ -204,3 +204,10 @@ const testPacked = packed struct {
     # ...
 }
 # A `packed` struct is like the keyword `packed` in LLVM, it's a struct where the size is the size of all fields without any padding / offset. (I think ..)
+
+(**
+ * Simple doc comment
+ * :)
+ *)
+func foo(bar: i32) void { (* ... *) }
+
