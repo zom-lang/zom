@@ -123,7 +123,6 @@ pub: const Token = enum {
 (* A sub module from a file, in this case `sub_module` *)
 pub: const mod_from_file = module "sub_module";
 
-
 pub: const mod_in_same_file = module {
     func foo_bar() str {
         "foo bar"
@@ -227,3 +226,8 @@ func foo() void {
     # because it's length is known at runtime you can change (if it's in a var) the content and the size :
     slice = &[6, 5, 4, 3, 2, 1]; # -> size of 6 * u32
 }
+
+const structWithGeneric = struct<T, U> {
+    a: T,
+    b: U
+};
