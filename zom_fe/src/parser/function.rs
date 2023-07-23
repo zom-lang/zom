@@ -55,11 +55,11 @@ pub(super) fn parse_extern(
     let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     tokens.pop();
 
-    let start = parsed_tokens.last().unwrap().span.start().clone();
+    let start = *parsed_tokens.last().unwrap().span.start();
 
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
 
-    let end = parsed_tokens.last().unwrap().span.start().clone();
+    let end = *parsed_tokens.last().unwrap().span.start();
     Good(
         ASTNode::FunctionNode(Function {
             prototype,
@@ -79,12 +79,12 @@ pub(super) fn parse_function(
     let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
 
-    let start = parsed_tokens.last().unwrap().span.start().clone();
+    let start = *parsed_tokens.last().unwrap().span.start();
 
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
     let body = parse_try!(parse_block_expr, tokens, settings, context, parsed_tokens).0;
 
-    let end = parsed_tokens.last().unwrap().span.start().clone();
+    let end = *parsed_tokens.last().unwrap().span.end();
     Good(
         ASTNode::FunctionNode(Function {
             prototype,
@@ -113,7 +113,7 @@ pub(super) fn parse_prototype(
         )))
     );
 
-    let start = parsed_tokens.last().unwrap().span.start().clone();
+    let start = *parsed_tokens.last().unwrap().span.start();
 
     expect_token!(
         context,
@@ -144,7 +144,7 @@ pub(super) fn parse_prototype(
                 ))
             )
         );
-        let start = parsed_tokens.last().unwrap().span.start().clone();
+        let start = *parsed_tokens.last().unwrap().span.start();
 
         expect_token!(
             context, [
@@ -161,7 +161,7 @@ pub(super) fn parse_prototype(
             )
         );
         let type_arg = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
-        let end = parsed_tokens.last().unwrap().span.end().clone();
+        let end = *parsed_tokens.last().unwrap().span.end();
 
         args.push(Arg {
             name: name_arg,
@@ -186,7 +186,7 @@ pub(super) fn parse_prototype(
         );
     }
 
-    let end = parsed_tokens.last().unwrap().span.start().clone();
+    let end = *parsed_tokens.last().unwrap().span.start();
 
     Good(Prototype { name, args, span: start..=end }, parsed_tokens)
 }

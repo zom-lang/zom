@@ -90,9 +90,9 @@ pub(super) fn parse_ident_expr(
         )))
     );
 
-    let start = parsed_tokens.last().unwrap().span.start().clone();
+    let start = *parsed_tokens.last().unwrap().span.start();
 
-    let end = parsed_tokens.last().unwrap().span.end().clone();
+    let end = *parsed_tokens.last().unwrap().span.end();
 
     expect_token!(
         context,
@@ -130,7 +130,7 @@ pub(super) fn parse_ident_expr(
         );
     }
 
-    let end = parsed_tokens.last().unwrap().span.end().clone();
+    let end = *parsed_tokens.last().unwrap().span.end();
 
     Good(
         Expression { expr: CallExpr(name, args), span: start..=end },
@@ -156,9 +156,9 @@ pub(super) fn parse_literal_expr(
             tokens.last().unwrap().clone()
         )))
     );
-    let start = parsed_tokens.last().unwrap().span.start().clone();
+    let start = *parsed_tokens.last().unwrap().span.start();
 
-    let end = parsed_tokens.last().unwrap().span.end().clone();
+    let end = *parsed_tokens.last().unwrap().span.end();
 
     Good(Expression { expr: LiteralExpr(value), span: start..=end }, parsed_tokens)
 }
@@ -287,7 +287,7 @@ pub(super) fn parse_binary_expr(
                 lhs: Box::new(result),
                 rhs: Box::new(rhs.clone()),
             },
-            span: lhs.span.start().clone()..=rhs.span.end().clone()
+            span: *lhs.span.start()..=*rhs.span.end()
         };
     }
 

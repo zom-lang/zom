@@ -35,7 +35,7 @@ pub(super) fn parse_block_expr(
     let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     tokens.pop();
 
-    let start = parsed_tokens.last().unwrap().span.start().clone();
+    let start = *parsed_tokens.last().unwrap().span.start();
 
     let mut code = vec![];
     let mut returned_expr: Option<Box<Expression>> = None;
@@ -56,10 +56,7 @@ pub(super) fn parse_block_expr(
             Statement::Expr(_) => true,
             _ => false
         } {
-            match stmt {
-                Statement::Expr(ref e) => returned_expr = Some(Box::new(e.clone())),
-                _ => {}
-            }
+            if let Statement::Expr(ref e) = stmt { returned_expr = Some(Box::new(e.clone())) }
             break;
         }
 
@@ -90,7 +87,7 @@ pub(super) fn parse_block_expr(
         )))
     );
 
-    let end = parsed_tokens.last().unwrap().span.end().clone();
+    let end = *parsed_tokens.last().unwrap().span.end();
 
     Good((BlockCodeExpr {
         code,
