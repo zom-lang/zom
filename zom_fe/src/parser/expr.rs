@@ -6,7 +6,7 @@ use zom_common::error::parser::UnexpectedTokenError;
 use zom_common::token::Token;
 use zom_common::token::*;
 
-use crate::{expect_token, parse_try, FromContext, impl_span};
+use crate::{expect_token, impl_span, parse_try, FromContext};
 
 use self::Expr::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
@@ -22,7 +22,6 @@ pub struct Expression {
     pub expr: Expr,
     pub span: RangeInclusive<usize>,
 }
-
 
 impl_span!(Expression);
 
@@ -42,8 +41,10 @@ pub enum Expr {
 impl Expression {
     pub fn is_semicolon_needed(&self) -> bool {
         match *self {
-            Expression { expr: BlockExpr(_), .. } => false,
-            _ => true
+            Expression {
+                expr: BlockExpr(_), ..
+            } => false,
+            _ => true,
         }
     }
 }
@@ -58,9 +59,15 @@ pub(super) fn parse_primary_expr(
         Some(Token { tt: Int(_), .. }) => parse_literal_expr(tokens, settings, context),
         Some(Token { tt: OpenParen, .. }) => parse_parenthesis_expr(tokens, settings, context),
         Some(Token { tt: OpenBrace, .. }) => match parse_block_expr(tokens, settings, context) {
-            Good((block, span), parsed_tokens) => Good(Expression { expr: BlockExpr(block), span }, parsed_tokens),
+            Good((block, span), parsed_tokens) => Good(
+                Expression {
+                    expr: BlockExpr(block),
+                    span,
+                },
+                parsed_tokens,
+            ),
             NotComplete => NotComplete,
-            Bad(err) => Bad(err)
+            Bad(err) => Bad(err),
         },
         None => NotComplete,
         tok => error(Box::new(UnexpectedTokenError::from_context(
@@ -133,8 +140,11 @@ pub(super) fn parse_ident_expr(
     let end = *parsed_tokens.last().unwrap().span.end();
 
     Good(
-        Expression { expr: CallExpr(name, args), span: start..=end },
-        parsed_tokens
+        Expression {
+            expr: CallExpr(name, args),
+            span: start..=end,
+        },
+        parsed_tokens,
     )
 }
 
@@ -160,7 +170,13 @@ pub(super) fn parse_literal_expr(
 
     let end = *parsed_tokens.last().unwrap().span.end();
 
-    Good(Expression { expr: LiteralExpr(value), span: start..=end }, parsed_tokens)
+    Good(
+        Expression {
+            expr: LiteralExpr(value),
+            span: start..=end,
+        },
+        parsed_tokens,
+    )
 }
 
 pub(super) fn parse_parenthesis_expr(
@@ -287,7 +303,7 @@ pub(super) fn parse_binary_expr(
                 lhs: Box::new(result),
                 rhs: Box::new(rhs.clone()),
             },
-            span: *lhs.span.start()..=*rhs.span.end()
+            span: *lhs.span.start()..=*rhs.span.end(),
         };
     }
 

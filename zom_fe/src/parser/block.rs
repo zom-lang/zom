@@ -6,9 +6,9 @@ use zom_common::{
 };
 
 use crate::{
-    expect_token, parse_try,
+    expect_token, impl_span, parse_try,
     parser::{error, statement::parse_statement},
-    FromContext, token_parteq, impl_span,
+    token_parteq, FromContext,
 };
 
 use super::{
@@ -50,13 +50,16 @@ pub(super) fn parse_block_expr(
 
         // FIXME: Allow Binary operation in expression, in statements to allow `a = <expr>`..
 
-        if !token_parteq!(tokens.last(), &SemiColon) &&
-            token_parteq!(tokens.last(), &CloseBrace) &&
-            match stmt {
-            Statement::Expr(_) => true,
-            _ => false
-        } {
-            if let Statement::Expr(ref e) = stmt { returned_expr = Some(Box::new(e.clone())) }
+        if !token_parteq!(tokens.last(), &SemiColon)
+            && token_parteq!(tokens.last(), &CloseBrace)
+            && match stmt {
+                Statement::Expr(_) => true,
+                _ => false,
+            }
+        {
+            if let Statement::Expr(ref e) = stmt {
+                returned_expr = Some(Box::new(e.clone()))
+            }
             break;
         }
 
@@ -89,9 +92,15 @@ pub(super) fn parse_block_expr(
 
     let end = *parsed_tokens.last().unwrap().span.end();
 
-    Good((BlockCodeExpr {
-        code,
-        returned_expr,
-        span: start..=end
-    }, start..=end), parsed_tokens)
+    Good(
+        (
+            BlockCodeExpr {
+                code,
+                returned_expr,
+                span: start..=end,
+            },
+            start..=end,
+        ),
+        parsed_tokens,
+    )
 }

@@ -5,14 +5,15 @@ use std::ops::RangeInclusive;
 use zom_common::{error::parser::UnexpectedTokenError, token::Token};
 
 use crate::{
-    expect_token, parse_try,
+    expect_token, impl_span, parse_try,
     parser::{error, types::parse_type},
-    FromContext, impl_span,
+    FromContext,
 };
 
 use super::{
-    block::{parse_block_expr, BlockCodeExpr}, types::Type, ASTNode, ParserSettings,
-    ParsingContext, PartParsingResult,
+    block::{parse_block_expr, BlockCodeExpr},
+    types::Type,
+    ASTNode, ParserSettings, ParsingContext, PartParsingResult,
 };
 
 use self::PartParsingResult::{Bad, Good, NotComplete};
@@ -64,7 +65,7 @@ pub(super) fn parse_extern(
         ASTNode::FunctionNode(Function {
             prototype,
             body: None,
-            span: start..=end
+            span: start..=end,
         }),
         parsed_tokens,
     )
@@ -89,7 +90,7 @@ pub(super) fn parse_function(
         ASTNode::FunctionNode(Function {
             prototype,
             body: Some(body),
-            span: start..=end
+            span: start..=end,
         }),
         parsed_tokens,
     )
@@ -147,18 +148,14 @@ pub(super) fn parse_prototype(
         let start = *parsed_tokens.last().unwrap().span.start();
 
         expect_token!(
-            context, [
-            Colon, Colon, {}
-        ] <= tokens,
-             parsed_tokens,
-            error(
-                Box::new(UnexpectedTokenError::from_context(
-                    context,
-                    "Expected ':' in argument of a prototype"
-                        .to_owned(),
-                    tokens.last().unwrap().clone()
-                ))
-            )
+            context,
+            [Colon, Colon, {}] <= tokens,
+            parsed_tokens,
+            error(Box::new(UnexpectedTokenError::from_context(
+                context,
+                "Expected ':' in argument of a prototype".to_owned(),
+                tokens.last().unwrap().clone()
+            )))
         );
         let type_arg = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
         let end = *parsed_tokens.last().unwrap().span.end();
@@ -166,7 +163,7 @@ pub(super) fn parse_prototype(
         args.push(Arg {
             name: name_arg,
             type_arg,
-            span: start..=end
+            span: start..=end,
         });
 
         expect_token!(
@@ -188,5 +185,12 @@ pub(super) fn parse_prototype(
 
     let end = *parsed_tokens.last().unwrap().span.start();
 
-    Good(Prototype { name, args, span: start..=end }, parsed_tokens)
+    Good(
+        Prototype {
+            name,
+            args,
+            span: start..=end,
+        },
+        parsed_tokens,
+    )
 }
