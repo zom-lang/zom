@@ -1,12 +1,14 @@
 //! This module contains the parsing for expressions.
 
+use std::ops::RangeInclusive;
+
 use zom_common::error::parser::UnexpectedTokenError;
 use zom_common::token::Token;
 use zom_common::token::*;
 
-use crate::{expect_token, parse_try, FromContext};
+use crate::{expect_token, parse_try, FromContext, impl_span};
 
-use self::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
+use self::Expr::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
 use crate::parser::PartParsingResult::{Bad, Good, NotComplete};
 
@@ -16,7 +18,16 @@ use super::block::{parse_block_expr, BlockCodeExpr};
 use super::{error, ParserSettings, ParsingContext};
 
 #[derive(PartialEq, Clone, Debug)]
-pub enum Expression {
+pub struct Expression {
+    pub expr: Expr,
+    pub span: RangeInclusive<usize>,
+}
+
+
+impl_span!(Expression);
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum Expr {
     LiteralExpr(i32),
     VariableExpr(String),
     BinaryExpr {
@@ -31,15 +42,8 @@ pub enum Expression {
 impl Expression {
     pub fn is_semicolon_needed(&self) -> bool {
         match *self {
-            LiteralExpr(_) => true,
-            VariableExpr(_) => true,
-            BinaryExpr {
-                op: _,
-                rhs: _,
-                lhs: _,
-            } => true,
-            CallExpr(_, _) => true,
-            BlockExpr(_) => false,
+            Expression { expr: BlockExpr(_), .. } => false,
+            _ => true
         }
     }
 }
@@ -54,7 +58,7 @@ pub(super) fn parse_primary_expr(
         Some(Token { tt: Int(_), .. }) => parse_literal_expr(tokens, settings, context),
         Some(Token { tt: OpenParen, .. }) => parse_parenthesis_expr(tokens, settings, context),
         Some(Token { tt: OpenBrace, .. }) => match parse_block_expr(tokens, settings, context) {
-            Good(block, parsed_tokens) => Good(BlockExpr(block), parsed_tokens),
+            Good((block, span), parsed_tokens) => Good(Expression { expr: BlockExpr(block), span }, parsed_tokens),
             NotComplete => NotComplete,
             Bad(err) => Bad(err)
         },
@@ -86,10 +90,16 @@ pub(super) fn parse_ident_expr(
         )))
     );
 
+    let start = parsed_tokens.last().unwrap().span.start().clone();
+
+    let end = parsed_tokens.last().unwrap().span.end().clone();
+
     expect_token!(
         context,
         [OpenParen, OpenParen, ()]
-        else {return Good(VariableExpr(name), parsed_tokens)}
+        else {return Good(
+            Expression { expr: VariableExpr(name), span: start..=end },
+            parsed_tokens)}
         <= tokens, parsed_tokens);
 
     let mut args = Vec::new();
@@ -120,7 +130,12 @@ pub(super) fn parse_ident_expr(
         );
     }
 
-    Good(CallExpr(name, args), parsed_tokens)
+    let end = parsed_tokens.last().unwrap().span.end().clone();
+
+    Good(
+        Expression { expr: CallExpr(name, args), span: start..=end },
+        parsed_tokens
+    )
 }
 
 pub(super) fn parse_literal_expr(
@@ -141,8 +156,11 @@ pub(super) fn parse_literal_expr(
             tokens.last().unwrap().clone()
         )))
     );
+    let start = parsed_tokens.last().unwrap().span.start().clone();
 
-    Good(LiteralExpr(value), parsed_tokens)
+    let end = parsed_tokens.last().unwrap().span.end().clone();
+
+    Good(Expression { expr: LiteralExpr(value), span: start..=end }, parsed_tokens)
 }
 
 pub(super) fn parse_parenthesis_expr(
@@ -167,7 +185,7 @@ pub(super) fn parse_parenthesis_expr(
             tokens.last().unwrap().clone()
         )))
     );
-
+    // idk if the span is correct.
     Good(expr, parsed_tokens)
 }
 
@@ -187,6 +205,7 @@ pub(super) fn parse_expr(
         0,
         &lhs
     );
+    // idk if the span is correct.
     Good(expr, parsed_tokens)
 }
 
@@ -262,10 +281,13 @@ pub(super) fn parse_binary_expr(
         }
 
         // merge LHS and RHS
-        result = BinaryExpr {
-            op: operator,
-            lhs: Box::new(result),
-            rhs: Box::new(rhs),
+        result = Expression {
+            expr: BinaryExpr {
+                op: operator,
+                lhs: Box::new(result),
+                rhs: Box::new(rhs.clone()),
+            },
+            span: lhs.span.start().clone()..=rhs.span.end().clone()
         };
     }
 

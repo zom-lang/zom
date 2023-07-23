@@ -30,10 +30,12 @@ pub(super) fn parse_block_expr(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
-) -> PartParsingResult<BlockCodeExpr> {
+) -> PartParsingResult<(BlockCodeExpr, RangeInclusive<usize>)> {
     // eat the opening brace
     let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     tokens.pop();
+
+    let start = parsed_tokens.last().unwrap().span.start().clone();
 
     let mut code = vec![];
     let mut returned_expr: Option<Box<Expression>> = None;
@@ -88,9 +90,11 @@ pub(super) fn parse_block_expr(
         )))
     );
 
-    Good(BlockCodeExpr {
+    let end = parsed_tokens.last().unwrap().span.end().clone();
+
+    Good((BlockCodeExpr {
         code,
         returned_expr,
-        span: *parsed_tokens[0].span.start()..=*parsed_tokens.last().unwrap().span.end()
-    }, parsed_tokens)
+        span: start..=end
+    }, start..=end), parsed_tokens)
 }

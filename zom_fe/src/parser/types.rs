@@ -4,9 +4,7 @@ use zom_common::{error::parser::UnexpectedTokenError, token::Token};
 
 use crate::{expect_token, parser::error, FromContext};
 
-use super::{expr::Expression, ParserSettings, ParsingContext, PartParsingResult};
-
-pub use self::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
+use super::{ParserSettings, ParsingContext, PartParsingResult};
 
 use self::PartParsingResult::{Good, NotComplete};
 

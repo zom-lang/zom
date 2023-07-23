@@ -11,11 +11,9 @@ use crate::{
 };
 
 use super::{
-    block::{parse_block_expr, BlockCodeExpr}, expr::Expression, types::Type, ASTNode, ParserSettings,
+    block::{parse_block_expr, BlockCodeExpr}, types::Type, ASTNode, ParserSettings,
     ParsingContext, PartParsingResult,
 };
-
-pub use self::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
 use self::PartParsingResult::{Bad, Good, NotComplete};
 
@@ -84,7 +82,7 @@ pub(super) fn parse_function(
     let start = parsed_tokens.last().unwrap().span.start().clone();
 
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
-    let body = parse_try!(parse_block_expr, tokens, settings, context, parsed_tokens);
+    let body = parse_try!(parse_block_expr, tokens, settings, context, parsed_tokens).0;
 
     let end = parsed_tokens.last().unwrap().span.start().clone();
     Good(
