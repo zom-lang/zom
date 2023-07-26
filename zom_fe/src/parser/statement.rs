@@ -4,7 +4,7 @@ use std::ops::RangeInclusive;
 
 use zom_common::token::{Token, TokenType::Return};
 
-use crate::{parse_try, parser::expr::parse_expr, impl_span};
+use crate::{impl_span, parse_try, parser::expr::parse_expr};
 
 use super::{expr::Expression, types::Type, ParserSettings, ParsingContext, PartParsingResult};
 
@@ -62,19 +62,16 @@ pub(super) fn parse_statement(
         }) => todo!("Implement the return statement"),
         None => NotComplete,
         _ => {
-            let expr = parse_try!(
-                parse_expr,
-                tokens,
-                settings,
-                context,
-                parsed_tokens
-            );
+            let expr = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
             let expr_span = expr.span.clone();
 
             Good(
-                Statement { stmt: Stmt::Expr(expr), span: expr_span },
+                Statement {
+                    stmt: Stmt::Expr(expr),
+                    span: expr_span,
+                },
                 parsed_tokens,
             )
-        },
+        }
     }
 }

@@ -4,14 +4,13 @@ use std::ops::RangeInclusive;
 
 use zom_common::{error::parser::UnexpectedTokenError, token::Token};
 
-use crate::{expect_token, parser::error, FromContext, impl_span};
+use crate::{expect_token, impl_span, parser::error, FromContext};
 
 use super::{ParserSettings, ParsingContext, PartParsingResult};
 
 use self::PartParsingResult::{Good, NotComplete};
 
 use zom_common::token::*;
-
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Type {

@@ -7,7 +7,10 @@ use zom_common::{
 
 use crate::{
     expect_token, impl_span, parse_try,
-    parser::{error, statement::{parse_statement, Stmt}},
+    parser::{
+        error,
+        statement::{parse_statement, Stmt},
+    },
     token_parteq, FromContext,
 };
 
