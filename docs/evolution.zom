@@ -205,6 +205,14 @@ const testPacked = packed struct {
 
 # A `packed` struct is like the keyword `packed` in LLVM, it's a struct where the size is the size of all fields without any padding / offset. (I think ..)
 
+
+(**
+ * Simple doc comment
+ * :)
+ *)
+func foo(bar: i32) void { (* ... *) }
+
+
 func foo() void {
     var test: u32 = undefined; # test is undefined you can use it because the compiler will throw a compile-time error. 
     #If you define a var / const with `undefined`, you must annotate the type.
@@ -231,3 +239,4 @@ const structWithGeneric = struct<T, U> {
     a: T,
     b: U
 };
+

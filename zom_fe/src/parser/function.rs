@@ -1,18 +1,20 @@
 //! This module parse function
 
-use zom_common::{
-    error::parser::UnexpectedTokenError,
-    token::Token::{self, Extern, Func},
-};
+use std::ops::RangeInclusive;
 
-use crate::{expect_token, parse_try, parser::{error, types::parse_type}, FromContext};
+use zom_common::{error::parser::UnexpectedTokenError, token::Token};
+
+use crate::{
+    expect_token, impl_span, parse_try,
+    parser::{error, types::parse_type},
+    FromContext,
+};
 
 use super::{
-    expr::Expression,
-    ASTNode, ParserSettings, ParsingContext, PartParsingResult, types::Type, block::parse_block_expr,
+    block::{parse_block_expr, BlockCodeExpr},
+    types::Type,
+    ASTNode, ParserSettings, ParsingContext, PartParsingResult,
 };
-
-pub use self::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
 use self::PartParsingResult::{Bad, Good, NotComplete};
 
@@ -21,20 +23,29 @@ use zom_common::token::*;
 #[derive(PartialEq, Clone, Debug)]
 pub struct Function {
     pub prototype: Prototype,
-    pub body: Option<Expression>,
+    pub body: Option<BlockCodeExpr>,
+    pub span: RangeInclusive<usize>,
 }
+
+impl_span!(Function);
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Arg {
     pub name: String,
     pub type_arg: Type,
+    pub span: RangeInclusive<usize>,
 }
+
+impl_span!(Arg);
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Prototype {
     pub name: String,
     pub args: Vec<Arg>,
+    pub span: RangeInclusive<usize>,
 }
+
+impl_span!(Prototype);
 
 pub(super) fn parse_extern(
     tokens: &mut Vec<Token>,
@@ -42,13 +53,19 @@ pub(super) fn parse_extern(
     context: &mut ParsingContext,
 ) -> PartParsingResult<ASTNode> {
     // eat Extern token
+    let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     tokens.pop();
-    let mut parsed_tokens = vec![Extern];
+
+    let start = *parsed_tokens.last().unwrap().span.start();
+
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
+
+    let end = *parsed_tokens.last().unwrap().span.start();
     Good(
         ASTNode::FunctionNode(Function {
             prototype,
             body: None,
+            span: start..=end,
         }),
         parsed_tokens,
     )
@@ -59,16 +76,21 @@ pub(super) fn parse_function(
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<ASTNode> {
-    // eat Def token
+    // eat Func token
+    let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
-    let mut parsed_tokens = vec![Func];
-    let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
-    let body = parse_try!(parse_block_expr, tokens, settings, context, parsed_tokens);
 
+    let start = *parsed_tokens.last().unwrap().span.start();
+
+    let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
+    let body = parse_try!(parse_block_expr, tokens, settings, context, parsed_tokens).0;
+
+    let end = *parsed_tokens.last().unwrap().span.end();
     Good(
         ASTNode::FunctionNode(Function {
             prototype,
             body: Some(body),
+            span: start..=end,
         }),
         parsed_tokens,
     )
@@ -91,6 +113,8 @@ pub(super) fn parse_prototype(
             tokens.last().unwrap().clone()
         )))
     );
+
+    let start = *parsed_tokens.last().unwrap().span.start();
 
     expect_token!(
         context,
@@ -121,26 +145,26 @@ pub(super) fn parse_prototype(
                 ))
             )
         );
+        let start = *parsed_tokens.last().unwrap().span.start();
 
         expect_token!(
-            context, [
-            Colon, Colon, {};
-            CloseParen, CloseParen, break
-        ] <= tokens,
-             parsed_tokens,
-            error(
-                Box::new(UnexpectedTokenError::from_context(
-                    context,
-                    "Expected ':' in argument of a prototype"
-                        .to_owned(),
-                    tokens.last().unwrap().clone()
-                ))
-            )
+            context,
+            [Colon, Colon, {}] <= tokens,
+            parsed_tokens,
+            error(Box::new(UnexpectedTokenError::from_context(
+                context,
+                "Expected ':' in argument of a prototype".to_owned(),
+                tokens.last().unwrap().clone()
+            )))
         );
-
         let type_arg = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
+        let end = *parsed_tokens.last().unwrap().span.end();
 
-        args.push(Arg{ name: name_arg, type_arg});
+        args.push(Arg {
+            name: name_arg,
+            type_arg,
+            span: start..=end,
+        });
 
         expect_token!(
             context, [
@@ -159,5 +183,14 @@ pub(super) fn parse_prototype(
         );
     }
 
-    Good(Prototype { name, args }, parsed_tokens)
+    let end = *parsed_tokens.last().unwrap().span.start();
+
+    Good(
+        Prototype {
+            name,
+            args,
+            span: start..=end,
+        },
+        parsed_tokens,
+    )
 }

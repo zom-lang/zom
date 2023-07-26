@@ -3,6 +3,7 @@
 //! It is entirely made for Zom, without using dependencies.
 
 use std::collections::HashMap;
+use std::ops::RangeInclusive;
 
 use zom_common::error::parser::UnexpectedTokenError;
 use zom_common::error::ZomError;
@@ -13,18 +14,18 @@ use crate::FromContext;
 
 pub use self::ASTNode::FunctionNode;
 
-pub use crate::parser::expr::Expression::{
-    BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr,
-};
+// pub use crate::parser::expr::Expression::{
+//     BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr,
+// };
 
 use self::function::{parse_extern, parse_function, Function};
 use self::PartParsingResult::{Bad, Good, NotComplete};
 
+pub mod block;
 pub mod expr;
 pub mod function;
 pub mod statement;
 pub mod types;
-pub mod block;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum ASTNode {
@@ -121,7 +122,7 @@ pub fn parse(
     let mut ast = parsed_tree.to_vec();
 
     while let Some(cur_token) = rest.last() {
-        let result = match cur_token {
+        let result = match cur_token.tt {
             Func => parse_function(&mut rest, settings, context),
             Extern => parse_extern(&mut rest, settings, context),
             _ => Bad(Box::new(UnexpectedTokenError::from_context(
@@ -170,9 +171,9 @@ macro_rules! expect_token (
     ($context:ident, [ $($token:pat, $value:expr, $result:stmt);+ ] <= $tokens:ident, $parsed_tokens:ident, $error:expr) => (
         match $tokens.pop() {
             $(
-                Some($token) => {
+                Some(Token { tt: $token, span }) => {
                     $context.advance();
-                    $parsed_tokens.push($value);
+                    $parsed_tokens.push(Token { tt: $value, span });
                     $result
                 },
              )+
@@ -190,13 +191,43 @@ macro_rules! expect_token (
         $context.advance();
         match $tokens.last().map(|i| {i.clone()}) {
             $(
-                Some($token) => {
+                Some(Token { tt: $token, span}) => {
                     $tokens.pop();
-                    $parsed_tokens.push($value);
+                    $parsed_tokens.push(Token { tt: $value, span });
                     $result
                 },
              )+
             _ => {$not_matched}
+        }
+    )
+);
+
+/// This macro is to test the equality of a token but without checking the span.
+/// return true if it's equal or false if it's not.
+#[macro_export]
+macro_rules! token_parteq(
+    ($left:expr, $right:expr) => (
+        match $left {
+            Some(Token { tt, span: _}) if tt == $right => true,
+            _ => false
+        }
+    )
+);
+
+pub trait CodeLocation {
+    fn span(&self) -> RangeInclusive<usize>;
+}
+
+#[macro_export]
+macro_rules! impl_span(
+    ($ast:ident) => (
+        impl_span!($ast, span);
+    );
+    ($ast:ident, $span_field:ident) => (
+        impl crate::parser::CodeLocation for $ast {
+            fn span(&self) -> RangeInclusive<usize> {
+                self.span.clone()
+            }
         }
     )
 );

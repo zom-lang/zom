@@ -2,9 +2,9 @@
 //!
 //! It is in its own file because later on, there will be lot of tokens type.
 
-use std::fmt;
+use std::{fmt, ops::RangeInclusive};
 
-pub use Token::*;
+pub use TokenType::*;
 
 /// Plus, `+`
 pub const OP_PLUS: &str = "+";
@@ -153,7 +153,20 @@ pub const KEY_FOR: &str = "for";
 pub const KEY_PUB: &str = "pub";
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Token {
+pub struct Token {
+    /// `tt` means token type.
+    pub tt: TokenType,
+    pub span: RangeInclusive<usize>,
+}
+
+impl Token {
+    pub fn new(tt: TokenType, span: RangeInclusive<usize>) -> Token {
+        Token { tt, span }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum TokenType {
     // Operators
     /// Operators, should only be an OP_** constant.
     Operator(String),
@@ -197,11 +210,11 @@ pub enum Token {
     Ident(String), // Identifier is a alphanumeric string
 }
 
-impl fmt::Display for Token {
+impl fmt::Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Token::Int(val) = &self {
+        if let TokenType::Int(val) = &self {
             return write!(f, "Int:{}", val);
-        } else if let Token::Float(val) = &self {
+        } else if let TokenType::Float(val) = &self {
             return write!(f, "Float:{}", val);
         }
         write!(f, "{:?}", &self)

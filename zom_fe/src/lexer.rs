@@ -21,7 +21,7 @@ pub struct Lexer<'a> {
     text: String,
     pos: usize, // position in the text
     chars: Box<Peekable<Chars<'a>>>,
-    line: usize,
+    line: usize, // Will probably replaced with #4
     column: usize,
     filename: String,
 }
@@ -59,13 +59,20 @@ impl<'a> Lexer<'a> {
         self.column += 1;
     }
 
+    #[inline]
+    pub fn match_arm(&mut self, tokens: &mut Vec<Token>, tt: TokenType) {
+        tokens.push(Token::new(tt, self.pos..=self.pos));
+        self.incr_pos();
+    }
+
     pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Box<dyn Error>> {
-        let mut tokens = Vec::new();
+        let mut tokens: Vec<Token> = Vec::new();
 
         'main: while let Some(ch) = self.chars.next() {
             match ch {
                 '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' => {
-                    tokens.push(self.lex_lki(ch)?);
+                    let old_pos = self.pos;
+                    tokens.push(Token::new(self.lex_lki(ch)?, old_pos..=(self.pos - 1)));
                 }
                 ch if is_start_operator(ch) => {
                     let window = &self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
@@ -78,23 +85,23 @@ impl<'a> Lexer<'a> {
                     let (is_op, len) = is_operator(window);
 
                     if is_op {
-                        tokens.push(Operator(window[..len].to_owned()));
+                        tokens.push(Token::new(
+                            Operator(window[..len].to_owned()),
+                            self.pos..=(self.pos + len - 1),
+                        ));
                         self.pos += len;
                         self.column += len;
                         continue;
                     }
                 }
-                '#' => {
-                    self.chars.next();
-                    loop {
-                        let ch = self.chars.next();
-                        self.incr_pos();
+                '#' => loop {
+                    let ch = self.chars.next();
+                    self.incr_pos();
 
-                        if ch == Some('\n') {
-                            continue 'main;
-                        }
+                    if ch == Some('\n') {
+                        continue 'main;
                     }
-                }
+                },
                 '(' => {
                     if let Some('*') = self.chars.peek() {
                         // Eat the `*` char
@@ -135,45 +142,18 @@ impl<'a> Lexer<'a> {
                         self.incr_pos();
                         continue 'main;
                     }
-                    tokens.push(Token::OpenParen);
+                    tokens.push(Token::new(OpenParen, self.pos..=self.pos));
                     self.incr_pos();
                 }
-                ')' => {
-                    tokens.push(Token::CloseParen);
-                    self.incr_pos();
-                }
-                '[' => {
-                    tokens.push(Token::OpenBracket);
-                    self.incr_pos();
-                }
-                ']' => {
-                    tokens.push(Token::CloseBracket);
-                    self.incr_pos();
-                }
-                '{' => {
-                    tokens.push(Token::OpenBrace);
-                    self.incr_pos();
-                }
-                '}' => {
-                    tokens.push(Token::CloseBrace);
-                    self.incr_pos();
-                }
-                ';' => {
-                    tokens.push(Token::SemiColon);
-                    self.incr_pos();
-                }
-                ':' => {
-                    tokens.push(Token::Colon);
-                    self.incr_pos();
-                }
-                ',' => {
-                    tokens.push(Token::Comma);
-                    self.incr_pos();
-                }
-                '@' => {
-                    tokens.push(Token::At);
-                    self.incr_pos();
-                }
+                ')' => self.match_arm(&mut tokens, CloseParen),
+                '[' => self.match_arm(&mut tokens, OpenBracket),
+                ']' => self.match_arm(&mut tokens, CloseBracket),
+                '{' => self.match_arm(&mut tokens, OpenBrace),
+                '}' => self.match_arm(&mut tokens, CloseBrace),
+                ';' => self.match_arm(&mut tokens, SemiColon),
+                ':' => self.match_arm(&mut tokens, Colon),
+                ',' => self.match_arm(&mut tokens, Comma),
+                '@' => self.match_arm(&mut tokens, At),
                 '\n' => {
                     self.line += 1;
                     self.column = 0;
@@ -208,7 +188,7 @@ impl<'a> Lexer<'a> {
     ///     text: `test` -> Ident("est")
     /// And after it is like that :
     ///     text: `test` -> Ident("test")
-    fn lex_lki(&mut self, ch: char) -> Result<Token, Box<dyn Error>> {
+    fn lex_lki(&mut self, ch: char) -> Result<TokenType, Box<dyn Error>> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut is_numeric = true;
@@ -245,25 +225,25 @@ impl<'a> Lexer<'a> {
 
         if is_numeric {
             if dot_count == 0 {
-                Ok(Token::Int(num_str.parse()?))
+                Ok(Int(num_str.parse()?))
             } else {
-                Ok(Token::Float(num_str.parse()?))
+                Ok(Float(num_str.parse()?))
             }
         } else {
             match num_str.as_str() {
-                KEY_FUNC => Ok(Token::Func),
-                KEY_EXTERN => Ok(Token::Extern),
-                KEY_VAR => Ok(Token::Var),
-                KEY_CONST => Ok(Token::Const),
-                KEY_STRUCT => Ok(Token::Struct),
-                KEY_ENUM => Ok(Token::Enum),
-                KEY_RETURN => Ok(Token::Return),
-                KEY_IF => Ok(Token::If),
-                KEY_ELSE => Ok(Token::Else),
-                KEY_WHILE => Ok(Token::While),
-                KEY_FOR => Ok(Token::For),
-                KEY_PUB => Ok(Token::Pub),
-                _ => Ok(Token::Ident(num_str.clone())),
+                KEY_FUNC => Ok(Func),
+                KEY_EXTERN => Ok(Extern),
+                KEY_VAR => Ok(Var),
+                KEY_CONST => Ok(Const),
+                KEY_STRUCT => Ok(Struct),
+                KEY_ENUM => Ok(Enum),
+                KEY_RETURN => Ok(Return),
+                KEY_IF => Ok(If),
+                KEY_ELSE => Ok(Else),
+                KEY_WHILE => Ok(While),
+                KEY_FOR => Ok(For),
+                KEY_PUB => Ok(Pub),
+                _ => Ok(Ident(num_str.clone())),
             }
         }
     }

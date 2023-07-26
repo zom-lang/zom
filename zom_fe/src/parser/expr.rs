@@ -1,22 +1,32 @@
 //! This module contains the parsing for expressions.
 
+use std::ops::RangeInclusive;
+
 use zom_common::error::parser::UnexpectedTokenError;
 use zom_common::token::Token;
 use zom_common::token::*;
 
-use crate::{expect_token, parse_try, FromContext};
+use crate::{expect_token, impl_span, parse_try, FromContext};
 
-use self::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
+use self::Expr::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
 use crate::parser::PartParsingResult::{Bad, Good, NotComplete};
 
 use crate::parser::PartParsingResult;
 
-use super::block::{BlockCodeExpr, parse_block_expr};
+use super::block::{parse_block_expr, BlockCodeExpr};
 use super::{error, ParserSettings, ParsingContext};
 
 #[derive(PartialEq, Clone, Debug)]
-pub enum Expression {
+pub struct Expression {
+    pub expr: Expr,
+    pub span: RangeInclusive<usize>,
+}
+
+impl_span!(Expression);
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum Expr {
     LiteralExpr(i32),
     VariableExpr(String),
     BinaryExpr {
@@ -31,15 +41,10 @@ pub enum Expression {
 impl Expression {
     pub fn is_semicolon_needed(&self) -> bool {
         match *self {
-            LiteralExpr(_) => true,
-            VariableExpr(_) => true,
-            BinaryExpr {
-                op: _,
-                rhs: _,
-                lhs: _,
-            } => true,
-            CallExpr(_, _) => true,
-            BlockExpr(_) => false,
+            Expression {
+                expr: BlockExpr(_), ..
+            } => false,
+            _ => true,
         }
     }
 }
@@ -50,10 +55,20 @@ pub(super) fn parse_primary_expr(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
     match tokens.last() {
-        Some(&Ident(_)) => parse_ident_expr(tokens, settings, context),
-        Some(&Int(_)) => parse_literal_expr(tokens, settings, context),
-        Some(&OpenParen) => parse_parenthesis_expr(tokens, settings, context),
-        Some(&OpenBrace) => parse_block_expr(tokens, settings, context),
+        Some(Token { tt: Ident(_), .. }) => parse_ident_expr(tokens, settings, context),
+        Some(Token { tt: Int(_), .. }) => parse_literal_expr(tokens, settings, context),
+        Some(Token { tt: OpenParen, .. }) => parse_parenthesis_expr(tokens, settings, context),
+        Some(Token { tt: OpenBrace, .. }) => match parse_block_expr(tokens, settings, context) {
+            Good((block, span), parsed_tokens) => Good(
+                Expression {
+                    expr: BlockExpr(block),
+                    span,
+                },
+                parsed_tokens,
+            ),
+            NotComplete => NotComplete,
+            Bad(err) => Bad(err),
+        },
         None => NotComplete,
         tok => error(Box::new(UnexpectedTokenError::from_context(
             context,
@@ -82,10 +97,16 @@ pub(super) fn parse_ident_expr(
         )))
     );
 
+    let start = *parsed_tokens.last().unwrap().span.start();
+
+    let end = *parsed_tokens.last().unwrap().span.end();
+
     expect_token!(
         context,
         [OpenParen, OpenParen, ()]
-        else {return Good(VariableExpr(name), parsed_tokens)}
+        else {return Good(
+            Expression { expr: VariableExpr(name), span: start..=end },
+            parsed_tokens)}
         <= tokens, parsed_tokens);
 
     let mut args = Vec::new();
@@ -116,7 +137,15 @@ pub(super) fn parse_ident_expr(
         );
     }
 
-    Good(CallExpr(name, args), parsed_tokens)
+    let end = *parsed_tokens.last().unwrap().span.end();
+
+    Good(
+        Expression {
+            expr: CallExpr(name, args),
+            span: start..=end,
+        },
+        parsed_tokens,
+    )
 }
 
 pub(super) fn parse_literal_expr(
@@ -137,8 +166,17 @@ pub(super) fn parse_literal_expr(
             tokens.last().unwrap().clone()
         )))
     );
+    let start = *parsed_tokens.last().unwrap().span.start();
 
-    Good(LiteralExpr(value), parsed_tokens)
+    let end = *parsed_tokens.last().unwrap().span.end();
+
+    Good(
+        Expression {
+            expr: LiteralExpr(value),
+            span: start..=end,
+        },
+        parsed_tokens,
+    )
 }
 
 pub(super) fn parse_parenthesis_expr(
@@ -147,8 +185,8 @@ pub(super) fn parse_parenthesis_expr(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
     // eat the opening parenthesis
+    let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
-    let mut parsed_tokens = vec![OpenParen];
 
     let expr = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
 
@@ -163,7 +201,7 @@ pub(super) fn parse_parenthesis_expr(
             tokens.last().unwrap().clone()
         )))
     );
-
+    // idk if the span is correct.
     Good(expr, parsed_tokens)
 }
 
@@ -183,6 +221,7 @@ pub(super) fn parse_expr(
         0,
         &lhs
     );
+    // idk if the span is correct.
     Good(expr, parsed_tokens)
 }
 
@@ -195,13 +234,16 @@ pub(super) fn parse_binary_expr(
 ) -> PartParsingResult<Expression> {
     // start with LHS value
     let mut result = lhs.clone();
-    let mut parsed_tokens = Vec::new();
+    let mut parsed_tokens: Vec<Token> = Vec::new();
 
     loop {
         // continue until the current token is not an operator
         // or it is an operator with precedence lesser than expr_precedence
         let (operator, precedence) = match tokens.last() {
-            Some(Operator(op)) => match settings.operator_precedence.get(op) {
+            Some(Token {
+                tt: Operator(op),
+                span: _,
+            }) => match settings.operator_precedence.get(op) {
                 Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
                 None => {
                     return error(Box::new(UnexpectedTokenError::from_context(
@@ -214,8 +256,8 @@ pub(super) fn parse_binary_expr(
             },
             _ => break,
         };
+        parsed_tokens.push(tokens.last().unwrap().clone());
         tokens.pop();
-        parsed_tokens.push(Operator(operator.clone()));
 
         // parse primary RHS expression
         let mut rhs = parse_try!(parse_primary_expr, tokens, settings, context, parsed_tokens);
@@ -224,7 +266,10 @@ pub(super) fn parse_binary_expr(
         // bigger than the current one
         loop {
             let binary_rhs = match tokens.last().cloned() {
-                Some(Operator(ref op)) => match settings.operator_precedence.get(op).copied() {
+                Some(Token {
+                    tt: Operator(ref op),
+                    span: _,
+                }) => match settings.operator_precedence.get(op).copied() {
                     Some(pr) if pr > precedence => {
                         parse_try!(
                             parse_binary_expr,
@@ -252,10 +297,13 @@ pub(super) fn parse_binary_expr(
         }
 
         // merge LHS and RHS
-        result = BinaryExpr {
-            op: operator,
-            lhs: Box::new(result),
-            rhs: Box::new(rhs),
+        result = Expression {
+            expr: BinaryExpr {
+                op: operator,
+                lhs: Box::new(result),
+                rhs: Box::new(rhs.clone()),
+            },
+            span: *lhs.span.start()..=*rhs.span.end(),
         };
     }
 

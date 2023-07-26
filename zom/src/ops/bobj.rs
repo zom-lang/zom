@@ -2,7 +2,7 @@ use std::{fs, mem, path::PathBuf};
 
 use anyhow::anyhow;
 use inkwell::{context::Context, passes::PassManager};
-use zom_codegen::gen::CodeGen;
+// use zom_codegen::gen::CodeGen;
 use zom_compiler::compiler::Compiler;
 use zom_fe::{
     lexer::Lexer,
@@ -94,7 +94,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
     });
 
     let context = Context::create();
-    let module = context.create_module("repl");
+    let module = context.create_module(args.source_file.to_str().unwrap());
     let builder = context.create_builder();
 
     // Create FPM
@@ -111,40 +111,41 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
 
     fpm.initialize();
 
-    let module = context.create_module(mem::take(
-        &mut args.source_file.as_mut_os_str().to_str().unwrap(),
-    ));
+    todo!()
+    // let module = context.create_module(mem::take(
+    //     &mut args.source_file.as_mut_os_str().to_str().unwrap(),
+    // ));
 
-    let gen_res = CodeGen::compile_ast(&context, &builder, &fpm, &module, &ast);
+    // let gen_res = CodeGen::compile_ast(&context, &builder, &fpm, &module, &ast);
 
-    match gen_res {
-        Ok(_) => {
-            args.verbose.then(|| {
-                println!("[+] Successfully generate the code.");
-            });
-            if args.emit_ir {
-                match module.print_to_file(args.output_file.clone().unwrap().as_path()) {
-                    Ok(_) => {}
-                    Err(err) => return Err(anyhow!(format!("{}", err))),
-                }
-                args.verbose.then(|| {
-                    println!("Wrote the result to {:?}!", args.output_file.unwrap());
-                });
-                return Ok(ExitStatus::Success);
-            }
-            match args.output_file {
-                Some(ref path) => {
-                    Compiler::compile_default(module, path)
-                        .expect("Couldn't compile to object file");
-                    args.verbose.then(|| {
-                        println!("[+] Successfully compile the code.");
-                    });
-                    println!("Wrote result to {:?}!", path);
-                    Ok(ExitStatus::Success)
-                }
-                None => Err(anyhow!("Couldn't unwrap the file path")),
-            }
-        }
-        Err(err) => Err(anyhow!(format!("{}", err))),
-    }
+    // match gen_res {
+    //     Ok(_) => {
+    //         args.verbose.then(|| {
+    //             println!("[+] Successfully generate the code.");
+    //         });
+    //         if args.emit_ir {
+    //             match module.print_to_file(args.output_file.clone().unwrap().as_path()) {
+    //                 Ok(_) => {}
+    //                 Err(err) => return Err(anyhow!(format!("{}", err))),
+    //             }
+    //             args.verbose.then(|| {
+    //                 println!("Wrote the result to {:?}!", args.output_file.unwrap());
+    //             });
+    //             return Ok(ExitStatus::Success);
+    //         }
+    //         match args.output_file {
+    //             Some(ref path) => {
+    //                 Compiler::compile_default(module, path)
+    //                     .expect("Couldn't compile to object file");
+    //                 args.verbose.then(|| {
+    //                     println!("[+] Successfully compile the code.");
+    //                 });
+    //                 println!("Wrote result to {:?}!", path);
+    //                 Ok(ExitStatus::Success)
+    //             }
+    //             None => Err(anyhow!("Couldn't unwrap the file path")),
+    //         }
+    //     }
+    //     Err(err) => Err(anyhow!(format!("{}", err))),
+    // }
 }

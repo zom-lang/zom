@@ -1,31 +1,52 @@
 //! This module is responsible for the parsing of types.
 
-use zom_common::{
-    error::parser::UnexpectedTokenError,
-    token::Token,
-};
+use std::ops::RangeInclusive;
 
-use crate::{expect_token, parser::error, FromContext};
+use zom_common::{error::parser::UnexpectedTokenError, token::Token};
 
-use super::{
-    expr::Expression,
-    ParserSettings, ParsingContext, PartParsingResult,
-};
+use crate::{expect_token, impl_span, parser::error, FromContext};
 
-pub use self::Expression::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
+use super::{ParserSettings, ParsingContext, PartParsingResult};
 
 use self::PartParsingResult::{Good, NotComplete};
 
 use zom_common::token::*;
 
 #[derive(PartialEq, Clone, Debug)]
-pub enum Type {
+pub struct Type {
+    pub type_variant: TypeVariant,
+    pub span: RangeInclusive<usize>,
+}
+
+impl_span!(Type);
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum TypeVariant {
     PrimitiveType(PrimitiveType),
 }
 
+/// A macro to facilitate the match in the `parse_primitive_type` function.
+macro_rules! match_primitype {
+    ( $name:expr, $ptoken:expr, $([$typename:pat => $primitive_type:expr]),* ) => (
+        match $name {
+            $(
+                $typename => Good(
+                    Type {
+                        type_variant: TypeVariant::PrimitiveType($primitive_type),
+                        span: $ptoken.last().unwrap().span.clone()
+                    },
+                    $ptoken
+                ),
+            )*
+            _ => panic!("NEED TO REMAKE THE ERROR SYSTEM #4")
+        }
+    );
+}
 
+// For now, PrimitiveType doesn't store the span because no error requires it to.
 #[derive(PartialEq, Clone, Debug)]
 pub enum PrimitiveType {
+    Void,
     Bool,
 
     // Int unsigned
@@ -54,9 +75,10 @@ pub enum PrimitiveType {
     Char,
 
     // String slice
-    Str, 
+    Str,
 }
 
+pub const VOID_TYPE_NAME: &str = "void";
 pub const BOOL_TYPE_NAME: &str = "bool";
 
 pub const U8_TYPE_NAME: &str = "u8";
@@ -87,7 +109,7 @@ pub(super) fn parse_type(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Type> {
     match tokens.last() {
-        Some(&Ident(_)) => parse_primitive_type(tokens, settings, context),
+        Some(Token { tt: Ident(_), .. }) => parse_primitive_type(tokens, settings, context),
         None => NotComplete,
         tok => error(Box::new(UnexpectedTokenError::from_context(
             context,
@@ -115,30 +137,34 @@ fn parse_primitive_type(
         )))
     );
 
-    match name.as_str() {
-        BOOL_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::Bool), parsed_tokens),
+    use PrimitiveType::*;
 
-        U8_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::U8), parsed_tokens),
-        U16_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::U16), parsed_tokens),
-        U32_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::U32), parsed_tokens),
-        U64_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::U64), parsed_tokens),
-        U128_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::U128), parsed_tokens),
-        USIZE_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::USize), parsed_tokens),
+    match_primitype!(
+        name.as_str(),
+        parsed_tokens,
+        [BOOL_TYPE_NAME => Bool],
+        [VOID_TYPE_NAME => Void],
 
-        I8_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::I8), parsed_tokens),
-        I16_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::I16), parsed_tokens),
-        I32_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::I32), parsed_tokens),
-        I64_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::I64), parsed_tokens),
-        I128_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::I128), parsed_tokens),
-        ISIZE_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::ISize), parsed_tokens),
+        [U8_TYPE_NAME => U8],
+        [U16_TYPE_NAME => U16],
+        [U32_TYPE_NAME => U32],
+        [U64_TYPE_NAME => U64],
+        [U128_TYPE_NAME => U128],
+        [USIZE_TYPE_NAME => USize],
 
-        F16_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::F16), parsed_tokens),
-        F32_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::F32), parsed_tokens),
-        F64_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::F64), parsed_tokens),
-        F128_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::F128), parsed_tokens),
+        [I8_TYPE_NAME => I8],
+        [I16_TYPE_NAME => I16],
+        [I32_TYPE_NAME => I32],
+        [I64_TYPE_NAME => I64],
+        [I128_TYPE_NAME => I128],
+        [ISIZE_TYPE_NAME => ISize],
 
-        CHAR_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::Char), parsed_tokens),
-        STR_TYPE_NAME => Good(Type::PrimitiveType(PrimitiveType::Str), parsed_tokens),
-        _ => panic!("NEED TO REMAKE THE ERROR SYSTEM")
-    }
+        [F16_TYPE_NAME => F16],
+        [F32_TYPE_NAME => F32],
+        [F64_TYPE_NAME => F64],
+        [F128_TYPE_NAME => F128],
+
+        [CHAR_TYPE_NAME => Char],
+        [STR_TYPE_NAME => Str]
+    )
 }
