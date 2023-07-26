@@ -7,7 +7,7 @@ use zom_common::{
 
 use crate::{
     expect_token, impl_span, parse_try,
-    parser::{error, statement::parse_statement},
+    parser::{error, statement::{parse_statement, Stmt}},
     token_parteq, FromContext,
 };
 
@@ -52,12 +52,12 @@ pub(super) fn parse_block_expr(
 
         if !token_parteq!(tokens.last(), &SemiColon)
             && token_parteq!(tokens.last(), &CloseBrace)
-            && match stmt {
-                Statement::Expr(_) => true,
+            && match stmt.stmt {
+                Stmt::Expr(_) => true,
                 _ => false,
             }
         {
-            if let Statement::Expr(ref e) = stmt {
+            if let Stmt::Expr(ref e) = stmt.stmt {
                 returned_expr = Some(Box::new(e.clone()))
             }
             break;
