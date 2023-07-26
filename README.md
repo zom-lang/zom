@@ -3,6 +3,7 @@
 [![lines of code](https://tokei.rs/b1/github/zom-lang/zom)](https://github.com/Aaronepower/tokei)
 [![License][licence-badge]](https://github.com/zom-lang/zom/tree/main#license)
 [![Rust tests](https://github.com/zom-lang/zom/actions/workflows/rust.yml/badge.svg)](https://github.com/zom-lang/zom/actions/workflows/rust.yml)
+[![discord server](https://img.shields.io/discord/1115546838729240596?label=Discord%20Server&color=5765F2)](https://discord.gg/pcDknYP9Bf)
 
 [licence-badge]: https://img.shields.io/badge/License-%20Apache--2.0%20with%20LLVM--Exception-lightblue
 
@@ -46,14 +47,6 @@ To build the source code of Zom, there are three steps :
 1. Clone the repository / download the source code
 2. Build with Cargo, in the root of the repository, `cargo build --all-targets --release`
 3. The binary, now is in `./target/release/zom`, you can put it in your binary folder, use it like that etc...
-
-## Work to be done :
-- [x] Lexer
-- [x] Parser
-- [x] A AOT compiler
-- [ ] A good error system for the parser and the compiler -> https://github.com/zom-lang/zom/issues/4
-- [ ] Implement the docs ;)
-
 ## Source layout:
 ```
 Cargo.toml               - Manifest for Cargo workspace

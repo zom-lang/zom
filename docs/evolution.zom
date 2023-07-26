@@ -3,10 +3,10 @@ This is an example code of Zom Code It is not very
 usefull but that shows how it WILL probably work
  *)
 
-const Error = @import(std::error::Error);
-const sin = @import(std::math::sin);
+const Error = @import("std")::error::Error;
+const sin = @import("std")::math::sin;
 
-const _ = @import(std::c_ffi::*); # This import all symbols of `std::c_ffi` with the original symbols names.
+const _ = @import("std")::cffi::*; # This import all symbols of `std::c_ffi` with the original symbols names.
 
 # Extern function with `C` calling convention
 extern "C" func power(num: c_int, pow: c_int) c_int;
@@ -123,7 +123,6 @@ pub: const Token = enum {
 (* A sub module from a file, in this case `sub_module` *)
 pub: const mod_from_file = module "sub_module";
 
-
 pub: const mod_in_same_file = module {
     func foo_bar() str {
         "foo bar"
@@ -132,7 +131,7 @@ pub: const mod_in_same_file = module {
 
 # Imagine in an other package
 
-const expr = @import(core::comptime::expr);
+const expr = @import("core")::comptime::expr;
 
 (* This is the definition of a comptime function, it can be used in Zom source code.
    At compile time (comptime) the compiler will compile and call this function, this is
@@ -203,11 +202,41 @@ comptime {
 const testPacked = packed struct {
     # ...
 }
+
 # A `packed` struct is like the keyword `packed` in LLVM, it's a struct where the size is the size of all fields without any padding / offset. (I think ..)
+
 
 (**
  * Simple doc comment
  * :)
  *)
 func foo(bar: i32) void { (* ... *) }
+
+
+func foo() void {
+    var test: u32 = undefined; # test is undefined you can use it because the compiler will throw a compile-time error. 
+    #If you define a var / const with `undefined`, you must annotate the type.
+
+    const array: u32[5] = [0, 1, 2, 3, 4]; # A known-size array of type `u32`
+    # access of an element :
+    @println("zero : {}", array[0]);
+
+    const arr2: u32[_] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; # The compiler will find out at compile time the length of the known-size array.
+
+    const nested_array: u32[2][2] = [[1, 2], [3, 4]]; # A two-dimensional known-size array.
+    # access of an element in two dimensional array :
+    @println("three : {}", array[1][0]);
+
+    var slice: &u32[] = &[1, 2, 3, 4, 5]; # because a slice doesn't have a compile-time known size, You must borrow it or store it into the heap. size of 5 * u32 (some padding maybe added by LLVM but the principle is here)
+    # to access an element, it's the same as for arrays:
+    @println("one : {}", array[0]);
+
+    # because it's length is known at runtime you can change (if it's in a var) the content and the size :
+    slice = &[6, 5, 4, 3, 2, 1]; # -> size of 6 * u32
+}
+
+const structWithGeneric = struct<T, U> {
+    a: T,
+    b: U
+};
 
