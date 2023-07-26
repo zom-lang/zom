@@ -23,12 +23,12 @@ pub enum Stmt {
     Expr(Expression),
     Var {
         name: String,
-        type_: Option<Type>,
+        ty: Option<Type>,
         expr: Expression,
     },
     Const {
         name: String,
-        type_: Option<Type>,
+        ty: Option<Type>,
         expr: Expression,
     },
     Return,
