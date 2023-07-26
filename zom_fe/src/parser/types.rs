@@ -1,8 +1,10 @@
 //! This module is responsible for the parsing of types.
 
+use std::ops::RangeInclusive;
+
 use zom_common::{error::parser::UnexpectedTokenError, token::Token};
 
-use crate::{expect_token, parser::error, FromContext};
+use crate::{expect_token, parser::error, FromContext, impl_span};
 
 use super::{ParserSettings, ParsingContext, PartParsingResult};
 
@@ -10,8 +12,17 @@ use self::PartParsingResult::{Good, NotComplete};
 
 use zom_common::token::*;
 
+
 #[derive(PartialEq, Clone, Debug)]
-pub enum Type {
+pub struct Type {
+    pub type_variant: TypeVariant,
+    pub span: RangeInclusive<usize>,
+}
+
+impl_span!(Type);
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum TypeVariant {
     PrimitiveType(PrimitiveType),
 }
 
@@ -20,7 +31,13 @@ macro_rules! match_primitype {
     ( $name:expr, $ptoken:expr, $([$typename:pat => $primitive_type:expr]),* ) => (
         match $name {
             $(
-                $typename => Good(Type::PrimitiveType($primitive_type), $ptoken),
+                $typename => Good(
+                    Type {
+                        type_variant: TypeVariant::PrimitiveType($primitive_type),
+                        span: $ptoken.last().unwrap().span.clone()
+                    },
+                    $ptoken
+                ),
             )*
             _ => panic!("NEED TO REMAKE THE ERROR SYSTEM #4")
         }
