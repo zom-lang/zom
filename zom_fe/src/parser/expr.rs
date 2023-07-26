@@ -2,11 +2,10 @@
 
 use std::ops::RangeInclusive;
 
-use zom_common::error::parser::UnexpectedTokenError;
 use zom_common::token::Token;
 use zom_common::token::*;
 
-use crate::{expect_token, impl_span, parse_try, FromContext};
+use crate::{expect_token, impl_span, parse_try};
 
 use self::Expr::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
@@ -15,7 +14,7 @@ use crate::parser::PartParsingResult::{Bad, Good, NotComplete};
 use crate::parser::PartParsingResult;
 
 use super::block::{parse_block_expr, BlockCodeExpr};
-use super::{error, ParserSettings, ParsingContext};
+use super::{ParserSettings, ParsingContext};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Expression {
@@ -70,11 +69,13 @@ pub(super) fn parse_primary_expr(
             Bad(err) => Bad(err),
         },
         None => NotComplete,
-        tok => error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            format!("unknow token when expecting an expression, found {:?}", tok),
-            tokens.last().unwrap().clone(),
-        ))),
+        _ => 
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     format!("unknow token when expecting an expression, found {:?}", tok),
+        //     tokens.last().unwrap().clone(),
+        // ))),
+        todo!("Error system is in rework.")
     }
 }
 
@@ -90,11 +91,12 @@ pub(super) fn parse_ident_expr(
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
         // "identificator expected"
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "identificator expected".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     "identificator expected".to_owned(),
+        //     tokens.last().unwrap().clone()
+        // )))
+        todo!("Error system is in rework.")
     );
 
     let start = *parsed_tokens.last().unwrap().span.start();
@@ -126,14 +128,15 @@ pub(super) fn parse_ident_expr(
             CloseParen, CloseParen, break
         ] <= tokens,
              parsed_tokens,
-            error(
-                Box::new(UnexpectedTokenError::from_context(
-                    context,
-                    "Expected ',' in function call"
-                        .to_owned(),
-                    tokens.last().unwrap().clone()
-                ))
-            )
+            // error(
+            //     Box::new(UnexpectedTokenError::from_context(
+            //         context,
+            //         "Expected ',' in function call"
+            //             .to_owned(),
+            //         tokens.last().unwrap().clone()
+            //     ))
+            // )
+            todo!("Error system is in rework.")
         );
     }
 
@@ -159,12 +162,12 @@ pub(super) fn parse_literal_expr(
         context,
         [Int(val), Int(val), val] <= tokens,
         parsed_tokens,
-        // "literal expected"
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "Literal expected".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     "Literal expected".to_owned(),
+        //     tokens.last().unwrap().clone()
+        // )))
+        todo!("Error system is in rework.")
     );
     let start = *parsed_tokens.last().unwrap().span.start();
 
@@ -194,12 +197,12 @@ pub(super) fn parse_parenthesis_expr(
         context,
         [CloseParen, CloseParen, ()] <= tokens,
         parsed_tokens,
-        // "')' expected"
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "Expected ')' in parenthesis expression".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     "Expected ')' in parenthesis expression".to_owned(),
+        //     tokens.last().unwrap().clone()
+        // )))
+        todo!("Error system is in rework.")
     );
     // idk if the span is correct.
     Good(expr, parsed_tokens)
@@ -245,13 +248,13 @@ pub(super) fn parse_binary_expr(
                 span: _,
             }) => match settings.operator_precedence.get(op) {
                 Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
-                None => {
-                    return error(Box::new(UnexpectedTokenError::from_context(
-                        context,
-                        "Unknown operator found".to_owned(),
-                        tokens.last().unwrap().clone(),
-                    )))
-                }
+                None => 
+                    // return error(Box::new(UnexpectedTokenError::from_context(
+                    //     context,
+                    //     "Unknown operator found".to_owned(),
+                    //     tokens.last().unwrap().clone(),
+                    // )))
+                    todo!("Error system is in rework."),
                 _ => break,
             },
             _ => break,
@@ -281,13 +284,13 @@ pub(super) fn parse_binary_expr(
                             &rhs
                         )
                     }
-                    None => {
-                        return error(Box::new(UnexpectedTokenError::from_context(
-                            context,
-                            "unknown operator found".to_owned(),
-                            tokens.last().unwrap().clone(),
-                        )))
-                    }
+                    None => 
+                        // return error(Box::new(UnexpectedTokenError::from_context(
+                        //     context,
+                        //     "unknown operator found".to_owned(),
+                        //     tokens.last().unwrap().clone(),
+                        // )))
+                        todo!("Error system is in rework."),
                     _ => break,
                 },
                 _ => break,

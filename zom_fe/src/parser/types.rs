@@ -2,9 +2,9 @@
 
 use std::ops::RangeInclusive;
 
-use zom_common::{error::parser::UnexpectedTokenError, token::Token};
+use zom_common::token::Token;
 
-use crate::{expect_token, impl_span, parser::error, FromContext};
+use crate::{expect_token, impl_span};
 
 use super::{ParserSettings, ParsingContext, PartParsingResult};
 
@@ -111,11 +111,12 @@ pub(super) fn parse_type(
     match tokens.last() {
         Some(Token { tt: Ident(_), .. }) => parse_primitive_type(tokens, settings, context),
         None => NotComplete,
-        tok => error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            format!("unknow token when expecting a type, found {:?}", tok),
-            tokens.last().unwrap().clone(),
-        ))),
+        _ => todo!("Error system is in rework.")
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     format!("unknow token when expecting a type, found {:?}", tok),
+        //     tokens.last().unwrap().clone(),
+        // ))),
     }
 }
 
@@ -130,11 +131,12 @@ fn parse_primitive_type(
         context,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "Type name expected".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     "Type name expected".to_owned(),
+        //     tokens.last().unwrap().clone()
+        // )))
+        todo!("Error system is in rework.")
     );
 
     use PrimitiveType::*;

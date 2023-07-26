@@ -2,12 +2,11 @@
 
 use std::ops::RangeInclusive;
 
-use zom_common::{error::parser::UnexpectedTokenError, token::Token};
+use zom_common:: token::Token;
 
 use crate::{
     expect_token, impl_span, parse_try,
-    parser::{error, types::parse_type},
-    FromContext,
+    parser::types::parse_type,
 };
 
 use super::{
@@ -107,11 +106,12 @@ pub(super) fn parse_prototype(
         context,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "Expected function name in prototype".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     "Expected function name in prototype".to_owned(),
+        //     tokens.last().unwrap().clone()
+        // )))
+        todo!("Error system is in rework.")
     );
 
     let start = *parsed_tokens.last().unwrap().span.start();
@@ -120,11 +120,12 @@ pub(super) fn parse_prototype(
         context,
         [OpenParen, OpenParen, ()] <= tokens,
         parsed_tokens,
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "Expected '(' in prototype".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     "Expected '(' in prototype".to_owned(),
+        //     tokens.last().unwrap().clone()
+        // )))
+        todo!("Error system is in rework.")
     );
 
     let mut args = Vec::new();
@@ -136,14 +137,15 @@ pub(super) fn parse_prototype(
             CloseParen, CloseParen, break
         ] <= tokens,
              parsed_tokens,
-            error(
-                Box::new(UnexpectedTokenError::from_context(
-                    context,
-                    "Expected an identifier in prototype"
-                        .to_owned(),
-                    tokens.last().unwrap().clone()
-                ))
-            )
+            // error(
+            //     Box::new(UnexpectedTokenError::from_context(
+            //         context,
+            //         "Expected an identifier in prototype"
+            //             .to_owned(),
+            //         tokens.last().unwrap().clone()
+            //     ))
+            // )
+            todo!("Error system is in rework.")
         );
         let start = *parsed_tokens.last().unwrap().span.start();
 
@@ -151,11 +153,12 @@ pub(super) fn parse_prototype(
             context,
             [Colon, Colon, {}] <= tokens,
             parsed_tokens,
-            error(Box::new(UnexpectedTokenError::from_context(
-                context,
-                "Expected ':' in argument of a prototype".to_owned(),
-                tokens.last().unwrap().clone()
-            )))
+            // error(Box::new(UnexpectedTokenError::from_context(
+            //     context,
+            //     "Expected ':' in argument of a prototype".to_owned(),
+            //     tokens.last().unwrap().clone()
+            // )))
+            todo!("Error system is in rework.")
         );
         let type_arg = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
         let end = *parsed_tokens.last().unwrap().span.end();
@@ -172,14 +175,15 @@ pub(super) fn parse_prototype(
             CloseParen, CloseParen, break
         ] <= tokens,
              parsed_tokens,
-            error(
-                Box::new(UnexpectedTokenError::from_context(
-                    context,
-                    "Expected ',' in prototype"
-                        .to_owned(),
-                    tokens.last().unwrap().clone()
-                ))
-            )
+            // error(
+            //     Box::new(UnexpectedTokenError::from_context(
+            //         context,
+            //         "Expected ',' in prototype"
+            //             .to_owned(),
+            //         tokens.last().unwrap().clone()
+            //     ))
+            // )
+            todo!("Error system is in rework.")
         );
     }
 

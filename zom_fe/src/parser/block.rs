@@ -1,17 +1,11 @@
 use std::ops::RangeInclusive;
 
-use zom_common::{
-    error::parser::UnexpectedTokenError,
-    token::{Token, TokenType::*},
-};
+use zom_common::token::{Token, TokenType::*};
 
 use crate::{
     expect_token, impl_span, parse_try,
-    parser::{
-        error,
-        statement::{parse_statement, Stmt},
-    },
-    token_parteq, FromContext,
+    parser::statement::{parse_statement, Stmt},
+    token_parteq,
 };
 
 use super::{
@@ -73,11 +67,12 @@ pub(super) fn parse_block_expr(
                 context,
                 [SemiColon, SemiColon, ()] <= tokens,
                 parsed_tokens,
-                error(Box::new(UnexpectedTokenError::from_context(
-                    context,
-                    "Expected ';'".to_owned(),
-                    tokens.last().unwrap().clone()
-                )))
+                // error(Box::new(UnexpectedTokenError::from_context(
+                //     context,
+                //     "Expected ';'".to_owned(),
+                //     tokens.last().unwrap().clone()
+                // )))
+                todo!("Error system is in rework.")
             );
         }
     }
@@ -86,11 +81,12 @@ pub(super) fn parse_block_expr(
         context,
         [CloseBrace, CloseBrace, ()] <= tokens,
         parsed_tokens,
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "Expected '}'".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     "Expected '}'".to_owned(),
+        //     tokens.last().unwrap().clone()
+        // )))
+        todo!("Error system is in rework.")
     );
 
     let end = *parsed_tokens.last().unwrap().span.end();

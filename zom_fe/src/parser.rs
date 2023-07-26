@@ -5,12 +5,9 @@
 use std::collections::HashMap;
 use std::ops::RangeInclusive;
 
-use zom_common::error::parser::UnexpectedTokenError;
 use zom_common::error::ZomError;
 use zom_common::token::Token;
 use zom_common::token::*;
-
-use crate::FromContext;
 
 pub use self::ASTNode::FunctionNode;
 
@@ -36,14 +33,10 @@ pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), Box<dyn ZomError>>;
 pub type ParsingResult2 = Result<Vec<ASTNode>, Vec<Box<dyn ZomError>>>;
 
 #[derive(Debug)]
-enum PartParsingResult<T> {
+pub enum PartParsingResult<T> {
     Good(T, Vec<Token>),
     NotComplete,
     Bad(Box<dyn ZomError>),
-}
-
-fn error<T>(err: Box<dyn ZomError>) -> PartParsingResult<T> {
-    Bad(err)
 }
 
 #[derive(Debug)]
@@ -125,12 +118,13 @@ pub fn parse(
         let result = match cur_token.tt {
             Func => parse_function(&mut rest, settings, context),
             Extern => parse_extern(&mut rest, settings, context),
-            _ => Bad(Box::new(UnexpectedTokenError::from_context(
-                context,
-                "Expected a function definition or a declaration of an external function."
-                    .to_owned(),
-                cur_token.clone(),
-            ))),
+            _ => todo!("Error system is in rework.")
+            // Bad(Box::new(UnexpectedTokenError::from_context(
+            //     context,
+            //     "Expected a function definition or a declaration of an external function."
+            //         .to_owned(),
+            //     cur_token.clone(),
+            // ))),
         };
         match result {
             Good(ast_node, _) => ast.push(ast_node),

@@ -6,10 +6,6 @@ use std::error::Error;
 use std::iter::Peekable;
 use std::str::Chars;
 
-use std::mem;
-
-use zom_common::error::lexer::IllegalCharError;
-use zom_common::error::Position;
 use zom_common::token::Token;
 
 use zom_common::token::is_start_operator;
@@ -163,18 +159,18 @@ impl<'a> Lexer<'a> {
                     self.incr_pos();
                     continue;
                 }
-                _ => {
-                    return Err(Box::new(IllegalCharError::new(
-                        Position::new(
-                            self.pos,
-                            self.line,
-                            self.column,
-                            mem::take(&mut self.filename),
-                            mem::take(&mut self.text),
-                        ),
-                        ch,
-                    )));
-                }
+                _ => 
+                    // return Err(Box::new(IllegalCharError::new(
+                    //     Position::new(
+                    //         self.pos,
+                    //         self.line,
+                    //         self.column,
+                    //         mem::take(&mut self.filename),
+                    //         mem::take(&mut self.text),
+                    //     ),
+                    //     ch,
+                    // )));
+                    todo!("Error system is in rework.")
             }
         }
 

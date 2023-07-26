@@ -5,10 +5,6 @@
 use std::error::Error;
 use std::fmt::{self, Display};
 
-pub mod internal;
-pub mod lexer;
-pub mod parser;
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum ErrorKind {
     Lexer,
