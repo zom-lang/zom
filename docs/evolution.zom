@@ -240,3 +240,23 @@ const structWithGeneric = struct<T, U> {
     b: U
 };
 
+/// Struct with a generic-like type, T. A comptime type.
+const FooBarBaz = struct {
+    comptime T: type,
+    where
+        T: 'static // We can constrain what T can be
+    foo: T,
+    bar: T,
+    baz: T,
+}
+
+/// Struct with explicit life time when the borrow checker can't figure out the lifetimes :
+const List = struct {
+    lifetime a: Self, // where after the colon is the scope of the lifetime, you can use the `Self`
+                      // type (current type in a struct definition) to tell the borrow checker the
+                      // `child`'s reference will live like the List struct.
+
+    value: u32,
+    child: &'a List,
+}
+
