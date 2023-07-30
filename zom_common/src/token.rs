@@ -117,40 +117,40 @@ pub fn is_operator(maybe_op: &str) -> (bool, usize) {
 }
 
 /// const for the keyword `func`
-pub const KEY_FUNC: &str = "func";
+pub const KW_FUNC: &str = "func";
 
 /// const for the keyword `extern`
-pub const KEY_EXTERN: &str = "extern";
+pub const KW_EXTERN: &str = "extern";
 
 /// const for the keyword `let`
-pub const KEY_VAR: &str = "var";
+pub const KW_VAR: &str = "var";
 
 /// const for the keyword `const`
-pub const KEY_CONST: &str = "const";
+pub const KW_CONST: &str = "const";
 
 /// const for the keyword `struct`
-pub const KEY_STRUCT: &str = "struct";
+pub const KW_STRUCT: &str = "struct";
 
 /// const for the keyword `enum`
-pub const KEY_ENUM: &str = "enum";
+pub const KW_ENUM: &str = "enum";
 
 /// const for the keyword `enum`
-pub const KEY_RETURN: &str = "return";
+pub const KW_RETURN: &str = "return";
 
 /// const for the keyword `if`
-pub const KEY_IF: &str = "if";
+pub const KW_IF: &str = "if";
 
 /// const for the keyword `else`
-pub const KEY_ELSE: &str = "else";
+pub const KW_ELSE: &str = "else";
 
 /// const for the keyword `while`
-pub const KEY_WHILE: &str = "while";
+pub const KW_WHILE: &str = "while";
 
 /// const for the keyword `for`
-pub const KEY_FOR: &str = "for";
+pub const KW_FOR: &str = "for";
 
 /// const for the keyword `pub`
-pub const KEY_PUB: &str = "pub";
+pub const KW_PUB: &str = "pub";
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {

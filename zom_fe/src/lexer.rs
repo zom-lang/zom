@@ -231,18 +231,18 @@ impl<'a> Lexer<'a> {
             }
         } else {
             match num_str.as_str() {
-                KEY_FUNC => Ok(Func),
-                KEY_EXTERN => Ok(Extern),
-                KEY_VAR => Ok(Var),
-                KEY_CONST => Ok(Const),
-                KEY_STRUCT => Ok(Struct),
-                KEY_ENUM => Ok(Enum),
-                KEY_RETURN => Ok(Return),
-                KEY_IF => Ok(If),
-                KEY_ELSE => Ok(Else),
-                KEY_WHILE => Ok(While),
-                KEY_FOR => Ok(For),
-                KEY_PUB => Ok(Pub),
+                KW_FUNC => Ok(Func),
+                KW_EXTERN => Ok(Extern),
+                KW_VAR => Ok(Var),
+                KW_CONST => Ok(Const),
+                KW_STRUCT => Ok(Struct),
+                KW_ENUM => Ok(Enum),
+                KW_RETURN => Ok(Return),
+                KW_IF => Ok(If),
+                KW_ELSE => Ok(Else),
+                KW_WHILE => Ok(While),
+                KW_FOR => Ok(For),
+                KW_PUB => Ok(Pub),
                 _ => Ok(Ident(num_str.clone())),
             }
         }
