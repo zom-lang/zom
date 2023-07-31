@@ -159,18 +159,20 @@ impl<'a> Lexer<'a> {
                     self.incr_pos();
                     continue;
                 }
-                _ => 
-                    // return Err(Box::new(IllegalCharError::new(
-                    //     Position::new(
-                    //         self.pos,
-                    //         self.line,
-                    //         self.column,
-                    //         mem::take(&mut self.filename),
-                    //         mem::take(&mut self.text),
-                    //     ),
-                    //     ch,
-                    // )));
+                _ =>
+                // return Err(Box::new(IllegalCharError::new(
+                //     Position::new(
+                //         self.pos,
+                //         self.line,
+                //         self.column,
+                //         mem::take(&mut self.filename),
+                //         mem::take(&mut self.text),
+                //     ),
+                //     ch,
+                // )));
+                {
                     todo!("Error system is in rework.")
+                }
             }
         }
 

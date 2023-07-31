@@ -122,28 +122,35 @@ impl Position {
 
     /// Return a position from the index, the range, the filetext and the filename.
     /// Can return `None` if the range's start position is greater that its end position.
-    pub fn try_from_range(index: usize, range: RangeInclusive<usize>, filetext: String, filename: String) -> Option<Position> {
+    pub fn try_from_range(
+        index: usize,
+        range: RangeInclusive<usize>,
+        filetext: String,
+        filename: String,
+    ) -> Option<Position> {
         let start_position = *range.start();
         let end_position = *range.end();
         let file_content = filetext.clone();
-    
+
         // Ensure positions are positive and start is less than or equal to end
         if start_position > end_position {
             return None;
         }
-    
+
         let mut line_number = 1;
         let mut column_number = 1;
         let mut current_position = 0;
-    
+
         for line in file_content.lines() {
             let line_length = line.len();
-    
-            if current_position <= start_position && start_position <= current_position + line_length {
+
+            if current_position <= start_position
+                && start_position <= current_position + line_length
+            {
                 column_number = start_position - current_position + 1;
                 break;
             }
-    
+
             current_position += line_length + 1; // Add 1 for the newline character
             line_number += 1;
         }
@@ -167,9 +174,13 @@ pub struct ZomError {
 
 impl ZomError {
     pub fn new(location: Option<Position>, details: String, is_warning: bool) -> ZomError {
-        ZomError { location, details, is_warning }
+        ZomError {
+            location,
+            details,
+            is_warning,
+        }
     }
-    
+
     /// Return the position of the error, if it's none, it will panic.
     pub fn pos(&self) -> &Position {
         self.try_pos().unwrap()
@@ -200,15 +211,26 @@ impl Display for ZomError {
         }
 
         if self.has_pos() {
-            writeln!(f, "  --> {}:{}:{}", self.pos().filename, self.pos().line, self.pos().column)?;
+            writeln!(
+                f,
+                "  --> {}:{}:{}",
+                self.pos().filename,
+                self.pos().line,
+                self.pos().column
+            )?;
             let mut margin = 3;
             let mut line_str = self.pos().line.to_string();
             if line_str.len() > margin {
                 margin += line_str.len() - margin + 1;
             }
-            writeln!(f, "{}|",spaces(margin))?;
-            writeln!(f, "{}| {:?}", str_fix_len(line_str, margin), self.pos().filetext.lines().nth(self.pos().line))?;
-            writeln!(f, "{}|",spaces(margin))?;
+            writeln!(f, "{}|", spaces(margin))?;
+            writeln!(
+                f,
+                "{}| {:?}",
+                str_fix_len(line_str, margin),
+                self.pos().filetext.lines().nth(self.pos().line)
+            )?;
+            writeln!(f, "{}|", spaces(margin))?;
         }
         Ok(())
     }

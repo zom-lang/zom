@@ -1,10 +1,10 @@
 use anyhow::anyhow;
-use zom_common::error::{ZomError, Position};
 use std::io::{
     // self,
     stdout,
     Write,
 };
+use zom_common::error::{Position, ZomError};
 use zom_fe::lexer::Lexer;
 use zom_fe::parser::{parse, ParserSettings, ParsingContext};
 
@@ -13,24 +13,28 @@ use crate::ExitStatus;
 pub fn dev() -> Result<ExitStatus, anyhow::Error> {
     println!("Development command.\n");
 
-    let filetext = 
-     r#"func foo(test: bar) void {
+    let filetext = r#"func foo(test: bar) void {
             @print("test");
         }
-    "#.to_owned();
+    "#
+    .to_owned();
 
     let err = ZomError::new(
         // Some(Position::try_from_range(
-        //     0, 
-        //     0..=3, 
-        //     filetext, 
+        //     0,
+        //     0..=3,
+        //     filetext,
         //     "src/main.zom".to_owned()
-        // ).unwrap()), 
-        Some(
-            Position::new(0, 10000, 500, "src/main.zom".to_owned(), filetext)
-        ),
-        "expected `,` found keyword `func`".to_owned(), 
-        false
+        // ).unwrap()),
+        Some(Position::new(
+            0,
+            10000,
+            500,
+            "src/main.zom".to_owned(),
+            filetext,
+        )),
+        "expected `,` found keyword `func`".to_owned(),
+        false,
     );
     println!("{err}");
 

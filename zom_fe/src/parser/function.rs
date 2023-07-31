@@ -2,12 +2,9 @@
 
 use std::ops::RangeInclusive;
 
-use zom_common:: token::Token;
+use zom_common::token::Token;
 
-use crate::{
-    expect_token, impl_span, parse_try,
-    parser::types::parse_type,
-};
+use crate::{expect_token, impl_span, parse_try, parser::types::parse_type};
 
 use super::{
     block::{parse_block_expr, BlockCodeExpr},

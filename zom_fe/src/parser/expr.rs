@@ -69,13 +69,15 @@ pub(super) fn parse_primary_expr(
             Bad(err) => Bad(err),
         },
         None => NotComplete,
-        _ => 
+        _ =>
         // error(Box::new(UnexpectedTokenError::from_context(
         //     context,
         //     format!("unknow token when expecting an expression, found {:?}", tok),
         //     tokens.last().unwrap().clone(),
         // ))),
-        todo!("Error system is in rework.")
+        {
+            todo!("Error system is in rework.")
+        }
     }
 }
 
@@ -248,13 +250,15 @@ pub(super) fn parse_binary_expr(
                 span: _,
             }) => match settings.operator_precedence.get(op) {
                 Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
-                None => 
-                    // return error(Box::new(UnexpectedTokenError::from_context(
-                    //     context,
-                    //     "Unknown operator found".to_owned(),
-                    //     tokens.last().unwrap().clone(),
-                    // )))
-                    todo!("Error system is in rework."),
+                None =>
+                // return error(Box::new(UnexpectedTokenError::from_context(
+                //     context,
+                //     "Unknown operator found".to_owned(),
+                //     tokens.last().unwrap().clone(),
+                // )))
+                {
+                    todo!("Error system is in rework.")
+                }
                 _ => break,
             },
             _ => break,
@@ -284,13 +288,15 @@ pub(super) fn parse_binary_expr(
                             &rhs
                         )
                     }
-                    None => 
-                        // return error(Box::new(UnexpectedTokenError::from_context(
-                        //     context,
-                        //     "unknown operator found".to_owned(),
-                        //     tokens.last().unwrap().clone(),
-                        // )))
-                        todo!("Error system is in rework."),
+                    None =>
+                    // return error(Box::new(UnexpectedTokenError::from_context(
+                    //     context,
+                    //     "unknown operator found".to_owned(),
+                    //     tokens.last().unwrap().clone(),
+                    // )))
+                    {
+                        todo!("Error system is in rework.")
+                    }
                     _ => break,
                 },
                 _ => break,
