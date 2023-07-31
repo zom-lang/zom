@@ -137,11 +137,6 @@ impl Position {
             return None;
         }
 
-        dbg!(line_start);
-        dbg!(col_start);
-        dbg!(line_end);
-        dbg!(col_end);
-
         Some(Position {
             index,
             line_start,
@@ -159,14 +154,18 @@ pub struct ZomError {
     location: Option<Position>,
     details: String,
     is_warning: bool,
+    help: Option<String>,
+    note: Option<String>,
 }
 
 impl ZomError {
-    pub fn new(location: Option<Position>, details: String, is_warning: bool) -> ZomError {
+    pub fn new(location: Option<Position>, details: String, is_warning: bool, help: Option<String>, note: Option<String>) -> ZomError {
         ZomError {
             location,
             details,
             is_warning,
+            help,
+            note
         }
     }
 
@@ -193,7 +192,6 @@ impl ZomError {
 
 impl Display for ZomError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { // TODO: refacto, seperate in multiple functions
-        println!("{:#?}\n\n", self.pos());
         if self.is_warning {
             writeln!(f, "warning: {}", self.details)?;
         } else {
@@ -222,7 +220,7 @@ impl Display for ZomError {
             if line_end_str.len() > margin {
                 margin += line_end_str.len() - margin + 1;
             }
-
+            // Write the start line
             let line_start = self.pos().filetext.lines().nth(self.pos().line_start - 1).unwrap();
 
             writeln!(f, "{}|", spaces(margin))?;
@@ -232,15 +230,16 @@ impl Display for ZomError {
                 pad_string(line_start_str, margin),
                 line_start
             )?;
+            // Write either the end line or the error
             if self.pos().line_start == self.pos().line_end {
                 writeln!(
                     f,
                     "{}|{}^{}",
                     spaces(margin),
                     spaces(self.pos().col_start),
-                    "~".repeat(self.pos().col_end - self.pos().col_start - 1)
+                    "^".repeat(self.pos().col_end - self.pos().col_start - 1)
                 )?;
-            }else {
+            } else {
                 writeln!(
                     f,
                     "{}|{}^{}",
@@ -263,6 +262,24 @@ impl Display for ZomError {
                     "{}| {}^",
                     spaces(margin),
                     "~".repeat(self.pos().col_end - 2)
+                )?;
+            }
+            // Write an help message if there is one
+            if let Some(help) = self.help.clone() {
+                writeln!(
+                    f,
+                    "{}= help: {}",
+                    spaces(margin),
+                    help
+                )?;
+            }
+            // Write a note if there is one
+            if let Some(note) = self.note.clone() {
+                writeln!(
+                    f,
+                    "{}= note: {}",
+                    spaces(margin),
+                    note
                 )?;
             }
         }

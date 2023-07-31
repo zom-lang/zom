@@ -26,18 +26,22 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
         ).unwrap()),
         "expected `,` found keyword `func`".to_owned(),
         false,
+        Some("You could ...".to_string()),
+        Some("Some very usefull notes!".to_owned())
     );
     println!("{err}");
 
     let err2 = ZomError::new(
         Some(Position::try_from_range(
             0,
-            0..=43,
+            0..=47,
             filetext,
-            "src/main.zom".to_owned()
+            "src/main.zom".to_owned(),
         ).unwrap()),
-        "expected `,` found keyword `func`".to_owned(),
+        "the name `test` is defined multiple times".to_owned(),
         false,
+        None,
+        Some("`foo` must be defined only once in the value namespace of this module".to_owned())
     );
     println!("{err2}");
 
