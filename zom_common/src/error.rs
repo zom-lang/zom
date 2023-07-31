@@ -26,7 +26,8 @@ fn spaces(len: usize) -> String {
     spaces_str
 }
 
-fn str_fix_len(string: String, len: usize) -> String {
+/// Pad a string until it reaches the desired lenght ("len") with spaces.
+fn pad_string(string: String, len: usize) -> String {
     let mut str = String::with_capacity(len);
     let str_len = string.len();
 
@@ -46,59 +47,14 @@ fn str_fix_len(string: String, len: usize) -> String {
     str
 }
 
-/// Safety :
-/// We assume that the error in zom_err is knowed, if it's not then it will panic because there is an `unwrap()`.
-fn print_error(f: &mut fmt::Formatter<'_>, zom_err: ZomError) -> fmt::Result {
-    let mut margin: usize = 5;
-    let num_str_len = zom_err.pos().line.to_string().len();
-    if num_str_len > margin {
-        margin += (num_str_len - margin) + 2
-    }
-
-    writeln!(
-        f,
-        "error: in file `{}` at line {} :",
-        zom_err.pos().filename,
-        zom_err.pos().line
-    )
-    .unwrap();
-    writeln!(f, "{}|", str_fix_len("...".to_string(), margin)).unwrap();
-    writeln!(
-        f,
-        "{}| {}",
-        str_fix_len(zom_err.pos().line.to_string(), margin),
-        zom_err
-            .pos()
-            .filetext
-            .split('\n')
-            .nth(zom_err.pos().line - 1)
-            .unwrap()
-    )
-    .unwrap();
-    writeln!(
-        f,
-        "{}| {}^",
-        str_fix_len("...".to_string(), margin),
-        spaces(zom_err.pos().column)
-    )
-    .unwrap();
-    if !zom_err.details().is_empty() {
-        return writeln!(
-            f,
-            "       {}{}",
-            spaces(zom_err.pos().column),
-            zom_err.details()
-        );
-    }
-    write!(f, "")
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct Position {
     /// The index when you iterate over the filetext.
     index: usize,
-    line: usize,
-    column: usize,
+    line_start: usize,
+    col_start: usize,
+    line_end: usize,
+    col_end: usize,
     filename: String,
     filetext: String,
 }
@@ -106,15 +62,19 @@ pub struct Position {
 impl Position {
     pub fn new(
         index: usize,
-        line: usize,
-        column: usize,
+        line_start: usize,
+        col_start: usize,
+        line_end: usize,
+        col_end: usize,
         filename: String,
         filetext: String,
     ) -> Position {
         Position {
             index,
-            line,
-            column,
+            line_start,
+            col_start,
+            line_end,
+            col_end,
             filename,
             filetext,
         }
@@ -128,37 +88,66 @@ impl Position {
         filetext: String,
         filename: String,
     ) -> Option<Position> {
-        let start_position = *range.start();
-        let end_position = *range.end();
-        let file_content = filetext.clone();
 
-        // Ensure positions are positive and start is less than or equal to end
-        if start_position > end_position {
+        let mut line_start = 1;
+        let mut col_start = 1;
+        let mut line_end = 1;
+        let mut col_end = 1;
+        let range = *range.start()..*range.end();
+
+        let mut range_start_found = false;
+        let mut index_r = 0;
+
+        for (idx, chr) in filetext.char_indices() {
+            index_r = idx;
+
+            if range.start == idx {
+                range_start_found = true;
+            }
+
+            if !range_start_found {
+                match chr {
+                    '\n' => {
+                        line_start += 1;
+                        col_start = 1;
+                    }
+                    _ => {
+                        col_start += 1;
+                    }
+                }
+            }
+
+            match chr {
+                '\n' => {
+                    line_end += 1;
+                    col_end = 1;
+                }
+                _ => {
+                    col_end += 1;
+                }
+            }
+
+            if range.end == idx {
+                break;
+            }
+        }
+
+        if index_r < range.end {
+            // The range extends beyond the end of the input string.
             return None;
         }
 
-        let mut line_number = 1;
-        let mut column_number = 1;
-        let mut current_position = 0;
-
-        for line in file_content.lines() {
-            let line_length = line.len();
-
-            if current_position <= start_position
-                && start_position <= current_position + line_length
-            {
-                column_number = start_position - current_position + 1;
-                break;
-            }
-
-            current_position += line_length + 1; // Add 1 for the newline character
-            line_number += 1;
-        }
+        dbg!(line_start);
+        dbg!(col_start);
+        dbg!(line_end);
+        dbg!(col_end);
 
         Some(Position {
             index,
-            line: line_number,
-            column: column_number,
+            line_start,
+            col_start,
+            line_end,
+            col_end,
             filename,
             filetext,
         })
@@ -203,7 +192,8 @@ impl ZomError {
 }
 
 impl Display for ZomError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { // TODO: refacto, seperate in multiple functions
+        println!("{:#?}\n\n", self.pos());
         if self.is_warning {
             writeln!(f, "warning: {}", self.details)?;
         } else {
@@ -211,26 +201,70 @@ impl Display for ZomError {
         }
 
         if self.has_pos() {
+            // Where the error is
             writeln!(
                 f,
                 "  --> {}:{}:{}",
                 self.pos().filename,
-                self.pos().line,
-                self.pos().column
+                self.pos().line_start,
+                self.pos().col_start
             )?;
+
+            // Calculate the margin
             let mut margin = 3;
-            let line_str = self.pos().line.to_string();
-            if line_str.len() > margin {
-                margin += line_str.len() - margin + 1;
+
+            let line_start_str = self.pos().line_start.to_string();
+            if line_start_str.len() > margin {
+                margin += line_start_str.len() - margin + 1;
             }
+
+            let line_end_str = self.pos().line_end.to_string();
+            if line_end_str.len() > margin {
+                margin += line_end_str.len() - margin + 1;
+            }
+
+            let line_start = self.pos().filetext.lines().nth(self.pos().line_start - 1).unwrap();
+
             writeln!(f, "{}|", spaces(margin))?;
             writeln!(
                 f,
                 "{}| {}",
-                str_fix_len(line_str, margin),
-                self.pos().filetext.lines().nth(self.pos().line - 1).unwrap()
+                pad_string(line_start_str, margin),
+                line_start
             )?;
-            writeln!(f, "{}|", spaces(margin))?;
+            if self.pos().line_start == self.pos().line_end {
+                writeln!(
+                    f,
+                    "{}|{}^{}",
+                    spaces(margin),
+                    spaces(self.pos().col_start),
+                    "~".repeat(self.pos().col_end - self.pos().col_start - 1)
+                )?;
+            }else {
+                writeln!(
+                    f,
+                    "{}|{}^{}",
+                    spaces(margin),
+                    spaces(self.pos().col_start),
+                    "~".repeat(line_start.len() - self.pos().col_start)
+                )?;
+                if (self.pos().line_end - self.pos().line_start) != 1 {
+                    writeln!(f, "{}| ...", spaces(margin))?;
+                }
+                let line_end = self.pos().filetext.lines().nth(self.pos().line_end - 1).unwrap();
+                writeln!(
+                    f,
+                    "{}| {}",
+                    pad_string(line_end_str, margin),
+                    line_end
+                )?;
+                writeln!(
+                    f,
+                    "{}| {}^",
+                    spaces(margin),
+                    "~".repeat(self.pos().col_end - 2)
+                )?;
+            }
         }
         Ok(())
     }

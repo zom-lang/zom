@@ -14,22 +14,32 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
     println!("Development command.\n");
 
     let filetext = r#"func foo(test: bar) void {
-            @print("test");
-        }
-    "#
-    .to_owned();
+    @print("test");
+}"#.to_owned();
 
     let err = ZomError::new(
         Some(Position::try_from_range(
             0,
             0..=3,
-            filetext,
+            filetext.clone(),
             "src/main.zom".to_owned()
         ).unwrap()),
         "expected `,` found keyword `func`".to_owned(),
         false,
     );
     println!("{err}");
+
+    let err2 = ZomError::new(
+        Some(Position::try_from_range(
+            0,
+            0..=43,
+            filetext,
+            "src/main.zom".to_owned()
+        ).unwrap()),
+        "expected `,` found keyword `func`".to_owned(),
+        false,
+    );
+    println!("{err2}");
 
     // let mut buffer =
     //     String::from("func foo(bar: i16, baz: str) { bar = 132; } extern test(a: u32, b: u32)");
