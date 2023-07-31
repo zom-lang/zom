@@ -219,19 +219,21 @@ impl Display for ZomError {
                 self.pos().column
             )?;
             let mut margin = 3;
-            let mut line_str = self.pos().line.to_string();
+            let line_str = self.pos().line.to_string();
             if line_str.len() > margin {
                 margin += line_str.len() - margin + 1;
             }
             writeln!(f, "{}|", spaces(margin))?;
             writeln!(
                 f,
-                "{}| {:?}",
+                "{}| {}",
                 str_fix_len(line_str, margin),
-                self.pos().filetext.lines().nth(self.pos().line)
+                self.pos().filetext.lines().nth(self.pos().line - 1).unwrap()
             )?;
             writeln!(f, "{}|", spaces(margin))?;
         }
         Ok(())
     }
 }
+
+impl Error for ZomError {}

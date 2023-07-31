@@ -20,19 +20,12 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
     .to_owned();
 
     let err = ZomError::new(
-        // Some(Position::try_from_range(
-        //     0,
-        //     0..=3,
-        //     filetext,
-        //     "src/main.zom".to_owned()
-        // ).unwrap()),
-        Some(Position::new(
+        Some(Position::try_from_range(
             0,
-            10000,
-            500,
-            "src/main.zom".to_owned(),
+            0..=3,
             filetext,
-        )),
+            "src/main.zom".to_owned()
+        ).unwrap()),
         "expected `,` found keyword `func`".to_owned(),
         false,
     );
