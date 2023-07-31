@@ -29,14 +29,14 @@ pub enum ASTNode {
     FunctionNode(Function),
 }
 
-pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), Box<dyn ZomError>>;
-pub type ParsingResult2 = Result<Vec<ASTNode>, Vec<Box<dyn ZomError>>>;
+pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), ZomError>;
+pub type ParsingResult2 = Result<Vec<ASTNode>, Vec<ZomError>>;
 
 #[derive(Debug)]
 pub enum PartParsingResult<T> {
     Good(T, Vec<Token>),
     NotComplete,
-    Bad(Box<dyn ZomError>),
+    Bad(ZomError),
 }
 
 #[derive(Debug)]
