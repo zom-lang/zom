@@ -6,13 +6,15 @@ use std::error::Error;
 use std::iter::Peekable;
 use std::str::Chars;
 
+use zom_common::error::Position;
+use zom_common::error::ZomError;
 use zom_common::token::Token;
 
 use zom_common::token::is_start_operator;
 
 use zom_common::token::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Lexer<'a> {
     text: String,
     pos: usize, // position in the text
@@ -32,6 +34,24 @@ impl<'a> Lexer<'a> {
             column: 0,
             filename,
         }
+    }
+
+    pub fn illegal_char(lexer: Lexer, ch: char) -> ZomError {
+        ZomError::new(
+            Some(Position::new(
+                lexer.pos,
+                lexer.line,
+                lexer.column,
+                lexer.line,
+                lexer.column,
+                lexer.filename,
+                lexer.text
+            )),
+            format!("illegal char `{}`", ch),
+            false,
+            Some("You should avoid using this character".to_owned()),
+            vec![]
+        )
     }
 
     #[inline]
@@ -159,20 +179,7 @@ impl<'a> Lexer<'a> {
                     self.incr_pos();
                     continue;
                 }
-                _ =>
-                // return Err(Box::new(IllegalCharError::new(
-                //     Position::new(
-                //         self.pos,
-                //         self.line,
-                //         self.column,
-                //         mem::take(&mut self.filename),
-                //         mem::take(&mut self.text),
-                //     ),
-                //     ch,
-                // )));
-                {
-                    todo!("Error system is in rework.")
-                }
+                ch => return Err(Self::illegal_char(self.clone(), ch)),
             }
         }
 

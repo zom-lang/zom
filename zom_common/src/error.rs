@@ -6,16 +6,6 @@ use std::error::Error;
 use std::fmt::{self, Display};
 use std::ops::RangeInclusive;
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum ErrorKind {
-    Lexer,
-    Parser,
-    Codegen,
-    Compiler,
-    General,
-    Internal,
-}
-
 /// This function return spaces * len
 /// It is used for implement Display for errors
 fn spaces(len: usize) -> String {
@@ -188,10 +178,34 @@ impl ZomError {
     pub fn has_pos(&self) -> bool {
         self.location.is_some()
     }
+
+    fn write_help(&self, f: &mut fmt::Formatter<'_>, prefix: &str) -> fmt::Result {
+        if let Some(help) = self.help.clone() {
+            writeln!(
+                f,
+                "{}help: {}",
+                prefix,
+                help
+            )?;
+        }
+        Ok(())
+    }
+
+    fn write_notes(&self, f: &mut fmt::Formatter<'_>, prefix: &str) -> fmt::Result {
+        for note in &self.notes {
+            writeln!(
+                f,
+                "{}note: {}",
+                prefix,
+                note
+            )?;
+        }
+        Ok(())
+    }
 }
 
 impl Display for ZomError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { // TODO: refacto, seperate in multiple functions
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.is_warning {
             writeln!(f, "warning: {}", self.details)?;
         } else {
@@ -265,39 +279,14 @@ impl Display for ZomError {
                 )?;
             }
             // Write an help message if there is one
-            if let Some(help) = self.help.clone() {
-                writeln!(
-                    f,
-                    "{}= help: {}",
-                    spaces(margin),
-                    help
-                )?;
-            }
+            self.write_help(f, format!("{}= ", spaces(margin)).as_str())?;
             // Write note(s)
-            for note in &self.notes {
-                writeln!(
-                    f,
-                    "{}= note: {}",
-                    spaces(margin),
-                    note
-                )?;
-            }
-        }
-        // Write an help message if there is one
-        if let Some(help) = self.help.clone() {
-            writeln!(
-                f,
-                "help: {}",
-                help
-            )?;
-        }
-        // Write a note if there is one
-        for note in &self.notes {
-            writeln!(
-                f,
-                "note: {}",
-                note
-            )?;
+            self.write_notes(f, format!("{}= ", spaces(margin)).as_str())?;
+        }else {
+            // Write an help message if there is one
+            self.write_help(f, "")?;
+            // Write a note if there is one
+            self.write_notes(f, "")?;
         }
         Ok(())
     }
