@@ -149,14 +149,26 @@ pub struct ZomError {
 }
 
 impl ZomError {
-    pub fn new(location: Option<Position>, details: String, is_warning: bool, help: Option<String>, notes: Vec<String>) -> ZomError {
-        ZomError {
+    /// If col_start == col_end None will be returned.
+    pub fn try_new(location: Option<Position>, details: String, is_warning: bool, help: Option<String>, notes: Vec<String>) -> Option<ZomError> {
+        if let Some(pos) = &location {
+            if pos.col_start == pos.col_end {
+                return None
+            }
+        }
+
+        Some(ZomError {
             location,
             details,
             is_warning,
             help,
             notes
-        }
+        })
+    }
+
+    /// If col_start == col_end it will panic.
+    pub fn new(location: Option<Position>, details: String, is_warning: bool, help: Option<String>, notes: Vec<String>) -> ZomError {
+        Self::try_new(location, details, is_warning, help, notes).unwrap()
     }
 
     /// Return the position of the error, if it's none, it will panic.
