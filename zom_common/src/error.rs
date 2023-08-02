@@ -155,17 +155,17 @@ pub struct ZomError {
     details: String,
     is_warning: bool,
     help: Option<String>,
-    note: Option<String>,
+    notes: Vec<String>,
 }
 
 impl ZomError {
-    pub fn new(location: Option<Position>, details: String, is_warning: bool, help: Option<String>, note: Option<String>) -> ZomError {
+    pub fn new(location: Option<Position>, details: String, is_warning: bool, help: Option<String>, notes: Vec<String>) -> ZomError {
         ZomError {
             location,
             details,
             is_warning,
             help,
-            note
+            notes
         }
     }
 
@@ -273,8 +273,8 @@ impl Display for ZomError {
                     help
                 )?;
             }
-            // Write a note if there is one
-            if let Some(note) = self.note.clone() {
+            // Write note(s)
+            for note in &self.notes {
                 writeln!(
                     f,
                     "{}= note: {}",
@@ -282,6 +282,22 @@ impl Display for ZomError {
                     note
                 )?;
             }
+        }
+        // Write an help message if there is one
+        if let Some(help) = self.help.clone() {
+            writeln!(
+                f,
+                "help: {}",
+                help
+            )?;
+        }
+        // Write a note if there is one
+        for note in &self.notes {
+            writeln!(
+                f,
+                "note: {}",
+                note
+            )?;
         }
         Ok(())
     }

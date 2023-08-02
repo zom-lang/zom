@@ -27,7 +27,7 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
         "expected `,` found keyword `func`".to_owned(),
         false,
         Some("You could ...".to_string()),
-        Some("Some very usefull notes!".to_owned())
+        vec!("Some very usefull notes!".to_owned())
     );
     println!("{err}");
 
@@ -41,9 +41,23 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
         "the name `test` is defined multiple times".to_owned(),
         false,
         None,
-        Some("`foo` must be defined only once in the value namespace of this module".to_owned())
+        vec!("`foo` must be defined only once in the value namespace of this module".to_owned())
     );
     println!("{err2}");
+
+    let err3 = ZomError::new(
+        None,
+        "internal compiler error".to_owned(),
+        false,
+        None,
+        vec!("thread 'main' panicked at 'oh no!', src/main.zom:6:5",
+                    "the compiler unexpectedly panicked. this is a bug.",
+                    "we would appreciate a bug report: https://github.com/zom-lang/zom/issues/new?labels=bug%2C+I-ICE%2C+T-compiler&template=ice.md")
+                    .iter()
+                    .map(|v| v.to_string())
+                    .collect()
+    );
+    println!("{err3}");
 
     // let mut buffer =
     //     String::from("func foo(bar: i16, baz: str) { bar = 132; } extern test(a: u32, b: u32)");
