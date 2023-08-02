@@ -50,14 +50,19 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
         "internal compiler error".to_owned(),
         false,
         None,
-        vec!("thread 'main' panicked at 'oh no!', src/main.zom:6:5",
+        vec!(
                     "the compiler unexpectedly panicked. this is a bug.",
-                    "we would appreciate a bug report: https://github.com/zom-lang/zom/issues/new?labels=bug%2C+I-ICE%2C+T-compiler&template=ice.md")
+                    "we would appreciate a bug report: https://github.com/zom-lang/zom/issues/new?labels=bug (TODO: change the link to the template.)", // TODO: When issue #46 is finished, replace with the link to the template.
+                    format!("zomc {} ({} {}) running on {}",
+                            env!("CARGO_PKG_VERSION"),
+                            &env!("GIT_HASH")[..7],
+                            env!("COMPILED_DATE"),
+                            env!("TARGET_TRIPLE")).as_str())
                     .iter()
                     .map(|v| v.to_string())
                     .collect()
     );
-    println!("{err3}");
+    println!("\n*HERE RUST_BACKTRACE*\n\n{err3}");
 
     // let mut buffer =
     //     String::from("func foo(bar: i16, baz: str) { bar = 132; } extern test(a: u32, b: u32)");
