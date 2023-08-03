@@ -1095,7 +1095,6 @@ name = "zom"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "chrono",
  "clap",
  "inkwell",
  "log",
@@ -1118,6 +1117,9 @@ dependencies = [
 [[package]]
 name = "zom_common"
 version = "0.0.0"
+dependencies = [
+ "chrono",
+]
 
 [[package]]
 name = "zom_compiler"

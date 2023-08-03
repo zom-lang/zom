@@ -2,7 +2,6 @@ use std::{process::Command, error::Error};
 use std::str;
 use chrono;
 
-
 fn get_target() -> Result<String, String> {
     let output = match Command::new("rustc")
         .arg("-vV")

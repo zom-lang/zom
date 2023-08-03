@@ -28,6 +28,3 @@ inkwell.workspace = true
 default = ["llvm15-0"]
 llvm14-0 = ["inkwell/llvm14-0"]
 llvm15-0 = ["inkwell/llvm15-0"]
-
-[build-dependencies]
-chrono = "0.4.26"
