@@ -2,7 +2,6 @@
 //!
 //! It is entirely made for Zom, without using dependencies.
 
-use std::error::Error;
 use std::iter::Peekable;
 use std::str::Chars;
 
@@ -41,9 +40,9 @@ impl<'a> Lexer<'a> {
             Some(Position::new(
                 lexer.pos,
                 lexer.line,
-                lexer.column,
+                lexer.column + 1, // + 1 because when the function is called, the column hasn't been advance
                 lexer.line,
-                lexer.column,
+                lexer.column + 2, // + 2 because like col_start and either it will panic (see ZomError::new())
                 lexer.filename,
                 lexer.text
             )),
@@ -81,7 +80,7 @@ impl<'a> Lexer<'a> {
         self.incr_pos();
     }
 
-    pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Box<dyn Error>> {
+    pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, ZomError> {
         let mut tokens: Vec<Token> = Vec::new();
 
         'main: while let Some(ch) = self.chars.next() {
@@ -193,7 +192,7 @@ impl<'a> Lexer<'a> {
     ///     text: `test` -> Ident("est")
     /// And after it is like that :
     ///     text: `test` -> Ident("test")
-    fn lex_lki(&mut self, ch: char) -> Result<TokenType, Box<dyn Error>> {
+    fn lex_lki(&mut self, ch: char) -> Result<TokenType, ZomError> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut is_numeric = true;
@@ -230,9 +229,27 @@ impl<'a> Lexer<'a> {
 
         if is_numeric {
             if dot_count == 0 {
-                Ok(Int(num_str.parse()?))
+                match num_str.parse() {
+                    Ok(i) => Ok(Int(i)),
+                    Err(err) => Err(ZomError::new(
+                        None,
+                        err.to_string(), // TODO: Try to add a position to this error
+                        false,
+                        None,
+                        vec![]
+                    ))
+                }
             } else {
-                Ok(Float(num_str.parse()?))
+                match num_str.parse() {
+                    Ok(f) => Ok(Float(f)),
+                    Err(err) => Err(ZomError::new(
+                        None,
+                        err.to_string(), // TODO: Try to add a position to this error
+                        false,
+                        None,
+                        vec![]
+                    ))
+                }
             }
         } else {
             match num_str.as_str() {

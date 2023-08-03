@@ -5,7 +5,7 @@ use std::ops::RangeInclusive;
 use zom_common::token::Token;
 use zom_common::token::*;
 
-use crate::{expect_token, impl_span, parse_try};
+use crate::{expect_token, impl_span, parse_try, err_et};
 
 use self::Expr::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
@@ -57,17 +57,7 @@ pub(super) fn parse_primary_expr(
         Some(Token { tt: Ident(_), .. }) => parse_ident_expr(tokens, settings, context),
         Some(Token { tt: Int(_), .. }) => parse_literal_expr(tokens, settings, context),
         Some(Token { tt: OpenParen, .. }) => parse_parenthesis_expr(tokens, settings, context),
-        Some(Token { tt: OpenBrace, .. }) => match parse_block_expr(tokens, settings, context) {
-            Good((block, span), parsed_tokens) => Good(
-                Expression {
-                    expr: BlockExpr(block),
-                    span,
-                },
-                parsed_tokens,
-            ),
-            NotComplete => NotComplete,
-            Bad(err) => Bad(err),
-        },
+        Some(Token { tt: OpenBrace, .. }) => parse_block_expr(tokens, settings, context),
         None => NotComplete,
         _ =>
         // error(Box::new(UnexpectedTokenError::from_context(
@@ -75,9 +65,7 @@ pub(super) fn parse_primary_expr(
         //     format!("unknow token when expecting an expression, found {:?}", tok),
         //     tokens.last().unwrap().clone(),
         // ))),
-        {
-            todo!("Error system is in rework.")
-        }
+        err_et!(context, tokens.last().unwrap(), vec![Ident(String::new()), Int(0), OpenParen, OpenBrace], tokens.last().unwrap().tt)
     }
 }
 
@@ -98,12 +86,12 @@ pub(super) fn parse_ident_expr(
         //     "identificator expected".to_owned(),
         //     tokens.last().unwrap().clone()
         // )))
-        todo!("Error system is in rework.")
+        err_et!(context, tokens.last().unwrap(), vec![Ident(String::new())], tokens.last().unwrap().tt)
     );
 
-    let start = *parsed_tokens.last().unwrap().span.start();
+    let start = *parsed_tokens.last().unwrap().clone().span.start();
 
-    let end = *parsed_tokens.last().unwrap().span.end();
+    let end = *parsed_tokens.last().unwrap().clone().span.end();
 
     expect_token!(
         context,
@@ -124,6 +112,7 @@ pub(super) fn parse_ident_expr(
             <= tokens, parsed_tokens
         );
 
+        let t = tokens.last().unwrap().clone();
         expect_token!(
             context, [
             Comma, Comma, {};
@@ -138,7 +127,7 @@ pub(super) fn parse_ident_expr(
             //         tokens.last().unwrap().clone()
             //     ))
             // )
-            todo!("Error system is in rework.")
+            err_et!(context, t, vec![Comma, CloseParen], t.tt)
         );
     }
 
@@ -160,6 +149,7 @@ pub(super) fn parse_literal_expr(
 ) -> PartParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
+    let t: Token = tokens.last().unwrap().clone();
     let value = expect_token!(
         context,
         [Int(val), Int(val), val] <= tokens,
@@ -169,7 +159,7 @@ pub(super) fn parse_literal_expr(
         //     "Literal expected".to_owned(),
         //     tokens.last().unwrap().clone()
         // )))
-        todo!("Error system is in rework.")
+        err_et!(context, t, vec![Int(0), Float(0.0)], t.tt)
     );
     let start = *parsed_tokens.last().unwrap().span.start();
 
@@ -191,6 +181,7 @@ pub(super) fn parse_parenthesis_expr(
 ) -> PartParsingResult<Expression> {
     // eat the opening parenthesis
     let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
+    let t = tokens.last().unwrap().clone();
     tokens.pop();
 
     let expr = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
@@ -204,7 +195,21 @@ pub(super) fn parse_parenthesis_expr(
         //     "Expected ')' in parenthesis expression".to_owned(),
         //     tokens.last().unwrap().clone()
         // )))
-        todo!("Error system is in rework.")
+        {
+            use zom_common::error::{Position, ZomError};
+            Bad(ZomError::new(
+                Position::try_from_range(
+                    context.pos,
+                    t.span.clone(),
+                    context.source_file.clone(),
+                    context.filename.clone()
+                ),
+                format!("unclosed delimiter `)`"),
+                false,
+                None,
+                vec![]
+            ))
+        }
     );
     // idk if the span is correct.
     Good(expr, parsed_tokens)
@@ -256,9 +261,7 @@ pub(super) fn parse_binary_expr(
                 //     "Unknown operator found".to_owned(),
                 //     tokens.last().unwrap().clone(),
                 // )))
-                {
-                    todo!("Error system is in rework.")
-                }
+                return err_et!(context, tokens.last().unwrap(), vec![Operator("".to_owned())], tokens.last().unwrap().tt),
                 _ => break,
             },
             _ => break,
@@ -294,9 +297,7 @@ pub(super) fn parse_binary_expr(
                     //     "unknown operator found".to_owned(),
                     //     tokens.last().unwrap().clone(),
                     // )))
-                    {
-                        todo!("Error system is in rework.")
-                    }
+                    return err_et!(context, tokens.last().unwrap(), vec![Operator("".to_owned())], tokens.last().unwrap().tt),
                     _ => break,
                 },
                 _ => break,

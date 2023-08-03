@@ -4,10 +4,10 @@ use std::ops::RangeInclusive;
 
 use zom_common::token::Token;
 
-use crate::{expect_token, impl_span, parse_try, parser::types::parse_type};
+use crate::{expect_token, impl_span, parse_try, parser::types::parse_type, err_et};
 
 use super::{
-    block::{parse_block_expr, BlockCodeExpr},
+    block::{BlockCodeExpr, parse_block},
     types::Type,
     ASTNode, ParserSettings, ParsingContext, PartParsingResult,
 };
@@ -79,7 +79,7 @@ pub(super) fn parse_function(
     let start = *parsed_tokens.last().unwrap().span.start();
 
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
-    let body = parse_try!(parse_block_expr, tokens, settings, context, parsed_tokens).0;
+    let body = parse_try!(parse_block, tokens, settings, context, parsed_tokens);
 
     let end = *parsed_tokens.last().unwrap().span.end();
     Good(
@@ -98,6 +98,7 @@ pub(super) fn parse_prototype(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Prototype> {
     let mut parsed_tokens = Vec::new();
+    let t = tokens.last().unwrap().clone();
 
     let name = expect_token!(
         context,
@@ -108,10 +109,11 @@ pub(super) fn parse_prototype(
         //     "Expected function name in prototype".to_owned(),
         //     tokens.last().unwrap().clone()
         // )))
-        todo!("Error system is in rework.")
+        err_et!(context, t, vec![Ident(String::new())], t.tt)
     );
 
     let start = *parsed_tokens.last().unwrap().span.start();
+    let t = tokens.last().unwrap().clone();
 
     expect_token!(
         context,
@@ -122,12 +124,13 @@ pub(super) fn parse_prototype(
         //     "Expected '(' in prototype".to_owned(),
         //     tokens.last().unwrap().clone()
         // )))
-        todo!("Error system is in rework.")
+        err_et!(context, t, vec![OpenParen], t.tt)
     );
 
     let mut args = Vec::new();
     loop {
         let name_arg;
+        let t = tokens.last().unwrap().clone();
         expect_token!(
             context, [
             Ident(arg), Ident(arg.clone()), name_arg = arg;
@@ -142,10 +145,11 @@ pub(super) fn parse_prototype(
             //         tokens.last().unwrap().clone()
             //     ))
             // )
-            todo!("Error system is in rework.")
+            err_et!(context, t, vec![Ident(String::new())], t.tt)
         );
         let start = *parsed_tokens.last().unwrap().span.start();
 
+        let t = tokens.last().unwrap().clone();
         expect_token!(
             context,
             [Colon, Colon, {}] <= tokens,
@@ -155,7 +159,7 @@ pub(super) fn parse_prototype(
             //     "Expected ':' in argument of a prototype".to_owned(),
             //     tokens.last().unwrap().clone()
             // )))
-            todo!("Error system is in rework.")
+            err_et!(context, t, vec![Colon], t.tt)
         );
         let type_arg = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
         let end = *parsed_tokens.last().unwrap().span.end();
@@ -165,6 +169,7 @@ pub(super) fn parse_prototype(
             type_arg,
             span: start..=end,
         });
+        let t = tokens.last().unwrap().clone();
 
         expect_token!(
             context, [
@@ -180,7 +185,7 @@ pub(super) fn parse_prototype(
             //         tokens.last().unwrap().clone()
             //     ))
             // )
-            todo!("Error system is in rework.")
+            err_et!(context, t, vec![Comma], t.tt)
         );
     }
 

@@ -62,6 +62,36 @@ impl ParsingContext {
     }
 }
 
+/// err_et mean `error expected token`
+#[macro_export]
+macro_rules! err_et(
+    ($context:expr, $last_token:expr, $expected:expr, $found:expr) => (
+        {
+            use zom_common::error::{Position, ZomError};
+            use zom_common::token::TokenType;
+            if $expected.is_empty() {
+                panic!("One or more expected values are needed.");
+            }
+            Bad(ZomError::new(
+                Position::try_from_range(
+                    $context.pos,
+                    $last_token.span.clone(),
+                    $context.source_file.clone(),
+                    $context.filename.clone()
+                ),
+                if $expected.len() == 1 {
+                    format!("expected {}, found {}", $expected[0], $found)
+                }else {
+                    format!("expected one of {}, found {}", TokenType::format_toks($expected), $found)
+                },
+                false,
+                None,
+                vec![]
+            ))
+        }
+    );
+);
+
 #[derive(Debug)]
 pub struct ParserSettings {
     operator_precedence: HashMap<String, i32>,
@@ -115,10 +145,10 @@ pub fn parse(
     let mut ast = parsed_tree.to_vec();
 
     while let Some(cur_token) = rest.last() {
-        let result = match cur_token.tt {
+        let result = match &cur_token.tt {
             Func => parse_function(&mut rest, settings, context),
             Extern => parse_extern(&mut rest, settings, context),
-            _ => todo!("Error system is in rework.")
+            tt => err_et!(context, cur_token.clone(), vec![Func, Extern], tt)
             // Bad(Box::new(UnexpectedTokenError::from_context(
             //     context,
             //     "Expected a function definition or a declaration of an external function."
@@ -163,21 +193,21 @@ macro_rules! parse_try(
 #[macro_export]
 macro_rules! expect_token (
     ($context:ident, [ $($token:pat, $value:expr, $result:stmt);+ ] <= $tokens:ident, $parsed_tokens:ident, $error:expr) => (
-        match $tokens.pop() {
+        match $tokens.pop() { // Where instead if .pop() use .last()
             $(
-                Some(Token { tt: $token, span }) => {
+                Some(Token { tt: $token, span }) => { // And .pop()
                     $context.advance();
                     $parsed_tokens.push(Token { tt: $value, span });
                     $result
                 },
              )+
-             None => {
+             None => { // or here, like that in the err_et!() we can use .last() to have the token that hasn't been matched.
                 $context.advance();
                 $parsed_tokens.reverse();
                 $tokens.extend($parsed_tokens.into_iter());
                 return NotComplete;
              },
-            _ => { $context.advance(); return $error }
+            _ => { $context.advance(); return $error } // TODO: try to move err_et!(..) here.
         }
     );
 
