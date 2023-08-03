@@ -3,13 +3,15 @@ use std::ops::RangeInclusive;
 use zom_common::token::{Token, TokenType::*};
 
 use crate::{
-    expect_token, impl_span, parse_try,
+    err_et, expect_token, impl_span, parse_try,
     parser::statement::{parse_statement, Stmt},
-    token_parteq, err_et,
+    token_parteq,
 };
 
 use super::{
-    expr::{Expression, Expr}, statement::Statement, ParserSettings, ParsingContext, PartParsingResult,
+    expr::{Expr, Expression},
+    statement::Statement,
+    ParserSettings, ParsingContext, PartParsingResult,
 };
 
 use crate::parser::PartParsingResult::*;
@@ -95,12 +97,12 @@ pub(super) fn parse_block(
                     context.pos,
                     t.span.clone(),
                     context.source_file.clone(),
-                    context.filename.clone()
+                    context.filename.clone(),
                 ),
                 format!("unclosed delimiter `}}`"),
                 false,
                 None,
-                vec![]
+                vec![],
             ))
         }
     );

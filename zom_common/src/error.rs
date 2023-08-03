@@ -2,10 +2,10 @@
 //!
 //! This used to spawn custom (beautiful) error message when a component of Zom fails.
 
+use super::{build_date, build_target_triple, commit_hash};
 use std::error::Error;
 use std::fmt::{self, Display};
 use std::ops::RangeInclusive;
-use super::{commit_hash, build_date, build_target_triple};
 
 /// This function return spaces * len
 /// It is used for implement Display for errors
@@ -79,7 +79,6 @@ impl Position {
         filetext: String,
         filename: String,
     ) -> Option<Position> {
-
         let mut line_start = 1;
         let mut col_start = 1;
         let mut line_end = 1;
@@ -151,10 +150,16 @@ pub struct ZomError {
 
 impl ZomError {
     /// If col_start == col_end None will be returned.
-    pub fn try_new(location: Option<Position>, details: String, is_warning: bool, help: Option<String>, notes: Vec<String>) -> Option<ZomError> {
+    pub fn try_new(
+        location: Option<Position>,
+        details: String,
+        is_warning: bool,
+        help: Option<String>,
+        notes: Vec<String>,
+    ) -> Option<ZomError> {
         if let Some(pos) = &location {
             if pos.col_start == pos.col_end {
-                return None
+                return None;
             }
         }
 
@@ -163,12 +168,18 @@ impl ZomError {
             details,
             is_warning,
             help,
-            notes
+            notes,
         })
     }
 
     /// If col_start == col_end it will panic.
-    pub fn new(location: Option<Position>, details: String, is_warning: bool, help: Option<String>, notes: Vec<String>) -> ZomError {
+    pub fn new(
+        location: Option<Position>,
+        details: String,
+        is_warning: bool,
+        help: Option<String>,
+        notes: Vec<String>,
+    ) -> ZomError {
         Self::try_new(location, details, is_warning, help, notes).unwrap()
     }
 
@@ -190,7 +201,7 @@ impl ZomError {
             )
             .iter()
             .map(|v| v.to_string())
-            .collect()
+            .collect(),
         }
     }
 
@@ -216,24 +227,14 @@ impl ZomError {
 
     fn write_help(&self, f: &mut fmt::Formatter<'_>, prefix: &str) -> fmt::Result {
         if let Some(help) = self.help.clone() {
-            writeln!(
-                f,
-                "{}help: {}",
-                prefix,
-                help
-            )?;
+            writeln!(f, "{}help: {}", prefix, help)?;
         }
         Ok(())
     }
 
     fn write_notes(&self, f: &mut fmt::Formatter<'_>, prefix: &str) -> fmt::Result {
         for note in &self.notes {
-            writeln!(
-                f,
-                "{}note: {}",
-                prefix,
-                note
-            )?;
+            writeln!(f, "{}note: {}", prefix, note)?;
         }
         Ok(())
     }
@@ -270,15 +271,15 @@ impl Display for ZomError {
                 margin += line_end_str.len() - margin + 1;
             }
             // Write the start line
-            let line_start = self.pos().filetext.lines().nth(self.pos().line_start - 1).unwrap();
+            let line_start = self
+                .pos()
+                .filetext
+                .lines()
+                .nth(self.pos().line_start - 1)
+                .unwrap();
 
             writeln!(f, "{}|", spaces(margin))?;
-            writeln!(
-                f,
-                "{}| {}",
-                pad_string(line_start_str, margin),
-                line_start
-            )?;
+            writeln!(f, "{}| {}", pad_string(line_start_str, margin), line_start)?;
             // Write either the end line or the error
             if self.pos().line_start == self.pos().line_end {
                 writeln!(
@@ -299,13 +300,13 @@ impl Display for ZomError {
                 if (self.pos().line_end - self.pos().line_start) != 1 {
                     writeln!(f, "{}| ...", spaces(margin))?;
                 }
-                let line_end = self.pos().filetext.lines().nth(self.pos().line_end - 1).unwrap();
-                writeln!(
-                    f,
-                    "{}| {}",
-                    pad_string(line_end_str, margin),
-                    line_end
-                )?;
+                let line_end = self
+                    .pos()
+                    .filetext
+                    .lines()
+                    .nth(self.pos().line_end - 1)
+                    .unwrap();
+                writeln!(f, "{}| {}", pad_string(line_end_str, margin), line_end)?;
                 writeln!(
                     f,
                     "{}| {}^",
@@ -317,7 +318,7 @@ impl Display for ZomError {
             self.write_help(f, format!("{}= ", spaces(margin)).as_str())?;
             // Write note(s)
             self.write_notes(f, format!("{}= ", spaces(margin)).as_str())?;
-        }else {
+        } else {
             // Write an help message if there is one
             self.write_help(f, "")?;
             // Write a note if there is one

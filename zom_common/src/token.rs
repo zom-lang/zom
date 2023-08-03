@@ -2,7 +2,10 @@
 //!
 //! It is in its own file because later on, there will be lot of tokens type.
 
-use std::{fmt::{self, Display}, ops::RangeInclusive};
+use std::{
+    fmt::{self, Display},
+    ops::RangeInclusive,
+};
 
 pub use TokenType::*;
 
@@ -165,7 +168,6 @@ impl Token {
     }
 }
 
-
 #[derive(Debug, PartialEq, Clone)]
 pub enum TokenType {
     // Operators
@@ -217,8 +219,7 @@ impl TokenType {
             if len == tokens.len() - 2 {
                 s += format!("{} ", tt).as_str();
                 continue;
-            } else
-            if len == tokens.len() - 1 {
+            } else if len == tokens.len() - 1 {
                 s += format!("or {}", tt).as_str();
                 continue;
             }

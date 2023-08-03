@@ -4,11 +4,11 @@ use std::ops::RangeInclusive;
 
 use zom_common::token::Token;
 
-use crate::{expect_token, impl_span, err_et};
+use crate::{err_et, expect_token, impl_span};
 
 use super::{ParserSettings, ParsingContext, PartParsingResult};
 
-use self::PartParsingResult::{Good, Bad, NotComplete};
+use self::PartParsingResult::{Bad, Good, NotComplete};
 
 use zom_common::token::*;
 

@@ -4,10 +4,10 @@ use std::ops::RangeInclusive;
 
 use zom_common::token::Token;
 
-use crate::{expect_token, impl_span, parse_try, parser::types::parse_type, err_et};
+use crate::{err_et, expect_token, impl_span, parse_try, parser::types::parse_type};
 
 use super::{
-    block::{BlockCodeExpr, parse_block},
+    block::{parse_block, BlockCodeExpr},
     types::Type,
     ASTNode, ParserSettings, ParsingContext, PartParsingResult,
 };

@@ -44,12 +44,12 @@ impl<'a> Lexer<'a> {
                 lexer.line,
                 lexer.column + 2, // + 2 because like col_start and either it will panic (see ZomError::new())
                 lexer.filename,
-                lexer.text
+                lexer.text,
             )),
             format!("illegal char `{}`", ch),
             false,
             Some("You should avoid using this character".to_owned()),
-            vec![]
+            vec![],
         )
     }
 
@@ -236,8 +236,8 @@ impl<'a> Lexer<'a> {
                         err.to_string(), // TODO: Try to add a position to this error
                         false,
                         None,
-                        vec![]
-                    ))
+                        vec![],
+                    )),
                 }
             } else {
                 match num_str.parse() {
@@ -247,8 +247,8 @@ impl<'a> Lexer<'a> {
                         err.to_string(), // TODO: Try to add a position to this error
                         false,
                         None,
-                        vec![]
-                    ))
+                        vec![],
+                    )),
                 }
             }
         } else {

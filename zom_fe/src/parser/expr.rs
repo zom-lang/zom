@@ -5,7 +5,7 @@ use std::ops::RangeInclusive;
 use zom_common::token::Token;
 use zom_common::token::*;
 
-use crate::{expect_token, impl_span, parse_try, err_et};
+use crate::{err_et, expect_token, impl_span, parse_try};
 
 use self::Expr::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
@@ -65,7 +65,14 @@ pub(super) fn parse_primary_expr(
         //     format!("unknow token when expecting an expression, found {:?}", tok),
         //     tokens.last().unwrap().clone(),
         // ))),
-        err_et!(context, tokens.last().unwrap(), vec![Ident(String::new()), Int(0), OpenParen, OpenBrace], tokens.last().unwrap().tt)
+        {
+            err_et!(
+                context,
+                tokens.last().unwrap(),
+                vec![Ident(String::new()), Int(0), OpenParen, OpenBrace],
+                tokens.last().unwrap().tt
+            )
+        }
     }
 }
 
@@ -86,7 +93,12 @@ pub(super) fn parse_ident_expr(
         //     "identificator expected".to_owned(),
         //     tokens.last().unwrap().clone()
         // )))
-        err_et!(context, tokens.last().unwrap(), vec![Ident(String::new())], tokens.last().unwrap().tt)
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![Ident(String::new())],
+            tokens.last().unwrap().tt
+        )
     );
 
     let start = *parsed_tokens.last().unwrap().clone().span.start();
@@ -202,12 +214,12 @@ pub(super) fn parse_parenthesis_expr(
                     context.pos,
                     t.span.clone(),
                     context.source_file.clone(),
-                    context.filename.clone()
+                    context.filename.clone(),
                 ),
                 format!("unclosed delimiter `)`"),
                 false,
                 None,
-                vec![]
+                vec![],
             ))
         }
     );
@@ -261,7 +273,14 @@ pub(super) fn parse_binary_expr(
                 //     "Unknown operator found".to_owned(),
                 //     tokens.last().unwrap().clone(),
                 // )))
-                return err_et!(context, tokens.last().unwrap(), vec![Operator("".to_owned())], tokens.last().unwrap().tt),
+                {
+                    return err_et!(
+                        context,
+                        tokens.last().unwrap(),
+                        vec![Operator("".to_owned())],
+                        tokens.last().unwrap().tt
+                    )
+                }
                 _ => break,
             },
             _ => break,
@@ -297,7 +316,14 @@ pub(super) fn parse_binary_expr(
                     //     "unknown operator found".to_owned(),
                     //     tokens.last().unwrap().clone(),
                     // )))
-                    return err_et!(context, tokens.last().unwrap(), vec![Operator("".to_owned())], tokens.last().unwrap().tt),
+                    {
+                        return err_et!(
+                            context,
+                            tokens.last().unwrap(),
+                            vec![Operator("".to_owned())],
+                            tokens.last().unwrap().tt
+                        )
+                    }
                     _ => break,
                 },
                 _ => break,
