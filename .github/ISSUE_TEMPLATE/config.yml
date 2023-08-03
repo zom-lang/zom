@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question
+    url: https://zom-lang.zulipchat.com/#narrow/stream/398323-general
+    about: Please ask and answer questions about Zom on the Zulip server.
+  - name: Feature Request
+    url: https://zom-lang.zulipchat.com/#narrow/stream/398867-pre-rfc
+    about: Please discuss language feature requests on our Zulip server.
