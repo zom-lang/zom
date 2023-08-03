@@ -2,13 +2,13 @@
 
 use std::ops::RangeInclusive;
 
-use zom_common::{error::parser::UnexpectedTokenError, token::Token};
+use zom_common::token::Token;
 
-use crate::{expect_token, impl_span, parser::error, FromContext};
+use crate::{err_et, expect_token, impl_span};
 
 use super::{ParserSettings, ParsingContext, PartParsingResult};
 
-use self::PartParsingResult::{Good, NotComplete};
+use self::PartParsingResult::{Bad, Good, NotComplete};
 
 use zom_common::token::*;
 
@@ -111,11 +111,12 @@ pub(super) fn parse_type(
     match tokens.last() {
         Some(Token { tt: Ident(_), .. }) => parse_primitive_type(tokens, settings, context),
         None => NotComplete,
-        tok => error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            format!("unknow token when expecting a type, found {:?}", tok),
-            tokens.last().unwrap().clone(),
-        ))),
+        _ => err_et!(context, tokens.last().unwrap(), vec![Ident(String::new())], tokens.last().unwrap().tt)
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     format!("unknow token when expecting a type, found {:?}", tok),
+        //     tokens.last().unwrap().clone(),
+        // ))),
     }
 }
 
@@ -125,16 +126,18 @@ fn parse_primitive_type(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Type> {
     let mut parsed_tokens = Vec::new();
+    let t = tokens.last().unwrap().clone();
 
     let name: String = expect_token!(
         context,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "Type name expected".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     "Type name expected".to_owned(),
+        //     tokens.last().unwrap().clone()
+        // )))
+        err_et!(context, t, vec![OpenParen], t.tt)
     );
 
     use PrimitiveType::*;

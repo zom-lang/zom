@@ -2,7 +2,10 @@
 //!
 //! It is in its own file because later on, there will be lot of tokens type.
 
-use std::{fmt, ops::RangeInclusive};
+use std::{
+    fmt::{self, Display},
+    ops::RangeInclusive,
+};
 
 pub use TokenType::*;
 
@@ -209,14 +212,56 @@ pub enum TokenType {
     // Identifier
     Ident(String), // Identifier is a alphanumeric string
 }
-
-impl fmt::Display for TokenType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let TokenType::Int(val) = &self {
-            return write!(f, "Int:{}", val);
-        } else if let TokenType::Float(val) = &self {
-            return write!(f, "Float:{}", val);
+impl TokenType {
+    pub fn format_toks(tokens: Vec<TokenType>) -> String {
+        let mut s = "".to_owned();
+        for (len, tt) in tokens.iter().enumerate() {
+            if len == tokens.len() - 2 {
+                s += format!("{} ", tt).as_str();
+                continue;
+            } else if len == tokens.len() - 1 {
+                s += format!("or {}", tt).as_str();
+                continue;
+            }
+            s += format!("{}, ", tt).as_str();
         }
-        write!(f, "{:?}", &self)
+        s
+    }
+}
+
+impl Display for TokenType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Operator(op) => write!(f, "operator `{}`", op),
+            OpenParen => write!(f, "`(`"),
+            CloseParen => write!(f, "`)`"),
+            OpenBracket => write!(f, "`[`"),
+            CloseBracket => write!(f, "`]`"),
+            OpenBrace => write!(f, "`{{`"),
+            CloseBrace => write!(f, "`}}`"),
+
+            Colon => write!(f, "`:`"),
+            SemiColon => write!(f, "`;`"),
+            Comma => write!(f, "`,`"),
+            At => write!(f, "`@`"),
+
+            Int(_) => write!(f, "integer literral"),
+            Float(_) => write!(f, "float literral"),
+
+            Func => write!(f, "keyword `func`"),
+            Extern => write!(f, "keyword `extern`"),
+            Var => write!(f, "keyword `var`"),
+            Const => write!(f, "keyword `const`"),
+            Struct => write!(f, "keyword `struct`"),
+            Enum => write!(f, "keyword `enum`"),
+            Return => write!(f, "keyword `return`"),
+            If => write!(f, "keyword `if`"),
+            Else => write!(f, "keyword `else`"),
+            While => write!(f, "keyword `while`"),
+            For => write!(f, "keyword `for`"),
+            Pub => write!(f, "keyword `pub`"),
+
+            Ident(_) => write!(f, "identifier"),
+        }
     }
 }

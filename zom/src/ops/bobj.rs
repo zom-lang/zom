@@ -1,9 +1,13 @@
-use std::{fs, mem, path::PathBuf};
+use std::{
+    fs,
+    // mem,
+    path::PathBuf,
+};
 
 use anyhow::anyhow;
 use inkwell::{context::Context, passes::PassManager};
 // use zom_codegen::gen::CodeGen;
-use zom_compiler::compiler::Compiler;
+// use zom_compiler::compiler::Compiler;
 use zom_fe::{
     lexer::Lexer,
     parser::{parse, ParserSettings, ParsingContext},
@@ -76,12 +80,12 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
         &mut parse_context,
     );
 
-    let ast;
+    let _ast;
 
     match parse_result {
         Ok((parsed_ast, rest)) => {
             if rest.is_empty() {
-                ast = parsed_ast;
+                _ast = parsed_ast;
             } else {
                 return Err(anyhow!("There is rest after parsing."));
             }
@@ -95,7 +99,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
 
     let context = Context::create();
     let module = context.create_module(args.source_file.to_str().unwrap());
-    let builder = context.create_builder();
+    let _builder = context.create_builder();
 
     // Create FPM
     let fpm = PassManager::create(&module);

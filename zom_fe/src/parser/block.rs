@@ -1,21 +1,17 @@
 use std::ops::RangeInclusive;
 
-use zom_common::{
-    error::parser::UnexpectedTokenError,
-    token::{Token, TokenType::*},
-};
+use zom_common::token::{Token, TokenType::*};
 
 use crate::{
-    expect_token, impl_span, parse_try,
-    parser::{
-        error,
-        statement::{parse_statement, Stmt},
-    },
-    token_parteq, FromContext,
+    err_et, expect_token, impl_span, parse_try,
+    parser::statement::{parse_statement, Stmt},
+    token_parteq,
 };
 
 use super::{
-    expr::Expression, statement::Statement, ParserSettings, ParsingContext, PartParsingResult,
+    expr::{Expr, Expression},
+    statement::Statement,
+    ParserSettings, ParsingContext, PartParsingResult,
 };
 
 use crate::parser::PartParsingResult::*;
@@ -29,13 +25,14 @@ pub struct BlockCodeExpr {
 
 impl_span!(BlockCodeExpr);
 
-pub(super) fn parse_block_expr(
+pub(super) fn parse_block(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
-) -> PartParsingResult<(BlockCodeExpr, RangeInclusive<usize>)> {
+) -> PartParsingResult<BlockCodeExpr> {
     // eat the opening brace
     let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
+    let t = tokens.last().unwrap().clone();
     tokens.pop();
 
     let start = *parsed_tokens.last().unwrap().span.start();
@@ -68,16 +65,18 @@ pub(super) fn parse_block_expr(
 
         code.push(stmt);
 
+        let t = parsed_tokens.last().unwrap().clone();
         if semi {
             expect_token!(
                 context,
                 [SemiColon, SemiColon, ()] <= tokens,
                 parsed_tokens,
-                error(Box::new(UnexpectedTokenError::from_context(
-                    context,
-                    "Expected ';'".to_owned(),
-                    tokens.last().unwrap().clone()
-                )))
+                // error(Box::new(UnexpectedTokenError::from_context(
+                //     context,
+                //     "Expected ';'".to_owned(),
+                //     tokens.last().unwrap().clone()
+                // )))
+                err_et!(context, t, vec![SemiColon], t.tt)
             );
         }
     }
@@ -86,24 +85,54 @@ pub(super) fn parse_block_expr(
         context,
         [CloseBrace, CloseBrace, ()] <= tokens,
         parsed_tokens,
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "Expected '}'".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     "Expected '}'".to_owned(),
+        //     tokens.last().unwrap().clone()
+        // )))
+        {
+            use zom_common::error::{Position, ZomError};
+            Bad(ZomError::new(
+                Position::try_from_range(
+                    context.pos,
+                    t.span.clone(),
+                    context.source_file.clone(),
+                    context.filename.clone(),
+                ),
+                format!("unclosed delimiter `}}`"),
+                false,
+                None,
+                vec![],
+            ))
+        }
     );
 
     let end = *parsed_tokens.last().unwrap().span.end();
 
     Good(
-        (
-            BlockCodeExpr {
-                code,
-                returned_expr,
-                span: start..=end,
-            },
-            start..=end,
-        ),
+        BlockCodeExpr {
+            code,
+            returned_expr,
+            span: start..=end,
+        },
         parsed_tokens,
     )
+}
+
+pub fn parse_block_expr(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Expression> {
+    match parse_block(tokens, settings, context) {
+        Good(block, parsed_tokens) => Good(
+            Expression {
+                expr: Expr::BlockExpr(block.clone()),
+                span: block.span,
+            },
+            parsed_tokens,
+        ),
+        NotComplete => NotComplete,
+        Bad(err) => Bad(err),
+    }
 }

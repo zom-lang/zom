@@ -2,11 +2,10 @@
 
 use std::ops::RangeInclusive;
 
-use zom_common::error::parser::UnexpectedTokenError;
 use zom_common::token::Token;
 use zom_common::token::*;
 
-use crate::{expect_token, impl_span, parse_try, FromContext};
+use crate::{err_et, expect_token, impl_span, parse_try};
 
 use self::Expr::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
@@ -15,7 +14,7 @@ use crate::parser::PartParsingResult::{Bad, Good, NotComplete};
 use crate::parser::PartParsingResult;
 
 use super::block::{parse_block_expr, BlockCodeExpr};
-use super::{error, ParserSettings, ParsingContext};
+use super::{ParserSettings, ParsingContext};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Expression {
@@ -58,23 +57,22 @@ pub(super) fn parse_primary_expr(
         Some(Token { tt: Ident(_), .. }) => parse_ident_expr(tokens, settings, context),
         Some(Token { tt: Int(_), .. }) => parse_literal_expr(tokens, settings, context),
         Some(Token { tt: OpenParen, .. }) => parse_parenthesis_expr(tokens, settings, context),
-        Some(Token { tt: OpenBrace, .. }) => match parse_block_expr(tokens, settings, context) {
-            Good((block, span), parsed_tokens) => Good(
-                Expression {
-                    expr: BlockExpr(block),
-                    span,
-                },
-                parsed_tokens,
-            ),
-            NotComplete => NotComplete,
-            Bad(err) => Bad(err),
-        },
+        Some(Token { tt: OpenBrace, .. }) => parse_block_expr(tokens, settings, context),
         None => NotComplete,
-        tok => error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            format!("unknow token when expecting an expression, found {:?}", tok),
-            tokens.last().unwrap().clone(),
-        ))),
+        _ =>
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     format!("unknow token when expecting an expression, found {:?}", tok),
+        //     tokens.last().unwrap().clone(),
+        // ))),
+        {
+            err_et!(
+                context,
+                tokens.last().unwrap(),
+                vec![Ident(String::new()), Int(0), OpenParen, OpenBrace],
+                tokens.last().unwrap().tt
+            )
+        }
     }
 }
 
@@ -90,16 +88,22 @@ pub(super) fn parse_ident_expr(
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
         // "identificator expected"
-        error(Box::new(UnexpectedTokenError::from_context(
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     "identificator expected".to_owned(),
+        //     tokens.last().unwrap().clone()
+        // )))
+        err_et!(
             context,
-            "identificator expected".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
+            tokens.last().unwrap(),
+            vec![Ident(String::new())],
+            tokens.last().unwrap().tt
+        )
     );
 
-    let start = *parsed_tokens.last().unwrap().span.start();
+    let start = *parsed_tokens.last().unwrap().clone().span.start();
 
-    let end = *parsed_tokens.last().unwrap().span.end();
+    let end = *parsed_tokens.last().unwrap().clone().span.end();
 
     expect_token!(
         context,
@@ -120,20 +124,22 @@ pub(super) fn parse_ident_expr(
             <= tokens, parsed_tokens
         );
 
+        let t = tokens.last().unwrap().clone();
         expect_token!(
             context, [
             Comma, Comma, {};
             CloseParen, CloseParen, break
         ] <= tokens,
              parsed_tokens,
-            error(
-                Box::new(UnexpectedTokenError::from_context(
-                    context,
-                    "Expected ',' in function call"
-                        .to_owned(),
-                    tokens.last().unwrap().clone()
-                ))
-            )
+            // error(
+            //     Box::new(UnexpectedTokenError::from_context(
+            //         context,
+            //         "Expected ',' in function call"
+            //             .to_owned(),
+            //         tokens.last().unwrap().clone()
+            //     ))
+            // )
+            err_et!(context, t, vec![Comma, CloseParen], t.tt)
         );
     }
 
@@ -155,16 +161,17 @@ pub(super) fn parse_literal_expr(
 ) -> PartParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
+    let t: Token = tokens.last().unwrap().clone();
     let value = expect_token!(
         context,
         [Int(val), Int(val), val] <= tokens,
         parsed_tokens,
-        // "literal expected"
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "Literal expected".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     "Literal expected".to_owned(),
+        //     tokens.last().unwrap().clone()
+        // )))
+        err_et!(context, t, vec![Int(0), Float(0.0)], t.tt)
     );
     let start = *parsed_tokens.last().unwrap().span.start();
 
@@ -186,6 +193,7 @@ pub(super) fn parse_parenthesis_expr(
 ) -> PartParsingResult<Expression> {
     // eat the opening parenthesis
     let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
+    let t = tokens.last().unwrap().clone();
     tokens.pop();
 
     let expr = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
@@ -194,12 +202,26 @@ pub(super) fn parse_parenthesis_expr(
         context,
         [CloseParen, CloseParen, ()] <= tokens,
         parsed_tokens,
-        // "')' expected"
-        error(Box::new(UnexpectedTokenError::from_context(
-            context,
-            "Expected ')' in parenthesis expression".to_owned(),
-            tokens.last().unwrap().clone()
-        )))
+        // error(Box::new(UnexpectedTokenError::from_context(
+        //     context,
+        //     "Expected ')' in parenthesis expression".to_owned(),
+        //     tokens.last().unwrap().clone()
+        // )))
+        {
+            use zom_common::error::{Position, ZomError};
+            Bad(ZomError::new(
+                Position::try_from_range(
+                    context.pos,
+                    t.span.clone(),
+                    context.source_file.clone(),
+                    context.filename.clone(),
+                ),
+                format!("unclosed delimiter `)`"),
+                false,
+                None,
+                vec![],
+            ))
+        }
     );
     // idk if the span is correct.
     Good(expr, parsed_tokens)
@@ -245,12 +267,19 @@ pub(super) fn parse_binary_expr(
                 span: _,
             }) => match settings.operator_precedence.get(op) {
                 Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
-                None => {
-                    return error(Box::new(UnexpectedTokenError::from_context(
+                None =>
+                // return error(Box::new(UnexpectedTokenError::from_context(
+                //     context,
+                //     "Unknown operator found".to_owned(),
+                //     tokens.last().unwrap().clone(),
+                // )))
+                {
+                    return err_et!(
                         context,
-                        "Unknown operator found".to_owned(),
-                        tokens.last().unwrap().clone(),
-                    )))
+                        tokens.last().unwrap(),
+                        vec![Operator("".to_owned())],
+                        tokens.last().unwrap().tt
+                    )
                 }
                 _ => break,
             },
@@ -281,12 +310,19 @@ pub(super) fn parse_binary_expr(
                             &rhs
                         )
                     }
-                    None => {
-                        return error(Box::new(UnexpectedTokenError::from_context(
+                    None =>
+                    // return error(Box::new(UnexpectedTokenError::from_context(
+                    //     context,
+                    //     "unknown operator found".to_owned(),
+                    //     tokens.last().unwrap().clone(),
+                    // )))
+                    {
+                        return err_et!(
                             context,
-                            "unknown operator found".to_owned(),
-                            tokens.last().unwrap().clone(),
-                        )))
+                            tokens.last().unwrap(),
+                            vec![Operator("".to_owned())],
+                            tokens.last().unwrap().tt
+                        )
                     }
                     _ => break,
                 },
