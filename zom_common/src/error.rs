@@ -5,6 +5,7 @@
 use std::error::Error;
 use std::fmt::{self, Display};
 use std::ops::RangeInclusive;
+use super::{commit_hash, build_date, build_target_triple};
 
 /// This function return spaces * len
 /// It is used for implement Display for errors
@@ -169,6 +170,28 @@ impl ZomError {
     /// If col_start == col_end it will panic.
     pub fn new(location: Option<Position>, details: String, is_warning: bool, help: Option<String>, notes: Vec<String>) -> ZomError {
         Self::try_new(location, details, is_warning, help, notes).unwrap()
+    }
+
+    /// Create a new Internal Compiler Error
+    pub fn ice_error(details: String) -> ZomError {
+        ZomError {
+            location: None,
+            details: "internal compiler error:".to_owned() + &details,
+            is_warning: false,
+            help: None,
+            notes: vec!(
+            "the compiler unexpectedly panicked. this is a bug.",
+            "we would appreciate a bug report: https://github.com/zom-lang/zom/issues/new?labels=bug (TODO: change the link to the template.)", // TODO: When issue #46 is finished, replace with the link to the template.
+            format!("zomc {} ({} {}) running on {}",
+                    env!("CARGO_PKG_VERSION"),
+                    &commit_hash()[..7],
+                    build_date(),
+                    build_target_triple()).as_str()
+            )
+            .iter()
+            .map(|v| v.to_string())
+            .collect()
+        }
     }
 
     /// Return the position of the error, if it's none, it will panic.
