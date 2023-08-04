@@ -181,6 +181,7 @@ impl<'a> Lexer<'a> {
                 ch => return Err(Self::illegal_char(self.clone(), ch)),
             }
         }
+        tokens.push(Token { tt: EOF, span: self.pos..=self.pos });
 
         Ok(tokens)
     }

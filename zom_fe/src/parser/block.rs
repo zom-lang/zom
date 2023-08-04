@@ -46,11 +46,10 @@ pub(super) fn parse_block(
         }
 
         let stmt = parse_try!(parse_statement, tokens, settings, context, parsed_tokens);
-        let semi = stmt.is_semi_need();
+        let is_eof = token_parteq!(tokens.last(), &EOF);
+        let semi = stmt.is_semi_need() && !is_eof;
 
-        // FIXME: Allow Binary operation in expression, in statements to allow `a = <expr>`..
-
-        if !token_parteq!(tokens.last(), &SemiColon)
+        if (!token_parteq!(tokens.last(), &SemiColon))
             && token_parteq!(tokens.last(), &CloseBrace)
             && match stmt.stmt {
                 Stmt::Expr(_) => true,
@@ -78,6 +77,8 @@ pub(super) fn parse_block(
                 // )))
                 err_et!(context, t, vec![SemiColon], t.tt)
             );
+        }else if is_eof {
+            break;
         }
     }
 
@@ -99,7 +100,7 @@ pub(super) fn parse_block(
                     context.source_file.clone(),
                     context.filename.clone(),
                 ),
-                format!("unclosed delimiter `}}`"),
+                "unclosed delimiter `}`".to_owned(),
                 false,
                 None,
                 vec![],

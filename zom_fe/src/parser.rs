@@ -148,6 +148,10 @@ pub fn parse(
         let result = match &cur_token.tt {
             Func => parse_function(&mut rest, settings, context),
             Extern => parse_extern(&mut rest, settings, context),
+            EOF => {
+                rest.pop();
+                break;
+            },
             tt => err_et!(context, cur_token.clone(), vec![Func, Extern], tt)
             // Bad(Box::new(UnexpectedTokenError::from_context(
             //     context,

@@ -211,6 +211,8 @@ pub enum TokenType {
 
     // Identifier
     Ident(String), // Identifier is a alphanumeric string
+
+    EOF,
 }
 impl TokenType {
     pub fn format_toks(tokens: Vec<TokenType>) -> String {
@@ -262,6 +264,8 @@ impl Display for TokenType {
             Pub => write!(f, "keyword `pub`"),
 
             Ident(_) => write!(f, "identifier"),
+
+            EOF => write!(f, "End of File")
         }
     }
 }

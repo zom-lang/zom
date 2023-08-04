@@ -9,7 +9,7 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
     println!("Development command.\n");
 
     let mut buffer =
-        String::from("func foo(bar: i16, baz: str) { foo(test, test); foo = 12; foo }");
+        String::from("func foo(bar: i16, baz: str) { foo(test, test); foo = 12; foo ");
 
     print!("input: ");
     stdout().flush().expect("ERR: Flush the output failed.");
@@ -29,7 +29,7 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
         Err(err) => return Err(anyhow!(format!("{}", err))),
     };
 
-    // println!("tokens = {tokens:#?}");
+    println!("tokens = {tokens:#?}");
 
     let mut parse_context = ParsingContext::new("<dev_cmd>.zom".to_owned(), buffer, tokens.clone());
 
