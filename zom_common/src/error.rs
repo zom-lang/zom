@@ -187,7 +187,7 @@ impl ZomError {
     pub fn ice_error(details: String) -> ZomError {
         ZomError {
             location: None,
-            details: "internal compiler error:".to_owned() + &details,
+            details: "internal compiler error: ".to_owned() + &details,
             is_warning: false,
             help: None,
             notes: vec!(
