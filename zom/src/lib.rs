@@ -7,10 +7,44 @@
 
 mod ops;
 
-use std::ffi::OsString;
+use std::{ffi::OsString, error::Error};
 
 use clap::{Parser, Subcommand};
 use ops::{bobj, gettarget::gettarget, version};
+
+#[derive(Debug)]
+struct SError {
+    msg: String
+}
+
+impl SError {
+    fn new<S: Into<String>>(msg: S) -> Self {
+        SError {
+            msg: msg.into(),
+        }
+    }
+}
+
+impl Error for SError {}
+
+impl std::fmt::Display for SError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.msg)
+    }
+}
+
+#[macro_export]
+macro_rules! err {
+    ($msg:expr) => ({
+        use $crate::SError;
+        Box::new(SError::new($msg))
+    });
+
+    (fmt $msg:tt, $($arg:expr)*) => ({
+        use $crate::SError;
+        Box::new(SError::new(format!($msg, $( $arg ),* )))
+    });
+}
 
 #[derive(Parser)]
 #[clap()]
@@ -51,7 +85,7 @@ impl From<bool> for ExitStatus {
     }
 }
 
-pub fn run_with_args<T, I>(args: I) -> Result<ExitStatus, anyhow::Error>
+pub fn run_with_args<T, I>(args: I) -> Result<ExitStatus, Box<dyn Error>>
 where
     I: IntoIterator<Item = T>,
     T: Into<OsString> + Clone,

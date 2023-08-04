@@ -1,11 +1,12 @@
 use anyhow::anyhow;
+use std::error::Error;
 use std::io::{stdout, Write};
 use zom_fe::lexer::Lexer;
 use zom_fe::parser::{parse, ParserSettings, ParsingContext};
 
-use crate::ExitStatus;
+use crate::{ExitStatus, err};
 
-pub fn dev() -> Result<ExitStatus, anyhow::Error> {
+pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     println!("Development command.\n");
 
     let mut buffer =
@@ -26,7 +27,7 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
 
     let tokens = match lexer.make_tokens() {
         Ok(t) => t,
-        Err(err) => return Err(anyhow!(format!("{}", err))),
+        Err(err) => return Err(err!(fmt "{}", err)),
     };
 
     println!("tokens = {tokens:#?}");
@@ -45,7 +46,7 @@ pub fn dev() -> Result<ExitStatus, anyhow::Error> {
             println!("ast = {:#?}", ast);
             println!("toks_rest = {:?}", rest_toks);
         }
-        Err(err) => return Err(anyhow!(format!("{}", err))),
+        Err(err) => return Err(err!(fmt "{}", err)),
     }
 
     Ok(ExitStatus::Success)
