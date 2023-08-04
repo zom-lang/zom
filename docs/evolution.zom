@@ -299,3 +299,8 @@ const List = struct {
     child: &'a List,
 }
 
+/// Struct with explicit life time when the borrow checker can't figure out the lifetimes :
+const List = 'a: struct {
+    value: u32,
+    child: &'a List,
+}
