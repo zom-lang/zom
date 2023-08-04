@@ -1,4 +1,3 @@
-use anyhow::anyhow;
 use std::error::Error;
 use std::io::{stdout, Write};
 use zom_fe::lexer::Lexer;

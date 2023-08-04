@@ -192,7 +192,7 @@ impl ZomError {
             help: None,
             notes: vec!(
             "the compiler unexpectedly panicked. this is a bug.",
-            "we would appreciate a bug report: https://github.com/zom-lang/zom/issues/new?labels=bug (TODO: change the link to the template.)", // TODO: When issue #46 is finished, replace with the link to the template.
+            "we would appreciate a bug report: https://github.com/zom-lang/zom/issues/new?assignees=&labels=C-bug%2C+I-ICE%2C+A-compiler&projects=&template=ice.md",
             format!("zomc {} ({} {}) running on {}",
                     env!("CARGO_PKG_VERSION"),
                     &commit_hash()[..7],

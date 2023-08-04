@@ -4,7 +4,6 @@ use std::{
     path::PathBuf, error::Error,
 };
 
-use anyhow::anyhow;
 use inkwell::{context::Context, passes::PassManager};
 // use zom_codegen::gen::CodeGen;
 // use zom_compiler::compiler::Compiler;

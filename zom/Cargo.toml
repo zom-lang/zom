@@ -13,9 +13,6 @@ readme.workspace = true
 
 [dependencies]
 clap = { version = "4.3.0", features = ["derive", "cargo"] }
-anyhow = { version = "1.0.71", default-features = false }
-log.workspace = true
-pretty_env_logger.workspace = true
 
 zom_compiler = { path = "../zom_compiler" }
 zom_codegen ={ path = "../zom_codegen" }
