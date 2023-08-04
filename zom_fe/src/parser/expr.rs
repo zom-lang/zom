@@ -13,7 +13,7 @@ use crate::parser::PartParsingResult::{Bad, Good, NotComplete};
 
 use crate::parser::PartParsingResult;
 
-use super::block::{parse_block_expr, BlockCodeExpr};
+use super::block::{parse_block_expr, Block};
 use super::{ParserSettings, ParsingContext};
 
 #[derive(PartialEq, Clone, Debug)]
@@ -34,7 +34,7 @@ pub enum Expr {
         rhs: Box<Expression>,
     },
     CallExpr(String, Vec<Expression>),
-    BlockExpr(BlockCodeExpr),
+    BlockExpr(Block),
 }
 
 impl Expression {

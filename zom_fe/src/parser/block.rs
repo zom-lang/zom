@@ -17,19 +17,19 @@ use super::{
 use crate::parser::PartParsingResult::*;
 
 #[derive(PartialEq, Clone, Debug)]
-pub struct BlockCodeExpr {
+pub struct Block {
     pub code: Vec<Statement>,
     pub returned_expr: Option<Box<Expression>>,
     pub span: RangeInclusive<usize>,
 }
 
-impl_span!(BlockCodeExpr);
+impl_span!(Block);
 
 pub(super) fn parse_block(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
-) -> PartParsingResult<BlockCodeExpr> {
+) -> PartParsingResult<Block> {
     // eat the opening brace
     let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     let t = tokens.last().unwrap().clone();
@@ -111,7 +111,7 @@ pub(super) fn parse_block(
     let end = *parsed_tokens.last().unwrap().span.end();
 
     Good(
-        BlockCodeExpr {
+        Block {
             code,
             returned_expr,
             span: start..=end,

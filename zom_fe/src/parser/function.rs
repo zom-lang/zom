@@ -7,7 +7,7 @@ use zom_common::token::Token;
 use crate::{err_et, expect_token, impl_span, parse_try, parser::types::parse_type};
 
 use super::{
-    block::{parse_block, BlockCodeExpr},
+    block::{parse_block, Block},
     types::Type,
     ASTNode, ParserSettings, ParsingContext, PartParsingResult,
 };
@@ -19,7 +19,7 @@ use zom_common::token::*;
 #[derive(PartialEq, Clone, Debug)]
 pub struct Function {
     pub prototype: Prototype,
-    pub body: Option<BlockCodeExpr>,
+    pub body: Option<Block>,
     pub span: RangeInclusive<usize>,
 }
 
