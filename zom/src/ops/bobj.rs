@@ -1,10 +1,9 @@
 use std::{
     fs,
     // mem,
-    path::PathBuf,
+    path::PathBuf, error::Error,
 };
 
-use anyhow::anyhow;
 use inkwell::{context::Context, passes::PassManager};
 // use zom_codegen::gen::CodeGen;
 // use zom_compiler::compiler::Compiler;
@@ -13,7 +12,7 @@ use zom_fe::{
     parser::{parse, ParserSettings, ParsingContext},
 };
 
-use crate::ExitStatus;
+use crate::{ExitStatus, err};
 
 #[derive(clap::Args, Debug, Clone)]
 pub struct Args {
@@ -38,7 +37,7 @@ pub struct Args {
     verbose: bool,
 }
 
-pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
+pub fn build(mut args: Args) -> Result<ExitStatus, Box<dyn Error>> {
     // default ouput_file to `output.o`, it's where because with `default_value_t`, that doesn't work.
     if args.output_file.is_none() {
         args.output_file = if args.emit_ir {
@@ -50,7 +49,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
 
     let source = match fs::read_to_string(&mut args.source_file) {
         Ok(src) => src,
-        Err(_) => return Err(anyhow!("Error while trying to read the source file.")),
+        Err(_) => return Err(err!("Error while trying to read the source file.")),
     };
 
     let mut lexer = Lexer::new(
@@ -60,7 +59,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
 
     let tokens = match lexer.make_tokens() {
         Ok(src) => src,
-        Err(err) => return Err(anyhow!(format!("\n{}\n", err))),
+        Err(err) => return Err(err!(fmt "\n{}\n", err)),
     };
 
     args.verbose.then(|| {
@@ -87,10 +86,10 @@ pub fn build(mut args: Args) -> Result<ExitStatus, anyhow::Error> {
             if rest.is_empty() {
                 _ast = parsed_ast;
             } else {
-                return Err(anyhow!("There is rest after parsing."));
+                return Err(err!("There is rest after parsing."));
             }
         }
-        Err(err) => return Err(anyhow!(format!("\n{}\n", err))),
+        Err(err) => return Err(err!(fmt "\n{}\n", err)),
     }
 
     args.verbose.then(|| {

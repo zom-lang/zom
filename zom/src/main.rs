@@ -1,8 +1,34 @@
-use zom::{run_with_args, ExitStatus};
+use std::thread;
+use std::{error::Error, backtrace::Backtrace};
+use std::panic;
+use std::backtrace::BacktraceStatus::*;
 
-fn main() -> Result<(), anyhow::Error> {
-    pretty_env_logger::try_init()
-        .expect("Error occurs at the initialization of pretty_env_logger.");
+use zom::{run_with_args, ExitStatus};
+use zom_common::error::ZomError;
+
+fn main() -> Result<(), Box<dyn Error>> {
+    panic::set_hook(Box::new(|panic_info| {
+        let thread = thread::current();
+        let backtrace = Backtrace::capture();
+        println!("{}", panic_info);
+
+        match backtrace.status() {
+            Captured => {
+                if let Some(name) = thread.name() {
+                    println!("thread '{}' {}", name, backtrace)
+                }else {
+                    println!("{}", backtrace);
+                }
+            }
+            Disabled => println!("note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"),
+            Unsupported => println!("note: backtrace is not supported."),
+            _ => {}
+        }
+
+        let ice = ZomError::ice_error(panic_info.to_string());
+        println!("\n{}", ice);
+    }));
+
     let status = match run_with_args(std::env::args_os()) {
         Ok(v) => v,
         Err(err) => {

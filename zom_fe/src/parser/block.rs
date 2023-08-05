@@ -17,19 +17,19 @@ use super::{
 use crate::parser::PartParsingResult::*;
 
 #[derive(PartialEq, Clone, Debug)]
-pub struct BlockCodeExpr {
+pub struct Block {
     pub code: Vec<Statement>,
     pub returned_expr: Option<Box<Expression>>,
     pub span: RangeInclusive<usize>,
 }
 
-impl_span!(BlockCodeExpr);
+impl_span!(Block);
 
 pub(super) fn parse_block(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
-) -> PartParsingResult<BlockCodeExpr> {
+) -> PartParsingResult<Block> {
     // eat the opening brace
     let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     let t = tokens.last().unwrap().clone();
@@ -46,11 +46,10 @@ pub(super) fn parse_block(
         }
 
         let stmt = parse_try!(parse_statement, tokens, settings, context, parsed_tokens);
-        let semi = stmt.is_semi_need();
+        let is_eof = token_parteq!(tokens.last(), &EOF);
+        let semi = stmt.is_semi_need() && !is_eof;
 
-        // FIXME: Allow Binary operation in expression, in statements to allow `a = <expr>`..
-
-        if !token_parteq!(tokens.last(), &SemiColon)
+        if (!token_parteq!(tokens.last(), &SemiColon))
             && token_parteq!(tokens.last(), &CloseBrace)
             && match stmt.stmt {
                 Stmt::Expr(_) => true,
@@ -78,6 +77,8 @@ pub(super) fn parse_block(
                 // )))
                 err_et!(context, t, vec![SemiColon], t.tt)
             );
+        }else if is_eof {
+            break;
         }
     }
 
@@ -99,7 +100,7 @@ pub(super) fn parse_block(
                     context.source_file.clone(),
                     context.filename.clone(),
                 ),
-                format!("unclosed delimiter `}}`"),
+                "unclosed delimiter `}`".to_owned(),
                 false,
                 None,
                 vec![],
@@ -110,7 +111,7 @@ pub(super) fn parse_block(
     let end = *parsed_tokens.last().unwrap().span.end();
 
     Good(
-        BlockCodeExpr {
+        Block {
             code,
             returned_expr,
             span: start..=end,
