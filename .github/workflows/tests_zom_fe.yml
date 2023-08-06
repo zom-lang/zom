@@ -1,5 +1,5 @@
 
-name: Rust tests for zom_fe
+name: Rust tests for
 
 on:
   push:
@@ -13,8 +13,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-and-test:
-    name: "On ${{ matrix.os }}"
+  tests-zom_fe:
+    name: "${{ github.job }} on ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -25,14 +25,48 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Move into zom_fe
-      run: cd zom_fe
+    - name: Install latest nightly
+      uses: actions-rs/toolchain@v1
+      with:
+          profiles: minimal
+          toolchain: stable
 
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2.3.0
 
     - name: Build
+      working-directory: ./zom_fe
       run: cargo build --release --verbose
 
     - name: Run tests
+      working-directory: ./zom_fe
+      run: cargo test --release --verbose
+
+  tests-zom_common:
+    name: "${{ github.job }} on ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install latest nightly
+      uses: actions-rs/toolchain@v1
+      with:
+          profiles: minimal
+          toolchain: stable
+
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2.3.0
+
+    - name: Build
+      working-directory: ./zom_fe
+      run: cargo build --release --verbose
+
+    - name: Run tests
+      working-directory: ./zom_fe
       run: cargo test --release --verbose
