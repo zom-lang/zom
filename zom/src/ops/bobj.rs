@@ -59,7 +59,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, Box<dyn Error>> {
 
     let tokens = match lexer.make_tokens() {
         Ok(src) => src,
-        Err(err) => return Err(err!(fmt "\n{}\n", err)),
+        Err(err) => return Err(err!(fmt "\n{:?}\n", err)),
     };
 
     args.verbose.then(|| {

@@ -23,6 +23,19 @@ pub struct Lexer<'a> {
     filename: String,
 }
 
+#[macro_export]
+macro_rules! try_call {
+    ($e:expr, $err:expr) => (
+        match $e {
+            Ok(v) => v,
+            Err(err) => {
+                $err.push(err);
+                continue;
+            },
+        }
+    );
+}
+
 impl<'a> Lexer<'a> {
     pub fn new(text: &str, filename: String) -> Lexer {
         Lexer {
@@ -80,14 +93,19 @@ impl<'a> Lexer<'a> {
         self.incr_pos();
     }
 
-    pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, ZomError> {
+    pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Vec<ZomError>> {
         let mut tokens: Vec<Token> = Vec::new();
+        let mut errs = Vec::new();
 
         'main: while let Some(ch) = self.chars.next() {
+            println!("ch = {ch:?}, pos = {}", self.pos);
             match ch {
                 '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' => {
                     let old_pos = self.pos;
-                    tokens.push(Token::new(self.lex_lki(ch)?, old_pos..=(self.pos - 1)));
+                    println!("old_pos = {old_pos}");
+                    tokens.push(
+                        Token::new(try_call!(self.lex_lki(ch, old_pos), errs), old_pos..=(self.pos - 1))
+                    );
                 }
                 ch if is_start_operator(ch) => {
                     let window = &self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
@@ -178,10 +196,19 @@ impl<'a> Lexer<'a> {
                     self.incr_pos();
                     continue;
                 }
-                ch => return Err(Self::illegal_char(self.clone(), ch)),
+                ch => //return Err(Self::illegal_char(self.clone(), ch)),
+                {
+                    errs.push(Self::illegal_char(self.clone(), ch));
+                    self.incr_pos();
+                }
             }
         }
         tokens.push(Token { tt: EOF, span: self.pos..=self.pos });
+
+        if !errs.is_empty() {
+            println!("toks = {:#?}", tokens);
+            return Err(errs)
+        }
 
         Ok(tokens)
     }
@@ -193,7 +220,7 @@ impl<'a> Lexer<'a> {
     ///     text: `test` -> Ident("est")
     /// And after it is like that :
     ///     text: `test` -> Ident("test")
-    fn lex_lki(&mut self, ch: char) -> Result<TokenType, ZomError> {
+    fn lex_lki(&mut self, ch: char, old_pos: usize) -> Result<TokenType, ZomError> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut is_numeric = true;
@@ -233,8 +260,13 @@ impl<'a> Lexer<'a> {
                 match num_str.parse() {
                     Ok(i) => Ok(Int(i)),
                     Err(err) => Err(ZomError::new(
-                        None,
-                        err.to_string(), // TODO: Try to add a position to this error
+                        Position::try_from_range(
+                            self.pos,
+                            old_pos..=self.pos,
+                            self.text.clone(),
+                            self.filename.clone()
+                        ),
+                        err.to_string(),
                         false,
                         None,
                         vec![],
@@ -244,7 +276,12 @@ impl<'a> Lexer<'a> {
                 match num_str.parse() {
                     Ok(f) => Ok(Float(f)),
                     Err(err) => Err(ZomError::new(
-                        None,
+                        Position::try_from_range(
+                            self.pos,
+                            old_pos..=self.pos - 1,
+                            self.text.clone(),
+                            self.filename.clone()
+                        ),
                         err.to_string(), // TODO: Try to add a position to this error
                         false,
                         None,

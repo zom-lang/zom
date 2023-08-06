@@ -78,7 +78,7 @@ impl Position {
         range: RangeInclusive<usize>,
         filetext: String,
         filename: String,
-    ) -> Option<Position> {
+    ) -> Option<Position> { // FIXME: I think this function is partially broken, find why.
         let mut line_start = 1;
         let mut col_start = 1;
         let mut line_end = 1;

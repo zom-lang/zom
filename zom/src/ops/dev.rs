@@ -9,7 +9,8 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     println!("Development command.\n");
 
     let mut buffer =
-        String::from("func foo(bar: i16, baz: str) { foo(test, test); foo = 12; foo ");
+        // String::from("func foo(bar: i16, baz: str) { foo(test, test); foo = è 9999999999999999999; foo } è");
+        String::from("è § ~ 9876543210987 è è");
 
     print!("input: ");
     stdout().flush().expect("ERR: Flush the output failed.");
@@ -26,7 +27,13 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
 
     let tokens = match lexer.make_tokens() {
         Ok(t) => t,
-        Err(err) => return Err(err!(fmt "{}", err)),
+        Err(errs) => {
+            let mut err = "".to_owned();
+            for error in errs {
+                err += format!("{}\n", error).as_str();
+            }
+            return Err(err!(fmt "{}", err))
+        },
     };
 
     println!("tokens = {tokens:#?}");
