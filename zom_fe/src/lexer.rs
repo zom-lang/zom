@@ -36,6 +36,13 @@ macro_rules! try_call {
     );
 }
 
+macro_rules! match_arm {
+    ($self:expr, $tokens:expr, $tt:expr) => ({
+        $tokens.push(Token::new($tt, $self.pos..=$self.pos));
+        $self.incr_pos();
+    });
+}
+
 impl<'a> Lexer<'a> {
     pub fn new(text: &str, filename: String) -> Lexer {
         Lexer {
@@ -87,12 +94,6 @@ impl<'a> Lexer<'a> {
         self.column += 1;
     }
 
-    #[inline]
-    pub fn match_arm(&mut self, tokens: &mut Vec<Token>, tt: TokenType) {
-        tokens.push(Token::new(tt, self.pos..=self.pos));
-        self.incr_pos();
-    }
-
     pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Vec<ZomError>> {
         let mut tokens: Vec<Token> = Vec::new();
         let mut errs = Vec::new();
@@ -103,7 +104,7 @@ impl<'a> Lexer<'a> {
                     let old_pos = self.pos;
                     let start = (self.line, self.column);
                     tokens.push(
-                        Token::new(try_call!(self.lex_lki(ch, start), errs), old_pos..=(self.pos - 1))
+                        Token::new(try_call!(self.lex_number(ch, start), errs), old_pos..=(self.pos - 1))
                     );
                 }
                 ch if is_start_operator(ch) => {
@@ -177,15 +178,15 @@ impl<'a> Lexer<'a> {
                     tokens.push(Token::new(OpenParen, self.pos..=self.pos));
                     self.incr_pos();
                 }
-                ')' => self.match_arm(&mut tokens, CloseParen),
-                '[' => self.match_arm(&mut tokens, OpenBracket),
-                ']' => self.match_arm(&mut tokens, CloseBracket),
-                '{' => self.match_arm(&mut tokens, OpenBrace),
-                '}' => self.match_arm(&mut tokens, CloseBrace),
-                ';' => self.match_arm(&mut tokens, SemiColon),
-                ':' => self.match_arm(&mut tokens, Colon),
-                ',' => self.match_arm(&mut tokens, Comma),
-                '@' => self.match_arm(&mut tokens, At),
+                ')' => match_arm!(self, tokens, CloseParen),
+                '[' => match_arm!(self, tokens, OpenBracket),
+                ']' => match_arm!(self, tokens, CloseBracket),
+                '{' => match_arm!(self, tokens, OpenBrace),
+                '}' => match_arm!(self, tokens, CloseBrace),
+                ';' => match_arm!(self, tokens, SemiColon),
+                ':' => match_arm!(self, tokens, Colon),
+                ',' => match_arm!(self, tokens, Comma),
+                '@' => match_arm!(self, tokens, At),
                 '\n' => {
                     self.line += 1;
                     self.column = 0;
@@ -212,14 +213,8 @@ impl<'a> Lexer<'a> {
         Ok(tokens)
     }
 
-    /// This function lexes either an literal, a keyword or an identifier
-    ///
-    /// It takes a char in parameter because we have already "next" the iterator, so it's the actual character to put in arg.
-    /// Because before it was like that :
-    ///     text: `test` -> Ident("est")
-    /// And after it is like that :
-    ///     text: `test` -> Ident("test")
-    fn lex_lki(&mut self, ch: char, start: (usize, usize)) -> Result<TokenType, ZomError> {
+    /// This function lexes either a number literal
+    fn lex_number(&mut self, ch: char, start: (usize, usize)) -> Result<TokenType, ZomError> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut is_numeric = true;
@@ -255,7 +250,7 @@ impl<'a> Lexer<'a> {
         }
 
         if is_numeric {
-            if dot_count == 0 {
+            return if dot_count == 0 {
                 match num_str.parse() {
                     Ok(i) => Ok(Int(i)),
                     Err(err) => Err(ZomError::new(
@@ -268,10 +263,10 @@ impl<'a> Lexer<'a> {
                             self.filename.clone(),
                             self.text.clone()
                         )),
-                        err.to_string(),
+                        "failed to lex integer literal".to_owned(),
                         false,
                         None,
-                        vec![],
+                        vec![err.to_string()],
                     )),
                 }
             } else {
@@ -287,29 +282,34 @@ impl<'a> Lexer<'a> {
                             self.filename.clone(),
                             self.text.clone()
                         )),
-                        err.to_string(),
+                        "failed to lex float literal".to_owned(),
                         false,
                         None,
-                        vec![],
+                        vec![err.to_string()],
                     )),
                 }
             }
-        } else {
-            match num_str.as_str() {
-                KW_FUNC => Ok(Func),
-                KW_EXTERN => Ok(Extern),
-                KW_VAR => Ok(Var),
-                KW_CONST => Ok(Const),
-                KW_STRUCT => Ok(Struct),
-                KW_ENUM => Ok(Enum),
-                KW_RETURN => Ok(Return),
-                KW_IF => Ok(If),
-                KW_ELSE => Ok(Else),
-                KW_WHILE => Ok(While),
-                KW_FOR => Ok(For),
-                KW_PUB => Ok(Pub),
-                _ => Ok(Ident(num_str.clone())),
-            }
+        }
+        Ok(Lexer::lex_keyword(num_str))
+    }
+
+    /// if kw matches a keyword, the corresponding keyword is returned
+    /// but if it doesn't match an ident with is returned with kw as name.
+    fn lex_keyword(kw: String) -> TokenType {
+        match kw.as_str() {
+            KW_FUNC => Func,
+            KW_EXTERN => Extern,
+            KW_VAR => Var,
+            KW_CONST => Const,
+            KW_STRUCT => Struct,
+            KW_ENUM => Enum,
+            KW_RETURN => Return,
+            KW_IF => If,
+            KW_ELSE => Else,
+            KW_WHILE => While,
+            KW_FOR => For,
+            KW_PUB => Pub,
+            _ => Ident(kw.clone()),
         }
     }
 }
