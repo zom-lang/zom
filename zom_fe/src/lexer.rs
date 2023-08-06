@@ -98,13 +98,12 @@ impl<'a> Lexer<'a> {
         let mut errs = Vec::new();
 
         'main: while let Some(ch) = self.chars.next() {
-            println!("ch = {ch:?}, pos = {}", self.pos);
             match ch {
                 '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' => {
                     let old_pos = self.pos;
-                    println!("old_pos = {old_pos}");
+                    let start = (self.line, self.column);
                     tokens.push(
-                        Token::new(try_call!(self.lex_lki(ch, old_pos), errs), old_pos..=(self.pos - 1))
+                        Token::new(try_call!(self.lex_lki(ch, start), errs), old_pos..=(self.pos - 1))
                     );
                 }
                 ch if is_start_operator(ch) => {
@@ -220,7 +219,7 @@ impl<'a> Lexer<'a> {
     ///     text: `test` -> Ident("est")
     /// And after it is like that :
     ///     text: `test` -> Ident("test")
-    fn lex_lki(&mut self, ch: char, old_pos: usize) -> Result<TokenType, ZomError> {
+    fn lex_lki(&mut self, ch: char, start: (usize, usize)) -> Result<TokenType, ZomError> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut is_numeric = true;
@@ -260,12 +259,15 @@ impl<'a> Lexer<'a> {
                 match num_str.parse() {
                     Ok(i) => Ok(Int(i)),
                     Err(err) => Err(ZomError::new(
-                        Position::try_from_range(
+                        Some(Position::new(
                             self.pos,
-                            old_pos..=self.pos,
-                            self.text.clone(),
-                            self.filename.clone()
-                        ),
+                            start.0,
+                            start.1 + 1,
+                            self.line,
+                            self.column + 1,
+                            self.filename.clone(),
+                            self.text.clone()
+                        )),
                         err.to_string(),
                         false,
                         None,
@@ -276,13 +278,16 @@ impl<'a> Lexer<'a> {
                 match num_str.parse() {
                     Ok(f) => Ok(Float(f)),
                     Err(err) => Err(ZomError::new(
-                        Position::try_from_range(
+                        Some(Position::new(
                             self.pos,
-                            old_pos..=self.pos - 1,
-                            self.text.clone(),
-                            self.filename.clone()
-                        ),
-                        err.to_string(), // TODO: Try to add a position to this error
+                            start.0,
+                            start.1,
+                            self.line,
+                            self.column,
+                            self.filename.clone(),
+                            self.text.clone()
+                        )),
+                        err.to_string(),
                         false,
                         None,
                         vec![],
