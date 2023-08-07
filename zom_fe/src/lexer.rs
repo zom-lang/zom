@@ -24,7 +24,7 @@ pub struct Lexer<'a> {
 }
 
 #[macro_export]
-macro_rules! try_call {
+macro_rules! try_unwrap {
     ($e:expr, $err:expr) => (
         match $e {
             Ok(v) => v,
@@ -55,6 +55,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    #[inline]
     pub fn illegal_char(lexer: Lexer, ch: char) -> ZomError {
         ZomError::new(
             Some(Position::new(
@@ -89,11 +90,12 @@ impl<'a> Lexer<'a> {
     }
 
     #[inline]
-    pub fn incr_pos(&mut self) {
+    fn incr_pos(&mut self) {
         self.pos += 1;
         self.column += 1;
     }
 
+    /// Generate tokens out of the text.
     pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Vec<ZomError>> {
         let mut tokens: Vec<Token> = Vec::new();
         let mut errs = Vec::new();
@@ -104,7 +106,7 @@ impl<'a> Lexer<'a> {
                     let old_pos = self.pos;
                     let start = (self.line, self.column);
                     tokens.push(
-                        Token::new(try_call!(self.make_word(ch, start), errs), old_pos..=(self.pos - 1))
+                        Token::new(try_unwrap!(self.make_word(ch, start), errs), old_pos..=(self.pos - 1))
                     );
                 }
                 ch if is_start_operator(ch) => {
