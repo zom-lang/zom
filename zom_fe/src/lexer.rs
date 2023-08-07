@@ -104,7 +104,7 @@ impl<'a> Lexer<'a> {
                     let old_pos = self.pos;
                     let start = (self.line, self.column);
                     tokens.push(
-                        Token::new(try_call!(self.lex_number(ch, start), errs), old_pos..=(self.pos - 1))
+                        Token::new(try_call!(self.make_word(ch, start), errs), old_pos..=(self.pos - 1))
                     );
                 }
                 ch if is_start_operator(ch) => {
@@ -213,8 +213,10 @@ impl<'a> Lexer<'a> {
         Ok(tokens)
     }
 
-    /// This function lexes either a number literal
-    fn lex_number(&mut self, ch: char, start: (usize, usize)) -> Result<TokenType, ZomError> {
+    /// Make a word out of the iterator and then, if the word is
+    /// * numeric, Lexer::lex_number(..) is called
+    /// * a keyword or an identifier,
+    fn make_word(&mut self, ch: char, start: (usize, usize)) -> Result<TokenType, ZomError> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut is_numeric = true;
@@ -250,47 +252,19 @@ impl<'a> Lexer<'a> {
         }
 
         if is_numeric {
-            return if dot_count == 0 {
-                match num_str.parse() {
-                    Ok(i) => Ok(Int(i)),
-                    Err(err) => Err(ZomError::new(
-                        Some(Position::new(
-                            self.pos,
-                            start.0,
-                            start.1 + 1,
-                            self.line,
-                            self.column + 1,
-                            self.filename.clone(),
-                            self.text.clone()
-                        )),
-                        "failed to lex integer literal".to_owned(),
-                        false,
-                        None,
-                        vec![err.to_string()],
-                    )),
-                }
-            } else {
-                match num_str.parse() {
-                    Ok(f) => Ok(Float(f)),
-                    Err(err) => Err(ZomError::new(
-                        Some(Position::new(
-                            self.pos,
-                            start.0,
-                            start.1,
-                            self.line,
-                            self.column,
-                            self.filename.clone(),
-                            self.text.clone()
-                        )),
-                        "failed to lex float literal".to_owned(),
-                        false,
-                        None,
-                        vec![err.to_string()],
-                    )),
-                }
-            }
+            let pos = Position::new(
+                self.pos,
+                start.0,
+                start.1 + 1,
+                self.line,
+                self.column + 1,
+                self.filename.clone(),
+                self.text.clone()
+            );
+            Lexer::lex_number(num_str, dot_count, pos)
+        }else {
+            Ok(Lexer::lex_keyword(num_str))
         }
-        Ok(Lexer::lex_keyword(num_str))
     }
 
     /// if kw matches a keyword, the corresponding keyword is returned
@@ -310,6 +284,35 @@ impl<'a> Lexer<'a> {
             KW_FOR => For,
             KW_PUB => Pub,
             _ => Ident(kw.clone()),
+        }
+    }
+
+    /// This function lexes the `num` string with the dot count and the position of the string
+    /// and return a TokenType corresponding to an Int literal or a float literal or a ZomError
+    /// with position if the lexing failed.
+    fn lex_number(num: String, dot_count: i32, pos: Position) -> Result<TokenType, ZomError>{
+        if dot_count == 0 {
+            match num.parse() {
+                Ok(i) => Ok(Int(i)),
+                Err(err) => Err(ZomError::new(
+                    Some(pos),
+                    "failed to lex integer literal".to_owned(),
+                    false,
+                    None,
+                    vec![err.to_string()],
+                )),
+            }
+        } else {
+            match num.parse() {
+                Ok(f) => Ok(Float(f)),
+                Err(err) => Err(ZomError::new(
+                    Some(pos),
+                    "failed to lex float literal".to_owned(),
+                    false,
+                    None,
+                    vec![err.to_string()],
+                )),
+            }
         }
     }
 }
