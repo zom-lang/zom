@@ -28,7 +28,7 @@ jobs:
     - name: Install latest nightly
       uses: actions-rs/toolchain@v1
       with:
-          profiles: minimal
+          profile: minimal
           toolchain: stable
 
     - name: Rust Cache
@@ -57,7 +57,7 @@ jobs:
     - name: Install latest nightly
       uses: actions-rs/toolchain@v1
       with:
-          profiles: minimal
+          profile: minimal
           toolchain: stable
 
     - name: Rust Cache
