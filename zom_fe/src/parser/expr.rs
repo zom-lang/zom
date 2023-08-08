@@ -74,12 +74,6 @@ pub(super) fn parse_ident_expr(
         context,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
-        // "identificator expected"
-        // error(Box::new(UnexpectedTokenError::from_context(
-        //     context,
-        //     "identificator expected".to_owned(),
-        //     tokens.last().unwrap().clone()
-        // )))
         err_et!(
             context,
             tokens.last().unwrap(),
@@ -118,14 +112,6 @@ pub(super) fn parse_ident_expr(
             CloseParen, CloseParen, break
         ] <= tokens,
              parsed_tokens,
-            // error(
-            //     Box::new(UnexpectedTokenError::from_context(
-            //         context,
-            //         "Expected ',' in function call"
-            //             .to_owned(),
-            //         tokens.last().unwrap().clone()
-            //     ))
-            // )
             err_et!(context, t, vec![Comma, CloseParen], t.tt)
         );
     }
@@ -153,11 +139,6 @@ pub(super) fn parse_literal_expr(
         context,
         [Int(val), Int(val), val] <= tokens,
         parsed_tokens,
-        // error(Box::new(UnexpectedTokenError::from_context(
-        //     context,
-        //     "Literal expected".to_owned(),
-        //     tokens.last().unwrap().clone()
-        // )))
         err_et!(context, t, vec![Int(0), Float(0.0)], t.tt)
     );
     let start = *parsed_tokens.last().unwrap().span.start();
@@ -189,11 +170,6 @@ pub(super) fn parse_parenthesis_expr(
         context,
         [CloseParen, CloseParen, ()] <= tokens,
         parsed_tokens,
-        // error(Box::new(UnexpectedTokenError::from_context(
-        //     context,
-        //     "Expected ')' in parenthesis expression".to_owned(),
-        //     tokens.last().unwrap().clone()
-        // )))
         {
             use zom_common::error::{Position, ZomError};
             Bad(ZomError::new(
@@ -245,31 +221,23 @@ pub(super) fn parse_binary_expr(
     let mut result = lhs.clone();
     let mut parsed_tokens: Vec<Token> = Vec::new();
 
-    loop {
-        // continue until the current token is not an operator
-        // or it is an operator with precedence lesser than expr_precedence
-        let (operator, precedence) = match tokens.last() {
-            Some(Token {
-                tt: Operator(op),
-                span: _,
-            }) => match settings.operator_precedence.get(op) {
-                Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
-                None =>
-                // return error(Box::new(UnexpectedTokenError::from_context(
-                //     context,
-                //     "Unknown operator found".to_owned(),
-                //     tokens.last().unwrap().clone(),
-                // )))
-                {
-                    return err_et!(
-                        context,
-                        tokens.last().unwrap(),
-                        vec![Operator("".to_owned())],
-                        tokens.last().unwrap().tt
-                    )
-                }
-                _ => break,
-            },
+    // continue until the current token is not an operator
+    // or it is an operator with precedence lesser than expr_precedence
+    while let Some(Token {
+        tt: Operator(op),
+        span: _,
+    }) = tokens.last() {
+        let (operator, precedence) = match settings.operator_precedence.get(op) {
+            Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
+            None =>
+            {
+                return err_et!(
+                    context,
+                    tokens.last().unwrap(),
+                    vec![Operator("".to_owned())],
+                    tokens.last().unwrap().tt
+                )
+            }
             _ => break,
         };
         parsed_tokens.push(tokens.last().unwrap().clone());
@@ -280,39 +248,31 @@ pub(super) fn parse_binary_expr(
 
         // parse all the RHS operators until their precedence is
         // bigger than the current one
-        loop {
-            let binary_rhs = match tokens.last().cloned() {
-                Some(Token {
-                    tt: Operator(ref op),
-                    span: _,
-                }) => match settings.operator_precedence.get(op).copied() {
-                    Some(pr) if pr > precedence => {
-                        parse_try!(
-                            parse_binary_expr,
-                            tokens,
-                            settings,
-                            context,
-                            parsed_tokens,
-                            pr,
-                            &rhs
-                        )
-                    }
-                    None =>
-                    // return error(Box::new(UnexpectedTokenError::from_context(
-                    //     context,
-                    //     "unknown operator found".to_owned(),
-                    //     tokens.last().unwrap().clone(),
-                    // )))
-                    {
-                        return err_et!(
-                            context,
-                            tokens.last().unwrap(),
-                            vec![Operator("".to_owned())],
-                            tokens.last().unwrap().tt
-                        )
-                    }
-                    _ => break,
-                },
+        while let Some(Token {
+            tt: Operator(ref op),
+            span: _,
+        }) = tokens.last().cloned() {
+            let binary_rhs = match settings.operator_precedence.get(op).copied() {
+                Some(pr) if pr > precedence => {
+                    parse_try!(
+                        parse_binary_expr,
+                        tokens,
+                        settings,
+                        context,
+                        parsed_tokens,
+                        pr,
+                        &rhs
+                    )
+                }
+                None =>
+                {
+                    return err_et!(
+                        context,
+                        tokens.last().unwrap(),
+                        vec![Operator("".to_owned())],
+                        tokens.last().unwrap().tt
+                    )
+                }
                 _ => break,
             };
 

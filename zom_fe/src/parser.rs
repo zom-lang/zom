@@ -175,7 +175,6 @@ pub fn parse(
     let mut ast = parsed_tree.to_vec();
 
     while let Some(cur_token) = rest.last() {
-        println!("cur token {:?}", cur_token);
         let result = match &cur_token.tt {
             Func => parse_function(&mut rest, settings, &mut context),
             Extern => parse_extern(&mut rest, settings, &mut context),

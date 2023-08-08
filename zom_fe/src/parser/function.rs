@@ -104,11 +104,6 @@ pub(super) fn parse_prototype(
         context,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
-        // error(Box::new(UnexpectedTokenError::from_context(
-        //     context,
-        //     "Expected function name in prototype".to_owned(),
-        //     tokens.last().unwrap().clone()
-        // )))
         err_et!(context, t, vec![Ident(String::new())], t.tt)
     );
 
@@ -119,11 +114,6 @@ pub(super) fn parse_prototype(
         context,
         [OpenParen, OpenParen, ()] <= tokens,
         parsed_tokens,
-        // error(Box::new(UnexpectedTokenError::from_context(
-        //     context,
-        //     "Expected '(' in prototype".to_owned(),
-        //     tokens.last().unwrap().clone()
-        // )))
         err_et!(context, t, vec![OpenParen], t.tt)
     );
 
@@ -137,14 +127,6 @@ pub(super) fn parse_prototype(
             CloseParen, CloseParen, break
         ] <= tokens,
              parsed_tokens,
-            // error(
-            //     Box::new(UnexpectedTokenError::from_context(
-            //         context,
-            //         "Expected an identifier in prototype"
-            //             .to_owned(),
-            //         tokens.last().unwrap().clone()
-            //     ))
-            // )
             err_et!(context, t, vec![Ident(String::new())], t.tt)
         );
         let start = *parsed_tokens.last().unwrap().span.start();
@@ -154,11 +136,6 @@ pub(super) fn parse_prototype(
             context,
             [Colon, Colon, {}] <= tokens,
             parsed_tokens,
-            // error(Box::new(UnexpectedTokenError::from_context(
-            //     context,
-            //     "Expected ':' in argument of a prototype".to_owned(),
-            //     tokens.last().unwrap().clone()
-            // )))
             err_et!(context, t, vec![Colon], t.tt)
         );
         let type_arg = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
@@ -177,14 +154,6 @@ pub(super) fn parse_prototype(
             CloseParen, CloseParen, break
         ] <= tokens,
              parsed_tokens,
-            // error(
-            //     Box::new(UnexpectedTokenError::from_context(
-            //         context,
-            //         "Expected ',' in prototype"
-            //             .to_owned(),
-            //         tokens.last().unwrap().clone()
-            //     ))
-            // )
             err_et!(context, t, vec![Comma], t.tt)
         );
     }

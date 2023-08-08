@@ -112,11 +112,6 @@ pub(super) fn parse_type(
         Some(Token { tt: Ident(_), .. }) => parse_primitive_type(tokens, settings, context),
         None => NotComplete,
         _ => err_et!(context, tokens.last().unwrap(), vec![Ident(String::new())], tokens.last().unwrap().tt)
-        // error(Box::new(UnexpectedTokenError::from_context(
-        //     context,
-        //     format!("unknow token when expecting a type, found {:?}", tok),
-        //     tokens.last().unwrap().clone(),
-        // ))),
     }
 }
 
@@ -132,11 +127,6 @@ fn parse_primitive_type(
         context,
         [Ident(name), Ident(name.clone()), name] <= tokens,
         parsed_tokens,
-        // error(Box::new(UnexpectedTokenError::from_context(
-        //     context,
-        //     "Type name expected".to_owned(),
-        //     tokens.last().unwrap().clone()
-        // )))
         err_et!(context, t, vec![OpenParen], t.tt)
     );
 

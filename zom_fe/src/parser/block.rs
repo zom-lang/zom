@@ -67,11 +67,6 @@ pub(super) fn parse_block(
                 context,
                 [SemiColon, SemiColon, ()] <= tokens,
                 parsed_tokens,
-                // error(Box::new(UnexpectedTokenError::from_context(
-                //     context,
-                //     "Expected ';'".to_owned(),
-                //     tokens.last().unwrap().clone()
-                // )))
                 err_et!(context, t, vec![SemiColon], t.tt)
             );
         } else if is_eof {
@@ -83,11 +78,6 @@ pub(super) fn parse_block(
         context,
         [CloseBrace, CloseBrace, ()] <= tokens,
         parsed_tokens,
-        // error(Box::new(UnexpectedTokenError::from_context(
-        //     context,
-        //     "Expected '}'".to_owned(),
-        //     tokens.last().unwrap().clone()
-        // )))
         {
             use zom_common::error::{Position, ZomError};
             Bad(ZomError::new(
