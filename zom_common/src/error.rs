@@ -83,7 +83,6 @@ impl Position {
         let mut col_start = 1;
         let mut line_end = 1;
         let mut col_end = 1;
-        let range = *range.start()..*range.end();
 
         let mut range_start_found = false;
         let mut index_r = 0;
@@ -91,7 +90,7 @@ impl Position {
         for (idx, chr) in filetext.char_indices() {
             index_r = idx;
 
-            if range.start == idx {
+            if *range.start() == idx {
                 range_start_found = true;
             }
 
@@ -117,12 +116,12 @@ impl Position {
                 }
             }
 
-            if range.end == idx {
+            if *range.end() == idx {
                 break;
             }
         }
 
-        if index_r < range.end {
+        if index_r < *range.end() {
             // The range extends beyond the end of the input string.
             return None;
         }

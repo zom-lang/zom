@@ -265,7 +265,7 @@ impl Display for TokenType {
 
             Ident(_) => write!(f, "identifier"),
 
-            EOF => write!(f, "End of File")
+            EOF => write!(f, "End of File"),
         }
     }
 }

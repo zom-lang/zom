@@ -7,21 +7,19 @@
 
 mod ops;
 
-use std::{ffi::OsString, error::Error};
+use std::{error::Error, ffi::OsString};
 
 use clap::{Parser, Subcommand};
 use ops::{bobj, gettarget::gettarget, version};
 
 #[derive(Debug)]
 struct SError {
-    msg: String
+    msg: String,
 }
 
 impl SError {
     fn new<S: Into<String>>(msg: S) -> Self {
-        SError {
-            msg: msg.into(),
-        }
+        SError { msg: msg.into() }
     }
 }
 
@@ -35,14 +33,18 @@ impl std::fmt::Display for SError {
 
 #[macro_export]
 macro_rules! err {
-    ($msg:expr) => ({
+    (raw $msg:expr) => ({
         use $crate::SError;
         Box::new(SError::new($msg))
     });
 
+    ($msg:expr) => (
+        Err(err!(raw $msg))
+    );
+
     (fmt $msg:tt, $($arg:expr)*) => ({
         use $crate::SError;
-        Box::new(SError::new(format!($msg, $( $arg ),* )))
+        Err(Box::new(SError::new(format!($msg, $( $arg ),* ))))
     });
 }
 

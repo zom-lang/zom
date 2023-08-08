@@ -23,6 +23,26 @@ pub struct Lexer<'a> {
     filename: String,
 }
 
+#[macro_export]
+macro_rules! try_unwrap {
+    ($e:expr, $err:expr) => {
+        match $e {
+            Ok(v) => v,
+            Err(err) => {
+                $err.push(*err);
+                continue;
+            }
+        }
+    };
+}
+
+macro_rules! match_arm {
+    ($self:expr, $tokens:expr, $tt:expr) => {{
+        $tokens.push(Token::new($tt, $self.pos..=$self.pos));
+        $self.incr_pos();
+    }};
+}
+
 impl<'a> Lexer<'a> {
     pub fn new(text: &str, filename: String) -> Lexer {
         Lexer {
@@ -35,6 +55,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    #[inline]
     pub fn illegal_char(lexer: Lexer, ch: char) -> ZomError {
         ZomError::new(
             Some(Position::new(
@@ -69,25 +90,25 @@ impl<'a> Lexer<'a> {
     }
 
     #[inline]
-    pub fn incr_pos(&mut self) {
+    fn incr_pos(&mut self) {
         self.pos += 1;
         self.column += 1;
     }
 
-    #[inline]
-    pub fn match_arm(&mut self, tokens: &mut Vec<Token>, tt: TokenType) {
-        tokens.push(Token::new(tt, self.pos..=self.pos));
-        self.incr_pos();
-    }
-
-    pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, ZomError> {
+    /// Generate tokens out of the text.
+    pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Vec<ZomError>> {
         let mut tokens: Vec<Token> = Vec::new();
+        let mut errs = Vec::new();
 
         'main: while let Some(ch) = self.chars.next() {
             match ch {
                 '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' => {
                     let old_pos = self.pos;
-                    tokens.push(Token::new(self.lex_lki(ch)?, old_pos..=(self.pos - 1)));
+                    let start = (self.line, self.column);
+                    tokens.push(Token::new(
+                        try_unwrap!(self.make_word(ch, start), errs),
+                        old_pos..=(self.pos - 1),
+                    ));
                 }
                 ch if is_start_operator(ch) => {
                     let window = &self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
@@ -160,15 +181,15 @@ impl<'a> Lexer<'a> {
                     tokens.push(Token::new(OpenParen, self.pos..=self.pos));
                     self.incr_pos();
                 }
-                ')' => self.match_arm(&mut tokens, CloseParen),
-                '[' => self.match_arm(&mut tokens, OpenBracket),
-                ']' => self.match_arm(&mut tokens, CloseBracket),
-                '{' => self.match_arm(&mut tokens, OpenBrace),
-                '}' => self.match_arm(&mut tokens, CloseBrace),
-                ';' => self.match_arm(&mut tokens, SemiColon),
-                ':' => self.match_arm(&mut tokens, Colon),
-                ',' => self.match_arm(&mut tokens, Comma),
-                '@' => self.match_arm(&mut tokens, At),
+                ')' => match_arm!(self, tokens, CloseParen),
+                '[' => match_arm!(self, tokens, OpenBracket),
+                ']' => match_arm!(self, tokens, CloseBracket),
+                '{' => match_arm!(self, tokens, OpenBrace),
+                '}' => match_arm!(self, tokens, CloseBrace),
+                ';' => match_arm!(self, tokens, SemiColon),
+                ':' => match_arm!(self, tokens, Colon),
+                ',' => match_arm!(self, tokens, Comma),
+                '@' => match_arm!(self, tokens, At),
                 '\n' => {
                     self.line += 1;
                     self.column = 0;
@@ -178,22 +199,31 @@ impl<'a> Lexer<'a> {
                     self.incr_pos();
                     continue;
                 }
-                ch => return Err(Self::illegal_char(self.clone(), ch)),
+                ch =>
+                //return Err(Self::illegal_char(self.clone(), ch)),
+                {
+                    errs.push(Self::illegal_char(self.clone(), ch));
+                    self.incr_pos();
+                }
             }
         }
-        tokens.push(Token { tt: EOF, span: self.pos..=self.pos });
+        tokens.push(Token {
+            tt: EOF,
+            span: self.pos..=self.pos,
+        });
+
+        if !errs.is_empty() {
+            println!("toks = {:#?}", tokens);
+            return Err(errs);
+        }
 
         Ok(tokens)
     }
 
-    /// This function lexes either an literal, a keyword or an identifier
-    ///
-    /// It takes a char in parameter because we have already "next" the iterator, so it's the actual character to put in arg.
-    /// Because before it was like that :
-    ///     text: `test` -> Ident("est")
-    /// And after it is like that :
-    ///     text: `test` -> Ident("test")
-    fn lex_lki(&mut self, ch: char) -> Result<TokenType, ZomError> {
+    /// Make a word out of the iterator and then, if the word is
+    /// * numeric, Lexer::lex_number(..) is called
+    /// * a keyword or an identifier,
+    fn make_word(&mut self, ch: char, start: (usize, usize)) -> Result<TokenType, Box<ZomError>> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut is_numeric = true;
@@ -229,44 +259,66 @@ impl<'a> Lexer<'a> {
         }
 
         if is_numeric {
-            if dot_count == 0 {
-                match num_str.parse() {
-                    Ok(i) => Ok(Int(i)),
-                    Err(err) => Err(ZomError::new(
-                        None,
-                        err.to_string(), // TODO: Try to add a position to this error
-                        false,
-                        None,
-                        vec![],
-                    )),
-                }
-            } else {
-                match num_str.parse() {
-                    Ok(f) => Ok(Float(f)),
-                    Err(err) => Err(ZomError::new(
-                        None,
-                        err.to_string(), // TODO: Try to add a position to this error
-                        false,
-                        None,
-                        vec![],
-                    )),
-                }
+            let pos = Position::new(
+                self.pos,
+                start.0,
+                start.1 + 1,
+                self.line,
+                self.column + 1,
+                self.filename.clone(),
+                self.text.clone(),
+            );
+            Lexer::lex_number(num_str, dot_count, pos)
+        } else {
+            Ok(Lexer::lex_keyword(num_str))
+        }
+    }
+
+    /// if kw matches a keyword, the corresponding keyword is returned
+    /// but if it doesn't match an ident with is returned with kw as name.
+    fn lex_keyword(kw: String) -> TokenType {
+        match kw.as_str() {
+            KW_FUNC => Func,
+            KW_EXTERN => Extern,
+            KW_VAR => Var,
+            KW_CONST => Const,
+            KW_STRUCT => Struct,
+            KW_ENUM => Enum,
+            KW_RETURN => Return,
+            KW_IF => If,
+            KW_ELSE => Else,
+            KW_WHILE => While,
+            KW_FOR => For,
+            KW_PUB => Pub,
+            _ => Ident(kw.clone()),
+        }
+    }
+
+    /// This function lexes the `num` string with the dot count and the position of the string
+    /// and return a TokenType corresponding to an Int literal or a float literal or a ZomError
+    /// with position if the lexing failed.
+    fn lex_number(num: String, dot_count: i32, pos: Position) -> Result<TokenType, Box<ZomError>> {
+        if dot_count == 0 {
+            match num.parse() {
+                Ok(i) => Ok(Int(i)),
+                Err(err) => Err(Box::new(ZomError::new(
+                    Some(pos),
+                    "failed to lex integer literal".to_owned(),
+                    false,
+                    None,
+                    vec![err.to_string()],
+                ))),
             }
         } else {
-            match num_str.as_str() {
-                KW_FUNC => Ok(Func),
-                KW_EXTERN => Ok(Extern),
-                KW_VAR => Ok(Var),
-                KW_CONST => Ok(Const),
-                KW_STRUCT => Ok(Struct),
-                KW_ENUM => Ok(Enum),
-                KW_RETURN => Ok(Return),
-                KW_IF => Ok(If),
-                KW_ELSE => Ok(Else),
-                KW_WHILE => Ok(While),
-                KW_FOR => Ok(For),
-                KW_PUB => Ok(Pub),
-                _ => Ok(Ident(num_str.clone())),
+            match num.parse() {
+                Ok(f) => Ok(Float(f)),
+                Err(err) => Err(Box::new(ZomError::new(
+                    Some(pos),
+                    "failed to lex float literal".to_owned(),
+                    false,
+                    None,
+                    vec![err.to_string()],
+                ))),
             }
         }
     }

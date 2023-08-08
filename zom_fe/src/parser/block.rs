@@ -51,10 +51,7 @@ pub(super) fn parse_block(
 
         if (!token_parteq!(tokens.last(), &SemiColon))
             && token_parteq!(tokens.last(), &CloseBrace)
-            && match stmt.stmt {
-                Stmt::Expr(_) => true,
-                _ => false,
-            }
+            && matches!(stmt.stmt, Stmt::Expr(_))
         {
             if let Stmt::Expr(ref e) = stmt.stmt {
                 returned_expr = Some(Box::new(e.clone()))
@@ -70,14 +67,9 @@ pub(super) fn parse_block(
                 context,
                 [SemiColon, SemiColon, ()] <= tokens,
                 parsed_tokens,
-                // error(Box::new(UnexpectedTokenError::from_context(
-                //     context,
-                //     "Expected ';'".to_owned(),
-                //     tokens.last().unwrap().clone()
-                // )))
                 err_et!(context, t, vec![SemiColon], t.tt)
             );
-        }else if is_eof {
+        } else if is_eof {
             break;
         }
     }
@@ -86,11 +78,6 @@ pub(super) fn parse_block(
         context,
         [CloseBrace, CloseBrace, ()] <= tokens,
         parsed_tokens,
-        // error(Box::new(UnexpectedTokenError::from_context(
-        //     context,
-        //     "Expected '}'".to_owned(),
-        //     tokens.last().unwrap().clone()
-        // )))
         {
             use zom_common::error::{Position, ZomError};
             Bad(ZomError::new(
