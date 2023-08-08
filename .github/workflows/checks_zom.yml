@@ -1,0 +1,46 @@
+
+name: Rust tests for
+
+on:
+  push:
+    paths:
+      - '**.rs'
+      - '**.toml'
+      - '**.yml'
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  tests-zom:
+    name: "${{ matrix.crate[0] }} on ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: 
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        crate:
+          - ["zom_fe", "./zom_fe"]
+          - ["zom_common", "./zom_common"]
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install latest stable
+      uses: actions-rs/toolchain@v1
+      with:
+          profile: minimal
+          toolchain: stable
+
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2.3.0
+
+    - name: Build
+      working-directory: ${{ matrix.crate[1] }}
+      run: cargo build --release --verbose
+
+    - name: Run tests
+      working-directory: ${{ matrix.crate[1] }}
+      run: cargo test --release --verbose
