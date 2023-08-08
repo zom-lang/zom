@@ -35,14 +35,18 @@ impl std::fmt::Display for SError {
 
 #[macro_export]
 macro_rules! err {
-    ($msg:expr) => ({
+    (raw $msg:expr) => ({
         use $crate::SError;
         Box::new(SError::new($msg))
     });
 
+    ($msg:expr) => (
+        Err(err!(raw $msg))
+    );
+
     (fmt $msg:tt, $($arg:expr)*) => ({
         use $crate::SError;
-        Box::new(SError::new(format!($msg, $( $arg ),* )))
+        Err(Box::new(SError::new(format!($msg, $( $arg ),* ))))
     });
 }
 

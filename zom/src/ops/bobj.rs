@@ -49,7 +49,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, Box<dyn Error>> {
 
     let source = match fs::read_to_string(&mut args.source_file) {
         Ok(src) => src,
-        Err(_) => return Err(err!("Error while trying to read the source file.")),
+        Err(_) => return err!("Error while trying to read the source file."),
     };
 
     let mut lexer = Lexer::new(
@@ -59,24 +59,23 @@ pub fn build(mut args: Args) -> Result<ExitStatus, Box<dyn Error>> {
 
     let tokens = match lexer.make_tokens() {
         Ok(src) => src,
-        Err(err) => return Err(err!(fmt "\n{:?}\n", err)),
+        Err(err) => return err!(fmt "\n{:?}\n", err),
     };
 
     args.verbose.then(|| {
         println!("[+] Successfully lexes the input.");
     });
 
-    let mut parse_context = ParsingContext::new(
+    let parse_context = ParsingContext::new(
         args.source_file.to_str().unwrap().to_owned(),
-        source,
-        tokens.clone(),
+        source
     );
 
     let parse_result = parse(
         tokens.as_slice(),
         &[],
         &mut ParserSettings::default(),
-        &mut parse_context,
+        parse_context,
     );
 
     let _ast;
@@ -86,10 +85,10 @@ pub fn build(mut args: Args) -> Result<ExitStatus, Box<dyn Error>> {
             if rest.is_empty() {
                 _ast = parsed_ast;
             } else {
-                return Err(err!("There is rest after parsing."));
+                return err!("There is rest after parsing.");
             }
         }
-        Err(err) => return Err(err!(fmt "\n{}\n", err)),
+        Err(err) => return err!(fmt "\n{:?}\n", err),
     }
 
     args.verbose.then(|| {

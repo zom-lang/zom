@@ -59,20 +59,12 @@ pub(super) fn parse_primary_expr(
         Some(Token { tt: OpenParen, .. }) => parse_parenthesis_expr(tokens, settings, context),
         Some(Token { tt: OpenBrace, .. }) => parse_block_expr(tokens, settings, context),
         None => NotComplete,
-        _ =>
-        // error(Box::new(UnexpectedTokenError::from_context(
-        //     context,
-        //     format!("unknow token when expecting an expression, found {:?}", tok),
-        //     tokens.last().unwrap().clone(),
-        // ))),
-        {
-            err_et!(
+        _ => err_et!(
                 context,
                 tokens.last().unwrap(),
                 vec![Ident(String::new()), Int(0), OpenParen, OpenBrace],
                 tokens.last().unwrap().tt
             )
-        }
     }
 }
 

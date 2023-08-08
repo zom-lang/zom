@@ -29,8 +29,7 @@ pub enum ASTNode {
     FunctionNode(Function),
 }
 
-pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), ZomError>;
-pub type ParsingResult2 = Result<Vec<ASTNode>, Vec<ZomError>>;
+pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), Vec<ZomError>>;
 
 #[derive(Debug)]
 pub enum PartParsingResult<T> {
@@ -44,27 +43,58 @@ pub struct ParsingContext {
     pub pos: usize,
     pub filename: String,
     pub source_file: String,
-    pub full_tokens: Vec<Token>,
+    errors: Vec<ZomError>
 }
 
 impl ParsingContext {
-    pub fn new(filename: String, source_file: String, full_tokens: Vec<Token>) -> ParsingContext {
+    pub fn new(filename: String, source_file: String) -> ParsingContext {
         ParsingContext {
             pos: 0,
             filename,
             source_file,
-            full_tokens,
+            errors: vec![]
         }
     }
 
     pub fn advance(&mut self) {
         self.pos += 1;
     }
+
+    pub fn push_err(&mut self, err: ZomError) {
+        self.errors.push(err);
+    }
 }
 
 /// err_et mean `error expected token`
 #[macro_export]
 macro_rules! err_et(
+    ($context:expr, $last_token:expr, $expected:expr, $found:expr, $end:stmt) => (
+        {
+            use zom_common::error::{Position, ZomError};
+            use zom_common::token::TokenType;
+            if $expected.is_empty() {
+                panic!("One or more expected values are needed.");
+            }
+            $context.push_err(ZomError::new(
+                Position::try_from_range(
+                    $context.pos,
+                    $last_token.span.clone(),
+                    $context.source_file.clone(),
+                    $context.filename.clone()
+                ),
+                if $expected.len() == 1 {
+                    format!("expected {}, found {}", $expected[0], $found)
+                }else {
+                    format!("expected one of {}, found {}", TokenType::format_toks($expected), $found)
+                },
+                false,
+                None,
+                vec![]
+            ));
+            $end
+        }
+    );
+
     ($context:expr, $last_token:expr, $expected:expr, $found:expr) => (
         {
             use zom_common::error::{Position, ZomError};
@@ -134,7 +164,7 @@ pub fn parse(
     tokens: &[Token],
     parsed_tree: &[ASTNode],
     settings: &mut ParserSettings,
-    context: &mut ParsingContext,
+    mut context: ParsingContext,
 ) -> ParsingResult {
     let mut rest = tokens.to_vec();
     // we read tokens from the end of the vector
@@ -145,26 +175,28 @@ pub fn parse(
     let mut ast = parsed_tree.to_vec();
 
     while let Some(cur_token) = rest.last() {
+        println!("cur token {:?}", cur_token);
         let result = match &cur_token.tt {
-            Func => parse_function(&mut rest, settings, context),
-            Extern => parse_extern(&mut rest, settings, context),
+            Func => parse_function(&mut rest, settings, &mut context),
+            Extern => parse_extern(&mut rest, settings, &mut context),
             EOF => {
                 rest.pop();
                 break;
             },
-            tt => err_et!(context, cur_token.clone(), vec![Func, Extern], tt)
-            // Bad(Box::new(UnexpectedTokenError::from_context(
-            //     context,
-            //     "Expected a function definition or a declaration of an external function."
-            //         .to_owned(),
-            //     cur_token.clone(),
-            // ))),
+            tt => err_et!(context, cur_token.clone(), vec![Func, Extern, EOF], tt, {rest.pop(); continue})
         };
         match result {
             Good(ast_node, _) => ast.push(ast_node),
             NotComplete => break,
-            Bad(message) => return Err(message),
+            Bad(err) => {
+                context.push_err(err);
+                return Err(context.errors) // TODO: try to do not return here and keep parsing Func or extern
+            },
         }
+    }
+
+    if !context.errors.is_empty() {
+        return Err(context.errors)
     }
 
     // unparsed tokens

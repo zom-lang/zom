@@ -9,7 +9,7 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     println!("Development command.\n");
 
     let mut buffer =
-        String::from("func foo(bar: i16, baz: str) { foo(test, test); foo = 999; foo }");
+        String::from(";;; func foo(bar: i16, baz: str) { foo(test; test); foo = 999; foo } extern foo_c(boobar; u32)");
 
     print!("input: ");
     stdout().flush().expect("ERR: Flush the output failed.");
@@ -31,19 +31,19 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
             for error in errs {
                 err += format!("{}\n", error).as_str();
             }
-            return Err(err!(fmt "{}", err))
+            return err!(fmt "{}", err)
         },
     };
 
     println!("tokens = {tokens:#?}");
 
-    let mut parse_context = ParsingContext::new("<dev_cmd>.zom".to_owned(), buffer, tokens.clone());
+    let parse_context = ParsingContext::new("<dev_cmd>.zom".to_owned(), buffer);
 
     let ast_result = parse(
         tokens.as_slice(),
         &[],
         &mut ParserSettings::default(),
-        &mut parse_context,
+        parse_context,
     );
 
     match ast_result {
@@ -51,7 +51,13 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
             println!("ast = {:#?}", ast);
             println!("toks_rest = {:?}", rest_toks);
         }
-        Err(err) => return Err(err!(fmt "{}", err)),
+        Err(errs) => {
+            let mut err = "".to_owned();
+            for error in errs {
+                err += format!("{}\n", error).as_str();
+            }
+            return err!(fmt "{}", err)
+        },
     }
 
     Ok(ExitStatus::Success)
