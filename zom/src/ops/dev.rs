@@ -3,7 +3,7 @@ use std::io::{stdout, Write};
 use zom_fe::lexer::Lexer;
 use zom_fe::parser::{parse, ParserSettings, ParsingContext};
 
-use crate::{ExitStatus, err};
+use crate::{err, ExitStatus};
 
 pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     println!("Development command.\n");
@@ -31,8 +31,8 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
             for error in errs {
                 err += format!("{}\n", error).as_str();
             }
-            return err!(fmt "{}", err)
-        },
+            return err!(fmt "{}", err);
+        }
     };
 
     println!("tokens = {tokens:#?}");
@@ -56,8 +56,8 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
             for error in errs {
                 err += format!("{}\n", error).as_str();
             }
-            return err!(fmt "{}", err)
-        },
+            return err!(fmt "{}", err);
+        }
     }
 
     Ok(ExitStatus::Success)

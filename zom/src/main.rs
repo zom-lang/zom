@@ -1,7 +1,7 @@
-use std::thread;
-use std::{error::Error, backtrace::Backtrace};
-use std::panic;
 use std::backtrace::BacktraceStatus::*;
+use std::panic;
+use std::thread;
+use std::{backtrace::Backtrace, error::Error};
 
 use zom::{run_with_args, ExitStatus};
 use zom_common::error::ZomError;
@@ -16,11 +16,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             Captured => {
                 if let Some(name) = thread.name() {
                     println!("thread '{}' {}", name, backtrace)
-                }else {
+                } else {
                     println!("{}", backtrace);
                 }
             }
-            Disabled => println!("note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"),
+            Disabled => println!(
+                "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+            ),
             Unsupported => println!("note: backtrace is not supported."),
             _ => {}
         }

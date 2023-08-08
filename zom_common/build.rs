@@ -1,4 +1,3 @@
-use chrono;
 use std::str;
 use std::{error::Error, process::Command};
 
@@ -30,7 +29,7 @@ fn get_target() -> Result<String, String> {
 
 fn get_commit_hast() -> String {
     let output = Command::new("git")
-        .args(&["rev-parse", "HEAD"])
+        .args(["rev-parse", "HEAD"])
         .output()
         .unwrap();
     String::from_utf8(output.stdout).unwrap()

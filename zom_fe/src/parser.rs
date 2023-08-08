@@ -43,7 +43,7 @@ pub struct ParsingContext {
     pub pos: usize,
     pub filename: String,
     pub source_file: String,
-    errors: Vec<ZomError>
+    errors: Vec<ZomError>,
 }
 
 impl ParsingContext {
@@ -52,7 +52,7 @@ impl ParsingContext {
             pos: 0,
             filename,
             source_file,
-            errors: vec![]
+            errors: vec![],
         }
     }
 
@@ -182,21 +182,24 @@ pub fn parse(
             EOF => {
                 rest.pop();
                 break;
-            },
-            tt => err_et!(context, cur_token.clone(), vec![Func, Extern, EOF], tt, {rest.pop(); continue})
+            }
+            tt => err_et!(context, cur_token.clone(), vec![Func, Extern, EOF], tt, {
+                rest.pop();
+                continue;
+            }),
         };
         match result {
             Good(ast_node, _) => ast.push(ast_node),
             NotComplete => break,
             Bad(err) => {
                 context.push_err(err);
-                return Err(context.errors) // TODO: try to do not return here and keep parsing Func or extern
-            },
+                return Err(context.errors); // TODO: try to do not return here and keep parsing Func or extern
+            }
         }
     }
 
     if !context.errors.is_empty() {
-        return Err(context.errors)
+        return Err(context.errors);
     }
 
     // unparsed tokens
@@ -284,7 +287,7 @@ macro_rules! impl_span(
         impl_span!($ast, span);
     );
     ($ast:ident, $span_field:ident) => (
-        impl crate::parser::CodeLocation for $ast {
+        impl $crate::parser::CodeLocation for $ast {
             fn span(&self) -> RangeInclusive<usize> {
                 self.span.clone()
             }

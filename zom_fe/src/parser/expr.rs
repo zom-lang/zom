@@ -39,12 +39,7 @@ pub enum Expr {
 
 impl Expression {
     pub fn is_semicolon_needed(&self) -> bool {
-        match *self {
-            Expression {
-                expr: BlockExpr(_), ..
-            } => false,
-            _ => true,
-        }
+        !matches!(*self, Expression { expr: BlockExpr(_), .. })
     }
 }
 
@@ -60,11 +55,11 @@ pub(super) fn parse_primary_expr(
         Some(Token { tt: OpenBrace, .. }) => parse_block_expr(tokens, settings, context),
         None => NotComplete,
         _ => err_et!(
-                context,
-                tokens.last().unwrap(),
-                vec![Ident(String::new()), Int(0), OpenParen, OpenBrace],
-                tokens.last().unwrap().tt
-            )
+            context,
+            tokens.last().unwrap(),
+            vec![Ident(String::new()), Int(0), OpenParen, OpenBrace],
+            tokens.last().unwrap().tt
+        ),
     }
 }
 
@@ -208,7 +203,7 @@ pub(super) fn parse_parenthesis_expr(
                     context.source_file.clone(),
                     context.filename.clone(),
                 ),
-                format!("unclosed delimiter `)`"),
+                "unclosed delimiter `)`".to_owned(),
                 false,
                 None,
                 vec![],

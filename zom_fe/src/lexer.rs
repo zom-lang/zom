@@ -25,22 +25,22 @@ pub struct Lexer<'a> {
 
 #[macro_export]
 macro_rules! try_unwrap {
-    ($e:expr, $err:expr) => (
+    ($e:expr, $err:expr) => {
         match $e {
             Ok(v) => v,
             Err(err) => {
-                $err.push(err);
+                $err.push(*err);
                 continue;
-            },
+            }
         }
-    );
+    };
 }
 
 macro_rules! match_arm {
-    ($self:expr, $tokens:expr, $tt:expr) => ({
+    ($self:expr, $tokens:expr, $tt:expr) => {{
         $tokens.push(Token::new($tt, $self.pos..=$self.pos));
         $self.incr_pos();
-    });
+    }};
 }
 
 impl<'a> Lexer<'a> {
@@ -105,9 +105,10 @@ impl<'a> Lexer<'a> {
                 '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' => {
                     let old_pos = self.pos;
                     let start = (self.line, self.column);
-                    tokens.push(
-                        Token::new(try_unwrap!(self.make_word(ch, start), errs), old_pos..=(self.pos - 1))
-                    );
+                    tokens.push(Token::new(
+                        try_unwrap!(self.make_word(ch, start), errs),
+                        old_pos..=(self.pos - 1),
+                    ));
                 }
                 ch if is_start_operator(ch) => {
                     let window = &self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
@@ -198,18 +199,22 @@ impl<'a> Lexer<'a> {
                     self.incr_pos();
                     continue;
                 }
-                ch => //return Err(Self::illegal_char(self.clone(), ch)),
+                ch =>
+                //return Err(Self::illegal_char(self.clone(), ch)),
                 {
                     errs.push(Self::illegal_char(self.clone(), ch));
                     self.incr_pos();
                 }
             }
         }
-        tokens.push(Token { tt: EOF, span: self.pos..=self.pos });
+        tokens.push(Token {
+            tt: EOF,
+            span: self.pos..=self.pos,
+        });
 
         if !errs.is_empty() {
             println!("toks = {:#?}", tokens);
-            return Err(errs)
+            return Err(errs);
         }
 
         Ok(tokens)
@@ -218,7 +223,7 @@ impl<'a> Lexer<'a> {
     /// Make a word out of the iterator and then, if the word is
     /// * numeric, Lexer::lex_number(..) is called
     /// * a keyword or an identifier,
-    fn make_word(&mut self, ch: char, start: (usize, usize)) -> Result<TokenType, ZomError> {
+    fn make_word(&mut self, ch: char, start: (usize, usize)) -> Result<TokenType, Box<ZomError>> {
         let mut num_str = String::new();
         let mut dot_count = 0;
         let mut is_numeric = true;
@@ -261,10 +266,10 @@ impl<'a> Lexer<'a> {
                 self.line,
                 self.column + 1,
                 self.filename.clone(),
-                self.text.clone()
+                self.text.clone(),
             );
             Lexer::lex_number(num_str, dot_count, pos)
-        }else {
+        } else {
             Ok(Lexer::lex_keyword(num_str))
         }
     }
@@ -292,28 +297,28 @@ impl<'a> Lexer<'a> {
     /// This function lexes the `num` string with the dot count and the position of the string
     /// and return a TokenType corresponding to an Int literal or a float literal or a ZomError
     /// with position if the lexing failed.
-    fn lex_number(num: String, dot_count: i32, pos: Position) -> Result<TokenType, ZomError>{
+    fn lex_number(num: String, dot_count: i32, pos: Position) -> Result<TokenType, Box<ZomError>> {
         if dot_count == 0 {
             match num.parse() {
                 Ok(i) => Ok(Int(i)),
-                Err(err) => Err(ZomError::new(
+                Err(err) => Err(Box::new(ZomError::new(
                     Some(pos),
                     "failed to lex integer literal".to_owned(),
                     false,
                     None,
                     vec![err.to_string()],
-                )),
+                ))),
             }
         } else {
             match num.parse() {
                 Ok(f) => Ok(Float(f)),
-                Err(err) => Err(ZomError::new(
+                Err(err) => Err(Box::new(ZomError::new(
                     Some(pos),
                     "failed to lex float literal".to_owned(),
                     false,
                     None,
                     vec![err.to_string()],
-                )),
+                ))),
             }
         }
     }

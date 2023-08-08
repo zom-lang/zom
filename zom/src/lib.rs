@@ -7,21 +7,19 @@
 
 mod ops;
 
-use std::{ffi::OsString, error::Error};
+use std::{error::Error, ffi::OsString};
 
 use clap::{Parser, Subcommand};
 use ops::{bobj, gettarget::gettarget, version};
 
 #[derive(Debug)]
 struct SError {
-    msg: String
+    msg: String,
 }
 
 impl SError {
     fn new<S: Into<String>>(msg: S) -> Self {
-        SError {
-            msg: msg.into(),
-        }
+        SError { msg: msg.into() }
     }
 }
 

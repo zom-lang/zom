@@ -1,7 +1,8 @@
 use std::{
+    error::Error,
     fs,
     // mem,
-    path::PathBuf, error::Error,
+    path::PathBuf,
 };
 
 use inkwell::{context::Context, passes::PassManager};
@@ -12,7 +13,7 @@ use zom_fe::{
     parser::{parse, ParserSettings, ParsingContext},
 };
 
-use crate::{ExitStatus, err};
+use crate::{err, ExitStatus};
 
 #[derive(clap::Args, Debug, Clone)]
 pub struct Args {
@@ -66,10 +67,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, Box<dyn Error>> {
         println!("[+] Successfully lexes the input.");
     });
 
-    let parse_context = ParsingContext::new(
-        args.source_file.to_str().unwrap().to_owned(),
-        source
-    );
+    let parse_context = ParsingContext::new(args.source_file.to_str().unwrap().to_owned(), source);
 
     let parse_result = parse(
         tokens.as_slice(),
