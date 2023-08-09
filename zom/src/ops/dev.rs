@@ -9,7 +9,7 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     println!("Development command.\n");
 
     let mut buffer =
-        String::from("func foo(bar: i16, baz: str) { foo(test, test); foo = 999 + 9 / 4; foo } extern foo_c(boobar: u32)");
+        String::from("func foo(bar: i16, baz: str) void { foo(test, test); foo = 999 + 9 / 4; foo } extern foo_c(boobar: u32) void;");
 
     print!("input: ");
     stdout().flush().expect("ERR: Flush the output failed.");

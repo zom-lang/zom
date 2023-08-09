@@ -248,7 +248,7 @@ impl<'a> Lexer<'a> {
                 num_str.push(ch);
             }
             if let Some(ch_peek) = self.chars.peek() {
-                if ch_peek.is_whitespace() || !ch_peek.is_alphanumeric() && ch_peek != &'_' {
+                if ch_peek.is_whitespace() || !ch_peek.is_alphanumeric() || *ch_peek == '_' {
                     break;
                 } else if let Some(char) = self.chars.next() {
                     ch = char;

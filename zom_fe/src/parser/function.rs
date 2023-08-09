@@ -14,13 +14,14 @@ use super::{
 
 use self::PartParsingResult::{Bad, Good, NotComplete};
 
-use zom_common::token::*;
+use zom_common::token::{Ident, SemiColon, OpenParen, Colon, Comma, CloseParen};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Function {
-    pub prototype: Prototype,
-    pub body: Option<Block>,
-    pub span: RangeInclusive<usize>,
+    prototype: Prototype,
+    body: Option<Block>,
+    return_ty: Type,
+    span: RangeInclusive<usize>,
 }
 
 impl_span!(Function);
@@ -56,11 +57,23 @@ pub(super) fn parse_extern(
 
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
 
+    let return_ty = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
+
+    let t = tokens.last().unwrap().clone();
+
+    expect_token!(
+        context,
+        [SemiColon, SemiColon, ()] <= tokens,
+        parsed_tokens,
+        err_et!(context, t, vec![SemiColon], t.tt)
+    );
+
     let end = *parsed_tokens.last().unwrap().span.start();
     Good(
         ASTNode::FunctionNode(Function {
             prototype,
             body: None,
+            return_ty,
             span: start..=end,
         }),
         parsed_tokens,
@@ -79,6 +92,9 @@ pub(super) fn parse_function(
     let start = *parsed_tokens.last().unwrap().span.start();
 
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
+
+    let return_ty = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
+
     let body = parse_try!(parse_block, tokens, settings, context, parsed_tokens);
 
     let end = *parsed_tokens.last().unwrap().span.end();
@@ -86,6 +102,7 @@ pub(super) fn parse_function(
         ASTNode::FunctionNode(Function {
             prototype,
             body: Some(body),
+            return_ty,
             span: start..=end,
         }),
         parsed_tokens,
