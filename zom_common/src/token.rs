@@ -194,6 +194,8 @@ pub enum TokenType {
     // Literals
     Int(i32),
     Float(f32),
+    Str(String),
+    Char(char),
 
     // Keywords
     Func,
@@ -210,7 +212,8 @@ pub enum TokenType {
     Pub,
 
     // Identifier
-    Ident(String), // Identifier is a alphanumeric string
+    Ident(String), // Identifier is a alphanumeric with `_` string
+    Lifetime(String),
 
     EOF,
 }
@@ -249,6 +252,8 @@ impl Display for TokenType {
 
             Int(_) => write!(f, "integer literral"),
             Float(_) => write!(f, "float literral"),
+            Str(_) => write!(f, "string literral"),
+            Char(_) => write!(f, "char literral"),
 
             Func => write!(f, "keyword `func`"),
             Extern => write!(f, "keyword `extern`"),
@@ -264,6 +269,7 @@ impl Display for TokenType {
             Pub => write!(f, "keyword `pub`"),
 
             Ident(_) => write!(f, "identifier"),
+            Lifetime(_) => write!(f, "lifetime"),
 
             EOF => write!(f, "End of File"),
         }

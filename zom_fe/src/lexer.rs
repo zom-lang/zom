@@ -25,11 +25,11 @@ pub struct Lexer<'a> {
 
 #[macro_export]
 macro_rules! try_unwrap {
-    ($e:expr, $err:expr) => {
+    ($e:expr, $errs:expr) => {
         match $e {
             Ok(v) => v,
             Err(err) => {
-                $err.push(*err);
+                $errs.push(*err);
                 continue;
             }
         }
@@ -55,8 +55,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    #[inline]
-    pub fn illegal_char(lexer: Lexer, ch: char) -> ZomError {
+    fn illegal_char(lexer: Lexer, ch: char) -> ZomError {
         ZomError::new(
             Some(Position::new(
                 lexer.pos,
@@ -72,6 +71,24 @@ impl<'a> Lexer<'a> {
             Some("You should avoid using this character".to_owned()),
             vec![],
         )
+    }
+
+    pub fn unexpected_eof(&mut self) -> Box<ZomError> {
+        Box::new(ZomError::new(
+            Some(Position::new(
+                self.pos,
+                self.line,
+                self.column + 1,
+                self.line,
+                self.column + 2,
+                self.filename.clone(),
+                self.text.clone(),
+            )),
+            "unexpected end of file".to_owned(),
+            false,
+            None,
+            vec![],
+        ))
     }
 
     #[inline]
@@ -138,6 +155,8 @@ impl<'a> Lexer<'a> {
                         continue 'main;
                     }
                 },
+                '"' => tokens.push(try_unwrap!(self.lex_string_literal(), errs)),
+                '\'' => tokens.push(try_unwrap!(self.lex_single_quote(), errs)),
                 '(' => {
                     if let Some('*') = self.chars.peek() {
                         // Eat the `*` char
@@ -248,7 +267,7 @@ impl<'a> Lexer<'a> {
                 num_str.push(ch);
             }
             if let Some(ch_peek) = self.chars.peek() {
-                if ch_peek.is_whitespace() || !ch_peek.is_alphanumeric() || *ch_peek == '_' {
+                if ch_peek.is_whitespace() || !ch_peek.is_alphanumeric() && *ch_peek != '_' {
                     break;
                 } else if let Some(char) = self.chars.next() {
                     ch = char;
@@ -321,5 +340,64 @@ impl<'a> Lexer<'a> {
                 ))),
             }
         }
+    }
+
+    /// Takes a character corrsponding to an escape sequence and returns the char
+    /// corresponding to the escape sequence, if the char isn't an escape sequence an
+    /// error is returned.
+    fn lex_escape_sequence(&mut self, es: char) -> Result<char, Box<ZomError>> {
+        match es {
+            '0' => Ok(0x00 as char),
+            'n' => Ok(0x0A as char),
+            'r' => Ok(0x0D as char),
+            't' => Ok(0x09 as char),
+            '"' => Ok('"'),
+            '\\' => Ok('\\'),
+            _ => Err(Box::new(ZomError::new(
+                Some(Position::new(
+                    self.pos,
+                    self.line,
+                    self.column + 1,
+                    self.line,
+                    self.column + 2,
+                    self.filename.clone(),
+                    self.text.clone(),
+                )),
+                format!("unknown character escape: `{}`", es),
+                false,
+                Some("You should avoid using this character".to_owned()),
+                vec![],
+            )))
+        }
+    }
+
+    /// Lexes the input into a string literal
+    fn lex_string_literal(&mut self) -> Result<Token, Box<ZomError>> {
+        let pos_start = self.pos - 1; // - 1 to include the quote
+        let mut str = String::new();
+        loop {
+            let ch = self.chars.next();
+            self.incr_pos();
+
+            match ch {
+                Some('"') => break,
+                Some('\\') => {
+                    self.incr_pos();
+                    match self.chars.next() {
+                        Some(c @ '"') => str.push(c),
+                        Some(c) => str.push(self.lex_escape_sequence(c)?),
+                        _ => return Err(self.unexpected_eof())
+                    }
+                }
+                Some(c) => {
+                    str.push(c);
+                }
+                _ => return Err(self.unexpected_eof())
+            }
+        }
+        Ok(Token {
+            tt: TokenType::Str(str),
+            span: pos_start..=self.pos
+        })
     }
 }
