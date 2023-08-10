@@ -39,7 +39,6 @@ macro_rules! try_unwrap {
 macro_rules! match_arm {
     ($self:expr, $tokens:expr, $tt:expr) => {{
         $tokens.push(Token::new($tt, $self.pos..=$self.pos));
-        $self.incr_pos();
     }};
 }
 
@@ -126,6 +125,7 @@ impl<'a> Lexer<'a> {
                         try_unwrap!(self.make_word(ch, start), errs),
                         old_pos..=(self.pos - 1),
                     ));
+                    continue 'main;
                 }
                 ch if is_start_operator(ch) => {
                     let window = &self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
@@ -144,7 +144,7 @@ impl<'a> Lexer<'a> {
                         ));
                         self.pos += len;
                         self.column += len;
-                        continue;
+                        continue 'main;
                     }
                 }
                 '#' => loop {
@@ -198,7 +198,6 @@ impl<'a> Lexer<'a> {
                         continue 'main;
                     }
                     tokens.push(Token::new(OpenParen, self.pos..=self.pos));
-                    self.incr_pos();
                 }
                 ')' => match_arm!(self, tokens, CloseParen),
                 '[' => match_arm!(self, tokens, OpenBracket),
@@ -213,6 +212,7 @@ impl<'a> Lexer<'a> {
                     self.line += 1;
                     self.column = 0;
                     self.pos += 1;
+                    continue 'main;
                 }
                 w if w.is_whitespace() && w != '\n' => {
                     self.incr_pos();
@@ -222,9 +222,9 @@ impl<'a> Lexer<'a> {
                 //return Err(Self::illegal_char(self.clone(), ch)),
                 {
                     errs.push(Self::illegal_char(self.clone(), ch));
-                    self.incr_pos();
                 }
             }
+            self.incr_pos();
         }
         tokens.push(Token {
             tt: EOF,
@@ -232,7 +232,6 @@ impl<'a> Lexer<'a> {
         });
 
         if !errs.is_empty() {
-            println!("toks = {:#?}", tokens);
             return Err(errs);
         }
 
@@ -373,7 +372,7 @@ impl<'a> Lexer<'a> {
 
     /// Lexes the input into a string literal
     fn lex_string_literal(&mut self) -> Result<Token, Box<ZomError>> {
-        let pos_start = self.pos - 1; // - 1 to include the quote
+        let pos_start = self.pos;
         let mut str = String::new();
         loop {
             let ch = self.chars.next();
@@ -397,6 +396,61 @@ impl<'a> Lexer<'a> {
         }
         Ok(Token {
             tt: TokenType::Str(str),
+            span: pos_start..=self.pos
+        })
+    }
+
+    fn lex_single_quote(&mut self) -> Result<Token, Box<ZomError>> {
+        // dbg!(&self);
+
+        let text = self.text.clone();
+
+        let mut chars = text[self.pos + 1..self.pos + 3].chars();
+        dbg!(&chars);
+        let _first = chars.next();
+        let second = chars.next();
+
+        // dbg!(first);
+        // dbg!(second);
+        // println!();
+
+        let is_char;
+
+        match second {
+            Some('\'') => is_char = true,
+            Some(_) => is_char = false,
+            _ => return Err(self.unexpected_eof())
+        }
+
+        // dbg!(&text[self.pos..self.pos + 2]);
+        // dbg!(&text);
+        // dbg!(is_char);
+        // println!("\n\n");
+
+        if is_char {
+            // println!();
+            // dbg!(&self);
+            // println!();
+            self.lex_char()
+        } else {
+            todo!("Write lifetime lexer")
+        }
+    }
+
+    pub(crate) fn lex_char(&mut self) -> Result<Token, Box<ZomError>> {
+        let pos_start = self.pos;
+        let ch = self.chars.next();
+        self.incr_pos();
+        
+        let content = match ch {
+            Some(c) => c,
+            _ => return Err(self.unexpected_eof())
+        };
+        self.chars.next();
+        self.incr_pos();
+
+        Ok(Token {
+            tt: TokenType::Char(content),
             span: pos_start..=self.pos
         })
     }

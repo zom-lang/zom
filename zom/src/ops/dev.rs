@@ -10,7 +10,7 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
 
     let buffer =
         // String::from("func foo(bar: i16, baz: str) void { foo(test, test); foo = 999 + 9 / 4; foo } extern foo_c(boobar: u32) void;");
-        String::from(r#" 't' "#);
+        String::from(r#"  "test 123456789 \n \r \t \0"  't' "#);
 
     print!("input: ");
     stdout().flush().expect("ERR: Flush the output failed.");
