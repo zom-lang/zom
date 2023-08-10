@@ -10,15 +10,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     panic::set_hook(Box::new(|panic_info| {
         let thread = thread::current();
         let backtrace = Backtrace::capture();
-        println!("{}", panic_info);
+
+        if let Some(name) = thread.name() {
+            println!("thread '{}' {}", name, panic_info)
+        } else {
+            println!("{}", panic_info);
+        }
 
         match backtrace.status() {
             Captured => {
-                if let Some(name) = thread.name() {
-                    println!("thread '{}' {}", name, backtrace)
-                } else {
-                    println!("{}", backtrace);
-                }
+                println!("{}", backtrace);
             }
             Disabled => println!(
                 "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
