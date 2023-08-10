@@ -14,7 +14,7 @@ use super::{
 
 use self::PartParsingResult::{Bad, Good, NotComplete};
 
-use zom_common::token::{Ident, SemiColon, OpenParen, Colon, Comma, CloseParen};
+use zom_common::token::{CloseParen, Colon, Comma, Ident, OpenParen, SemiColon};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Function {

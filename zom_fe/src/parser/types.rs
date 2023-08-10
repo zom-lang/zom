@@ -111,7 +111,12 @@ pub(super) fn parse_type(
     match tokens.last() {
         Some(Token { tt: Ident(_), .. }) => parse_primitive_type(tokens, settings, context),
         None => NotComplete,
-        _ => err_et!(context, tokens.last().unwrap(), vec![Ident(String::new())], tokens.last().unwrap().tt)
+        _ => err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![Ident(String::new())],
+            tokens.last().unwrap().tt
+        ),
     }
 }
 

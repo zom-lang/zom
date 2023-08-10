@@ -366,7 +366,7 @@ impl<'a> Lexer<'a> {
                 false,
                 Some("You should avoid using this character".to_owned()),
                 vec![],
-            )))
+            ))),
         }
     }
 
@@ -385,73 +385,61 @@ impl<'a> Lexer<'a> {
                     match self.chars.next() {
                         Some(c @ '"') => str.push(c),
                         Some(c) => str.push(self.lex_escape_sequence(c)?),
-                        _ => return Err(self.unexpected_eof())
+                        _ => return Err(self.unexpected_eof()),
                     }
                 }
                 Some(c) => {
                     str.push(c);
                 }
-                _ => return Err(Box::new(ZomError::new(
-                        Some(Position::try_from_range(
-                            self.pos,
-                            pos_start..=pos_start,
-                            self.text.clone(),
-                            self.filename.clone()
-                        ).unwrap()),
+                _ => {
+                    return Err(Box::new(ZomError::new(
+                        Some(
+                            Position::try_from_range(
+                                self.pos,
+                                pos_start..=pos_start,
+                                self.text.clone(),
+                                self.filename.clone(),
+                            )
+                            .unwrap(),
+                        ),
                         "unterminated double quote string".to_owned(),
                         false,
                         Some(r#"add `"` at the end of the string literal"#.to_owned()),
                         vec![],
                     )))
+                }
             }
         }
         Ok(Token {
             tt: TokenType::Str(str),
-            span: pos_start..=self.pos
+            span: pos_start..=self.pos,
         })
     }
 
     fn lex_single_quote(&mut self) -> Result<Token, Box<ZomError>> {
-        // dbg!(&self);
-
         let text = self.text.clone();
 
         let window = match text.get(self.pos + 1..self.pos + 3) {
             Some(w) => w,
-            None => return Err(self.unexpected_eof())
+            None => return Err(self.unexpected_eof()),
         };
         let mut chars = window.chars();
-        dbg!(&chars);
         let first = chars.next();
         let second = chars.next();
-
-        // dbg!(first);
-        // dbg!(second);
-        // println!();
 
         let is_char;
 
         match second {
             Some('\'') => is_char = true,
-            Some(_) => {
-                match first {
-                    Some('\\') => is_char = true,
-                    Some(_) => is_char = false,
-                    _ => return Err(self.unexpected_eof())
-                }
+            Some(_) => match first {
+                Some('\\') => is_char = true,
+                Some(_) => is_char = false,
+                _ => return Err(self.unexpected_eof()),
             },
-            _ => return Err(self.unexpected_eof())
+            _ => return Err(self.unexpected_eof()),
         }
 
-        // dbg!(&text[self.pos..self.pos + 2]);
-        // dbg!(&text);
-        dbg!(is_char);
-        // println!("\n\n");
-
         if is_char {
-            // println!();
-            // dbg!(&self);
-            // println!();
             self.lex_char()
         } else {
             todo!("Write lifetime lexer")
@@ -462,44 +450,46 @@ impl<'a> Lexer<'a> {
         let pos_start = self.pos;
         let ch = self.chars.next();
         self.incr_pos();
-        
+
         let content = match ch {
             Some('\\') => {
                 self.incr_pos();
                 match self.chars.next() {
                     Some(c @ '\'') => c,
                     Some(c) => self.lex_escape_sequence(c)?,
-                    _ => return Err(self.unexpected_eof())
+                    _ => return Err(self.unexpected_eof()),
                 }
             }
-            Some(c) => {
-                dbg!(c);
-                c
-            },
-            _ => return Err(self.unexpected_eof())
+            Some(c) => c,
+            _ => return Err(self.unexpected_eof()),
         };
         let next = self.chars.next();
         self.incr_pos();
         match next {
             Some('\'') => {}
-            Some(_) => return Err(Box::new(ZomError::new(
-                Some(Position::try_from_range(
-                    self.pos,
-                    pos_start..=pos_start,
-                    self.text.clone(),
-                    self.filename.clone()
-                ).unwrap()),
-                "unterminated simple quote string".to_owned(),
-                false,
-                Some("add `'` at the end of the char literal".to_owned()),
-                vec![],
-            ))),
-            _ => return Err(self.unexpected_eof())
+            Some(_) => {
+                return Err(Box::new(ZomError::new(
+                    Some(
+                        Position::try_from_range(
+                            self.pos,
+                            pos_start..=pos_start,
+                            self.text.clone(),
+                            self.filename.clone(),
+                        )
+                        .unwrap(),
+                    ),
+                    "unterminated simple quote string".to_owned(),
+                    false,
+                    Some("add `'` at the end of the char literal".to_owned()),
+                    vec![],
+                )))
+            }
+            _ => return Err(self.unexpected_eof()),
         }
 
         Ok(Token {
             tt: TokenType::Char(content),
-            span: pos_start..=self.pos
+            span: pos_start..=self.pos,
         })
     }
 }

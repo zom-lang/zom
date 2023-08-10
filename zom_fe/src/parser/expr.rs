@@ -39,7 +39,13 @@ pub enum Expr {
 
 impl Expression {
     pub fn is_semicolon_needed(&self) -> bool {
-        !matches!(*self, Expression { expr: BlockExpr(_), .. })
+        !matches!(
+            *self,
+            Expression {
+                expr: BlockExpr(_),
+                ..
+            }
+        )
     }
 }
 
@@ -226,11 +232,11 @@ pub(super) fn parse_binary_expr(
     while let Some(Token {
         tt: Operator(op),
         span: _,
-    }) = tokens.last() {
+    }) = tokens.last()
+    {
         let (operator, precedence) = match settings.operator_precedence.get(op) {
             Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
-            None =>
-            {
+            None => {
                 return err_et!(
                     context,
                     tokens.last().unwrap(),
@@ -251,7 +257,8 @@ pub(super) fn parse_binary_expr(
         while let Some(Token {
             tt: Operator(ref op),
             span: _,
-        }) = tokens.last().cloned() {
+        }) = tokens.last().cloned()
+        {
             let binary_rhs = match settings.operator_precedence.get(op).copied() {
                 Some(pr) if pr > precedence => {
                     parse_try!(
@@ -264,8 +271,7 @@ pub(super) fn parse_binary_expr(
                         &rhs
                     )
                 }
-                None =>
-                {
+                None => {
                     return err_et!(
                         context,
                         tokens.last().unwrap(),
