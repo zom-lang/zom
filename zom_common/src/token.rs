@@ -9,39 +9,65 @@ use std::{
 
 pub use TokenType::*;
 
-/// Plus, `+`
-pub const OP_PLUS: &str = "+";
-/// Minus, `-`
-pub const OP_MINUS: &str = "-";
-/// Mul, `+`
+/// Mul, `*`
 pub const OP_MUL: &str = "*";
 /// Div, `/`
 pub const OP_DIV: &str = "/";
-/// Mod (remainder), `%`
+/// Remainder, `%`
 pub const OP_REM: &str = "%";
+/// Plus, `+`
+pub const OP_ADD: &str = "+";
+/// Minus, `-`
+pub const OP_SUB: &str = "-";
+/// Right shift, `>>`
+pub const OP_RSHIFT: &str = ">>";
+/// Left shift, `<<`
+pub const OP_LSHIFT: &str = "<<";
 
-/// Equal, `=`, used to assignement
-pub const OP_EQ: &str = "=";
-
+/// Compare Less than, `<`
+pub const OP_COMP_LT: &str = "<";
+/// Compare Greater than, `>`
+pub const OP_COMP_GT: &str = ">";
+/// Compare Less than or Equal to, `<=`
+pub const OP_COMP_LTE: &str = "<=";
+/// Compare Greater Than or Equal to, `>=`
+pub const OP_COMP_GTE: &str = ">=";
 /// Compare Equality, `==`
 pub const OP_COMP_EQ: &str = "==";
 /// Compare Non-Equality, `!=`
 pub const OP_COMP_NE: &str = "!=";
-/// Compare Greater than, `>`
-pub const OP_COMP_GT: &str = ">";
-/// Compare Less than, `<`
-pub const OP_COMP_LT: &str = "<";
-/// Compare Greater Than or Equal to, `=>`
-pub const OP_COMP_GTE: &str = "=>";
-/// Compare Less than or Equal to, `=<`
-pub const OP_COMP_LTE: &str = "=<";
 
-/// Logical OR, `||`
-pub const OP_OR: &str = "||";
+/// Bitwise AND, `&`
+pub const OP_BIT_AND: &str = "&";
+/// Bitwise XOR, `&`
+pub const OP_BIT_XOR: &str = "^";
+/// Bitwise OR, `|`
+pub const OP_BIT_OR: &str = "|";
+/// Bitwise NOT, `~`
+pub const OP_BIT_NOT: &str = "~";
+
 /// Logical AND, `&&`
-pub const OP_AND: &str = "&&";
+pub const OP_LOGIC_AND: &str = "&&";
+/// Logical OR, `||`
+pub const OP_LOGIC_OR: &str = "||";
+/// Logical NOT, `!`
+pub const OP_LOGIC_NOT: &str = "!";
 
-pub const OP_MAX_LENGHT: usize = 2;
+/// Simple assignement, `=`,
+pub const OP_EQ: &str = "=";
+
+/// Borrow, `&` can be followed by the keyword `var`
+/// for var borrow
+pub const OP_BORROW: &str = "&";
+/// Dereferencing, `*`
+pub const OP_DEREF: &str = "*";
+
+/// Minus, `-` (unary)
+pub const OP_MINUS: &str = "-";
+/// Plus, `+` (unary)
+pub const OP_PLUS: &str = "+";
+
+
 
 /// Operator Precedence Value for Mul, Div and MOD
 pub const PRECEDE_MUL_DIV_REM: i32 = 60;
@@ -80,8 +106,8 @@ pub fn is_start_operator(maybe_start: char) -> bool {
         || OP_COMP_LT.starts_with(maybe_start.as_str())
         || OP_COMP_GTE.starts_with(maybe_start.as_str())
         || OP_COMP_LTE.starts_with(maybe_start.as_str())
-        || OP_OR.starts_with(maybe_start.as_str())
-        || OP_AND.starts_with(maybe_start.as_str())
+        // || OP_OR.starts_with(maybe_start.as_str())
+        // || OP_AND.starts_with(maybe_start.as_str())
 }
 
 /// Check if the given string slice is an Operator (OP_**)
@@ -110,7 +136,9 @@ pub fn is_operator(maybe_op: &str) -> (bool, usize) {
         (true, 1)
     }
     // Dual char operator.
-    else if maybe_op == OP_COMP_NE || maybe_op == OP_OR || maybe_op == OP_AND {
+    else if maybe_op == OP_COMP_NE
+    // || maybe_op == OP_OR || maybe_op == OP_AND
+    {
         (true, 2)
     }
     // it's not an OP_**

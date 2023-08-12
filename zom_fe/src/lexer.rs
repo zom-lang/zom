@@ -128,7 +128,7 @@ impl<'a> Lexer<'a> {
                     continue 'main;
                 }
                 ch if is_start_operator(ch) => {
-                    let window = &self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
+                    let window = &self.text.get(self.pos..self.pos + 2);
 
                     if window.is_none() {
                         continue;

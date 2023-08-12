@@ -142,9 +142,9 @@ impl Default for ParserSettings {
         operator_precedence.insert(OP_COMP_EQ.to_owned(), PRECEDE_EQ_NE);
         operator_precedence.insert(OP_COMP_NE.to_owned(), PRECEDE_EQ_NE);
 
-        operator_precedence.insert(OP_AND.to_owned(), PRECEDE_AND);
+        // operator_precedence.insert(OP_AND.to_owned(), PRECEDE_AND);
 
-        operator_precedence.insert(OP_OR.to_owned(), PRECEDE_OR);
+        // operator_precedence.insert(OP_OR.to_owned(), PRECEDE_OR);
 
         operator_precedence.insert(OP_EQ.to_owned(), PRECEDE_EQ);
 
