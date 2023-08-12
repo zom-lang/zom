@@ -9,12 +9,6 @@ use zom_common::error::ZomError;
 use zom_common::token::Token;
 use zom_common::token::*;
 
-pub use self::ASTNode::FunctionNode;
-
-// pub use crate::parser::expr::Expression::{
-//     BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr,
-// };
-
 use self::function::{parse_extern, parse_function, Function};
 use self::PartParsingResult::{Bad, Good, NotComplete};
 
@@ -273,7 +267,14 @@ macro_rules! token_parteq(
             Some(Token { tt, span: _}) if tt == $right => true,
             _ => false
         }
-    )
+    );
+
+    (no_opt $left:expr, $right:expr) => (
+        match $left {
+            Token { ref tt, span: _} if *tt == $right => true,
+            _ => false
+        }
+    );
 );
 
 pub trait CodeLocation {

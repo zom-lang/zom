@@ -1,10 +1,10 @@
 //! This module parse function
 
-use std::ops::RangeInclusive;
+use std::{ops::RangeInclusive, str::FromStr};
 
-use zom_common::token::Token;
+use zom_common::token::{Token, Str};
 
-use crate::{err_et, expect_token, impl_span, parse_try, parser::types::parse_type};
+use crate::{err_et, expect_token, impl_span, parse_try, parser::types::parse_type, token_parteq};
 
 use super::{
     block::{parse_block, Block},
@@ -14,10 +14,13 @@ use super::{
 
 use self::PartParsingResult::{Bad, Good, NotComplete};
 
-use zom_common::token::{CloseParen, Colon, Comma, Ident, OpenParen, SemiColon};
+use zom_common::token::{CloseParen, Colon, Comma, Ident, OpenParen, SemiColon, OpenBrace};
+
+use zom_common::error::{ZomError, Position};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Function {
+    abi: ABI,
     prototype: Prototype,
     body: Option<Block>,
     return_ty: Type,
@@ -25,6 +28,36 @@ pub struct Function {
 }
 
 impl_span!(Function);
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum ABI {
+    C,
+    CXX,
+    Zom
+}
+
+impl ToString for ABI {
+    fn to_string(&self) -> String {
+        match self {
+            ABI::C => "C",
+            ABI::CXX => "CXX",
+            ABI::Zom => "Zom",
+        }.to_owned()
+    }
+}
+
+impl FromStr for ABI {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "C" => Ok(ABI::C),
+            "CXX" => Ok(ABI::CXX),
+            "Zom" => Ok(ABI::Zom),
+            abi => Err(format!("Unknown ABI `{}`", abi))
+        }
+    }
+}
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Arg {
@@ -55,24 +88,56 @@ pub(super) fn parse_extern(
 
     let start = *parsed_tokens.last().unwrap().span.start();
 
+    let t = tokens.last().unwrap().clone();
+
+    let abi = ABI::from_str(&expect_token!(
+        context,
+        [Str(abi), Str(abi.clone()), abi] <= tokens,
+        parsed_tokens,
+        err_et!(context, t, vec![SemiColon], t.tt)
+    ));
+
+    if let Err(err) = abi {
+        return Bad(ZomError::new(
+            Position::try_from_range(
+                context.pos,
+                parsed_tokens.last().unwrap().span.clone(),
+                context.source_file.clone(),
+                context.filename.clone()
+            ),
+            err,
+            false,
+            None,
+            vec![]
+        ))
+    }
+
+    let abi = abi.unwrap();
+
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
 
     let return_ty = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
 
     let t = tokens.last().unwrap().clone();
 
-    expect_token!(
-        context,
-        [SemiColon, SemiColon, ()] <= tokens,
-        parsed_tokens,
-        err_et!(context, t, vec![SemiColon], t.tt)
-    );
+    let body = if token_parteq!(no_opt t, OpenBrace) {
+        Some(parse_try!(parse_block, tokens, settings, context, parsed_tokens))
+    } else {
+        expect_token!(
+            context,
+            [SemiColon, SemiColon, ()] <= tokens,
+            parsed_tokens,
+            err_et!(context, t, vec![SemiColon], t.tt)
+        );
+        None
+    };
 
     let end = *parsed_tokens.last().unwrap().span.start();
     Good(
         ASTNode::FunctionNode(Function {
+            abi,
             prototype,
-            body: None,
+            body,
             return_ty,
             span: start..=end,
         }),
@@ -100,6 +165,7 @@ pub(super) fn parse_function(
     let end = *parsed_tokens.last().unwrap().span.end();
     Good(
         ASTNode::FunctionNode(Function {
+            abi: ABI::Zom,
             prototype,
             body: Some(body),
             return_ty,

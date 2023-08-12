@@ -1,0 +1,11 @@
+
+extern "C" c_function() void;
+
+
+extern "C" c_function2() void {
+
+}
+
+func main() void {
+
+}

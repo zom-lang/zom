@@ -1,5 +1,6 @@
 use std::error::Error;
-use std::io::{stdout, Write};
+use std::fs;
+use std::io::{stdout, Write, self};
 use zom_fe::lexer::Lexer;
 use zom_fe::parser::{parse, ParserSettings, ParsingContext};
 
@@ -8,16 +9,23 @@ use crate::{err, ExitStatus};
 pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     println!("Development command.\n");
 
-    let buffer =
+    let mut path =
         // String::from("func foo(bar: i16, baz: str) void { foo(test, test); foo = 999 + 9 / 4; foo } extern foo_c(boobar: u32) void;");
-        String::from(r#" "test " 't' "#);
+        String::new();
 
-    print!("input: ");
+    print!("path: ");
     stdout().flush().expect("ERR: Flush the output failed.");
-    // match io::stdin().read_line(&mut buffer) {
-    //     Ok(_) => {}
-    //     Err(err) => return Err(err!("{}", err)),
-    // }
+    match io::stdin().read_line(&mut path) {
+        Ok(_) => {}
+        Err(err) => return err!(fmt "{}", err),
+    }
+
+    if path.trim() == "" {
+        path = "example/test.zom".to_owned();
+    }
+
+    let buffer = fs::read_to_string(path).expect("Should have been able to read the file");
+
 
     println!("buffer = {:?}\n", buffer);
 
