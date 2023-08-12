@@ -82,7 +82,7 @@ pub(super) fn parse_extern(
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<ASTNode> {
-    // eat Extern token
+    // eat Extern keyword
     let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     tokens.pop();
 
@@ -150,7 +150,7 @@ pub(super) fn parse_function(
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<ASTNode> {
-    // eat Func token
+    // eat Func keyword
     let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
 

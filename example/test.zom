@@ -6,6 +6,6 @@ extern "C" c_function2() void {
 
 }
 
-func main() void {
-
+func fourteen() u8 {
+    return 14;
 }

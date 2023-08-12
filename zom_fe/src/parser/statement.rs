@@ -2,9 +2,9 @@
 
 use std::ops::RangeInclusive;
 
-use zom_common::token::{Token, TokenType::Return};
+use zom_common::token::{Token, TokenType::{Return, SemiColon}};
 
-use crate::{impl_span, parse_try, parser::expr::parse_expr};
+use crate::{impl_span, parse_try, parser::expr::parse_expr, token_parteq};
 
 use super::{expr::Expression, types::Type, ParserSettings, ParsingContext, PartParsingResult};
 
@@ -31,7 +31,9 @@ pub enum Stmt {
         ty: Option<Type>,
         expr: Expression,
     },
-    Return,
+    Return {
+        expr: Option<Expression>
+    },
 }
 
 impl Stmt {
@@ -59,7 +61,7 @@ pub(super) fn parse_statement(
         Some(Token {
             tt: Return,
             span: _,
-        }) => todo!("Implement the return statement"),
+        }) => parse_return(tokens, settings, context),
         None => NotComplete,
         _ => {
             let expr = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
@@ -74,4 +76,34 @@ pub(super) fn parse_statement(
             )
         }
     }
+}
+
+pub(super) fn parse_return(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Statement> {
+    // eat Return keyword
+    let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
+    tokens.pop();
+
+    let start = *parsed_tokens.last().unwrap().span.start();
+
+    let expr = if token_parteq!(tokens.last(), &SemiColon) {
+        None
+    } else {
+        Some(parse_try!(parse_expr, tokens, settings, context, parsed_tokens))
+    };
+
+
+    let end = *parsed_tokens.last().unwrap().span.end();
+    Good(
+        Statement {
+            stmt: Stmt::Return {
+                expr
+            },
+            span: start..=end
+        },
+        parsed_tokens
+    )
 }
