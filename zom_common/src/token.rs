@@ -155,6 +155,18 @@ pub const KW_FOR: &str = "for";
 /// const for the keyword `pub`
 pub const KW_PUB: &str = "pub";
 
+/// const for the keyword `async`
+pub const KW_ASYNC: &str = "async";
+
+/// const for the keyword `await`
+pub const KW_AWAIT: &str = "await";
+
+/// const for the keyword `match`
+pub const KW_MATCH: &str = "match";
+
+/// const for the keyword `impl`
+pub const KW_IMPL: &str = "impl";
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     /// `tt` means token type.
@@ -210,6 +222,10 @@ pub enum TokenType {
     While,
     For,
     Pub,
+    Async,
+    Await,
+    Match,
+    Impl,
 
     // Identifier
     Ident(String), // Identifier is a alphanumeric with `_` string
@@ -267,6 +283,10 @@ impl Display for TokenType {
             While => write!(f, "keyword `while`"),
             For => write!(f, "keyword `for`"),
             Pub => write!(f, "keyword `pub`"),
+            Async => write!(f, "keyword `async`"),
+            Await => write!(f, "keyword `await`"),
+            Match => write!(f, "keyword `match`"),
+            Impl => write!(f, "keyword `impl`"),
 
             Ident(_) => write!(f, "identifier"),
             Lifetime(_) => write!(f, "lifetime"),

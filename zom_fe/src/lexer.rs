@@ -308,6 +308,10 @@ impl<'a> Lexer<'a> {
             KW_WHILE => While,
             KW_FOR => For,
             KW_PUB => Pub,
+            KW_ASYNC => Async,
+            KW_AWAIT => Await,
+            KW_MATCH => Match,
+            KW_IMPL => Impl,
             _ => Ident(kw.clone()),
         }
     }
