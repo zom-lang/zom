@@ -128,24 +128,24 @@ impl<'a> Lexer<'a> {
                     continue 'main;
                 }
                 ch if is_start_operator(ch) => {
-                    let window = &self.text.get(self.pos..self.pos + 2);
+                    // let window = &self.text.get(self.pos..self.pos + 2);
 
-                    if window.is_none() {
-                        continue;
-                    }
+                    // if window.is_none() {
+                    //     continue;
+                    // }
 
-                    let window = window.unwrap();
-                    let (is_op, len) = is_operator(window);
+                    // let window = window.unwrap();
+                    // let (is_op, len) = is_operator(window);
 
-                    if is_op {
-                        tokens.push(Token::new(
-                            Operator(window[..len].to_owned()),
-                            self.pos..=(self.pos + len - 1),
-                        ));
-                        self.pos += len;
-                        self.column += len;
-                        continue 'main;
-                    }
+                    // if is_op {
+                    //     tokens.push(Token::new(
+                    //         OpBin(BinOp::from_str(window[..len].to_owned())),
+                    //         self.pos..=(self.pos + len - 1),
+                    //     ));
+                    //     self.pos += len;
+                    //     self.column += len;
+                    //     continue 'main;
+                    // }
                 }
                 '#' => loop {
                     let ch = self.chars.next();

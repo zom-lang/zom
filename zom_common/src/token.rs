@@ -4,7 +4,7 @@
 
 use std::{
     fmt::{self, Display},
-    ops::RangeInclusive,
+    ops::RangeInclusive, str::FromStr,
 };
 
 pub use TokenType::*;
@@ -68,27 +68,119 @@ pub const OP_MINUS: &str = "-";
 pub const OP_PLUS: &str = "+";
 
 
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+pub enum BinaryOp {
+    Mul,
+    Div,
+    Rem,
+    Add,
+    Sub,
+    RShift,
+    LShift,
+    CompLT,
+    CompGT,
+    CompLTE,
+    CompGTE,
+    CompEq,
+    CompNe,
+    BitAnd,
+    BitXor,
+    BitOr,
+    LogicAnd,
+    LogicOr,
+    Equal,
+}
 
-/// Operator Precedence Value for Mul, Div and MOD
-pub const PRECEDE_MUL_DIV_REM: i32 = 60;
+impl Display for BinaryOp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use self::BinaryOp::*;
+        let op = match *self {
+            Mul => OP_MUL,
+            Div => OP_DIV,
+            Rem => OP_REM,
+            Add => OP_ADD,
+            Sub => OP_SUB,
+            RShift => OP_RSHIFT,
+            LShift => OP_LSHIFT,
 
-/// Operator Precedence Value for ADD and SUB
-pub const PRECEDE_ADD_SUB: i32 = 40;
+            CompLT => OP_COMP_LT,
+            CompGT => OP_COMP_GT,
+            CompLTE => OP_COMP_LTE,
+            CompGTE => OP_COMP_GTE,
+            CompEq => OP_COMP_EQ,
+            CompNe => OP_COMP_NE,
 
-/// Operator Precedence Value for COMP_LT, COMP_GT, COMP_LTE and COMP_GTE
-pub const PRECEDE_COMP: i32 = 20;
+            BitAnd => OP_BIT_AND,
+            BitXor => OP_BIT_XOR,
+            BitOr => OP_BIT_OR,
 
-/// Operator Precedence Value for COMPE_EQ and COMP_NE
-pub const PRECEDE_EQ_NE: i32 = 10;
+            LogicAnd => OP_LOGIC_AND,
+            LogicOr => OP_LOGIC_OR,
 
-/// Operator Precedence Value for AND
-pub const PRECEDE_AND: i32 = 6;
+            Equal => OP_EQ,
+        };
+        write!(f, "{}", op)
+    }
+}
 
-/// Operator Precedence Value for OR
-pub const PRECEDE_OR: i32 = 5;
+impl FromStr for BinaryOp {
+    type Err = String;
 
-/// Operator Precedence Value for EQ (assignement)
-pub const PRECEDE_EQ: i32 = 2;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use self::BinaryOp::*;
+        match s {
+            OP_MUL => Ok(Mul),
+            OP_DIV => Ok(Div),
+            OP_REM => Ok(Rem),
+            OP_ADD => Ok(Add),
+            OP_SUB => Ok(Sub),
+            OP_RSHIFT => Ok(RShift),
+            OP_LSHIFT => Ok(LShift),
+
+            OP_COMP_LT => Ok(CompLT),
+            OP_COMP_GT => Ok(CompGT),
+            OP_COMP_LTE => Ok(CompLTE),
+            OP_COMP_GTE => Ok(CompGTE),
+            OP_COMP_EQ => Ok(CompEq),
+            OP_COMP_NE => Ok(CompNe),
+
+            OP_BIT_AND => Ok(BitAnd),
+            OP_BIT_XOR => Ok(BitXor),
+            OP_BIT_OR => Ok(BitOr),
+
+            OP_LOGIC_AND => Ok(LogicAnd),
+            OP_LOGIC_OR => Ok(LogicOr),
+
+            OP_EQ => Ok(Equal),
+            op => Err(format!("unknown binary operator `{}`", op))
+        }
+    }
+}
+
+/// Operator Precedence Value for Unary operators
+pub const PR_UNARY: i32 = 12;
+/// Operator Precedence Value for Mul Div Rem
+pub const PR_MUL_DIV_REM: i32 = 11;
+/// Operator Precedence Value for Add Sub
+pub const PR_ADD_SUB: i32 = 10;
+/// Operator Precedence Value for Right and Left shifts
+pub const PR_SHIFT: i32 = 9;
+/// Operator Precedence Value for Less than, Greater than, Less than or equal to and greater than or equal to
+pub const PR_COMP: i32 = 8;
+/// Operator Precedence Value for Eq Ne
+pub const PR_COMP_EQ_NE: i32 = 7;
+/// Operator Precedence Value for Bit And
+pub const PR_BIT_AND: i32 = 6;
+/// Operator Precedence Value for Bit Xor
+pub const PR_BIT_XOR: i32 = 5;
+/// Operator Precedence Value for Bit Or
+pub const PR_BIT_OR: i32 = 4;
+/// Operator Precedence Value for Logic And
+pub const PR_LOGIC_AND: i32 = 3;
+/// Operator Precedence Value for Logic Or
+pub const PR_LOGIC_OR: i32 = 2;
+/// Operator Precedence Value for Equal
+pub const PR_EQ: i32 = 1;
 
 /// This function get the first char of a potentil operator
 pub fn is_start_operator(maybe_start: char) -> bool {
@@ -212,7 +304,7 @@ impl Token {
 pub enum TokenType {
     // Operators
     /// Operators, should only be an OP_** constant.
-    Operator(String),
+    OpBin(BinaryOp),
 
     // Structural symbols
 
@@ -281,7 +373,7 @@ impl TokenType {
 impl Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Operator(op) => write!(f, "operator `{}`", op),
+            OpBin(op) => write!(f, "binary operator `{}`", op),
             OpenParen => write!(f, "`(`"),
             CloseParen => write!(f, "`)`"),
             OpenBracket => write!(f, "`[`"),
