@@ -25,7 +25,7 @@ pub struct Block {
 
 impl_span!(Block);
 
-pub(super) fn parse_block(
+pub fn parse_block(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,

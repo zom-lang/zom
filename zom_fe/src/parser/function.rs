@@ -77,7 +77,7 @@ pub struct Prototype {
 
 impl_span!(Prototype);
 
-pub(super) fn parse_extern(
+pub fn parse_extern(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -145,7 +145,7 @@ pub(super) fn parse_extern(
     )
 }
 
-pub(super) fn parse_function(
+pub fn parse_function(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -175,7 +175,7 @@ pub(super) fn parse_function(
     )
 }
 
-pub(super) fn parse_prototype(
+pub fn parse_prototype(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,

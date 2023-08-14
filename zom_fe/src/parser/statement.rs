@@ -51,7 +51,7 @@ impl Statement {
     }
 }
 
-pub(super) fn parse_statement(
+pub fn parse_statement(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -75,7 +75,7 @@ pub(super) fn parse_statement(
     }
 }
 
-pub(super) fn parse_return(
+pub fn parse_return(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,

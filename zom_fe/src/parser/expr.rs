@@ -49,7 +49,7 @@ impl Expression {
     }
 }
 
-pub(super) fn parse_primary_expr(
+pub fn parse_primary_expr(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -69,7 +69,7 @@ pub(super) fn parse_primary_expr(
     }
 }
 
-pub(super) fn parse_ident_expr(
+pub fn parse_ident_expr(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -133,7 +133,7 @@ pub(super) fn parse_ident_expr(
     )
 }
 
-pub(super) fn parse_literal_expr(
+pub fn parse_literal_expr(
     tokens: &mut Vec<Token>,
     _settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -160,7 +160,7 @@ pub(super) fn parse_literal_expr(
     )
 }
 
-pub(super) fn parse_parenthesis_expr(
+pub fn parse_parenthesis_expr(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -196,7 +196,7 @@ pub(super) fn parse_parenthesis_expr(
     Good(expr, parsed_tokens)
 }
 
-pub(super) fn parse_expr(
+pub fn parse_expr(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -216,7 +216,7 @@ pub(super) fn parse_expr(
     Good(expr, parsed_tokens)
 }
 
-pub(super) fn parse_binary_expr(
+pub fn parse_binary_expr(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
