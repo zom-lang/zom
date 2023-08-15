@@ -86,17 +86,11 @@ pub fn parse_return(
 
     let start = *parsed_tokens.last().unwrap().span.start();
 
-    dbg!(tokens.last());
-
     let expr = if token_parteq!(no_opt tokens.last().unwrap(), SemiColon) {
-        println!("PARSES NOTHING IN RETURN STMT");
         None
     } else {
-        println!("PARSES AN EXPR IN RETURN STMT");
         Some(parse_try!(parse_expr, tokens, settings, context, parsed_tokens))
     };
-
-    dbg!(&expr);
 
     let end = *parsed_tokens.last().unwrap().span.end();
     Good(

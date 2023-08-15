@@ -57,19 +57,43 @@ pub const OP_LOGIC_NOT: &str = "!";
 pub const OP_EQ: &str = "=";
 
 /// Borrow, `&` can be followed by the keyword `var`
-/// for var borrow
-pub const OP_BORROW: &str = "&";
-/// Dereferencing, `*`
-pub const OP_DEREF: &str = "*";
+/// for var borrow, (alias for OP_BIT_AND)
+pub const OP_BORROW: &str = OP_BIT_AND;
+/// Dereferencing, `*`, (alias of OP_MUL)
+pub const OP_DEREF: &str = OP_MUL;
 
-/// Minus, `-` (unary)
-pub const OP_MINUS: &str = "-";
-/// Plus, `+` (unary)
-pub const OP_PLUS: &str = "+";
+/// Minus, `-` (unary), (alias of OP_SUB)
+pub const OP_MINUS: &str = OP_SUB;
+/// Plus, `+` (unary), (alias of OP_ADD)
+pub const OP_PLUS: &str = OP_ADD;
 
+/// List of unique operators (contains no aliases)
+pub const OPERATORS: [&str; 21] = [
+    OP_MUL,
+    OP_DIV,
+    OP_REM,
+    OP_ADD,
+    OP_SUB,
+    OP_RSHIFT,
+    OP_LSHIFT,
+    OP_COMP_LT,
+    OP_COMP_GT,
+    OP_COMP_LTE,
+    OP_COMP_GTE,
+    OP_COMP_EQ,
+    OP_COMP_NE,
+    OP_BIT_AND,
+    OP_BIT_XOR,
+    OP_BIT_OR,
+    OP_BIT_NOT,
+    OP_LOGIC_AND,
+    OP_LOGIC_OR,
+    OP_LOGIC_NOT,
+    OP_EQ,
+];
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub enum BinaryOp {
+pub enum Operator {
     Mul,
     Div,
     Rem,
@@ -86,14 +110,16 @@ pub enum BinaryOp {
     BitAnd,
     BitXor,
     BitOr,
+    BitNot,
     LogicAnd,
     LogicOr,
+    LogicNot,
     Equal,
 }
 
-impl Display for BinaryOp {
+impl Display for Operator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use self::BinaryOp::*;
+        use self::Operator::*;
         let op = match *self {
             Mul => OP_MUL,
             Div => OP_DIV,
@@ -113,9 +139,11 @@ impl Display for BinaryOp {
             BitAnd => OP_BIT_AND,
             BitXor => OP_BIT_XOR,
             BitOr => OP_BIT_OR,
+            BitNot => OP_BIT_NOT,
 
             LogicAnd => OP_LOGIC_AND,
             LogicOr => OP_LOGIC_OR,
+            LogicNot => OP_LOGIC_NOT,
 
             Equal => OP_EQ,
         };
@@ -123,11 +151,11 @@ impl Display for BinaryOp {
     }
 }
 
-impl FromStr for BinaryOp {
+impl FromStr for Operator {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use self::BinaryOp::*;
+        use self::Operator::*;
         match s {
             OP_MUL => Ok(Mul),
             OP_DIV => Ok(Div),
@@ -147,9 +175,11 @@ impl FromStr for BinaryOp {
             OP_BIT_AND => Ok(BitAnd),
             OP_BIT_XOR => Ok(BitXor),
             OP_BIT_OR => Ok(BitOr),
+            OP_BIT_NOT => Ok(BitNot),
 
             OP_LOGIC_AND => Ok(LogicAnd),
             OP_LOGIC_OR => Ok(LogicOr),
+            OP_LOGIC_NOT => Ok(LogicNot),
 
             OP_EQ => Ok(Equal),
             op => Err(format!("unknown binary operator `{}`", op))
@@ -182,60 +212,87 @@ pub const PR_LOGIC_OR: i32 = 2;
 /// Operator Precedence Value for Equal
 pub const PR_EQ: i32 = 1;
 
-/// This function get the first char of a potentil operator
-pub fn is_start_operator(maybe_start: char) -> bool {
-    let maybe_start = maybe_start.to_string();
+/// This function get the first char of a potentil operator and returns true if the start of the operator look like an operator
+pub fn starts_operator(op_start: char) -> bool {
+    let op = op_start.to_string();
 
-    OP_PLUS.starts_with(maybe_start.as_str())
-        || OP_MINUS.starts_with(maybe_start.as_str())
-        || OP_MUL.starts_with(maybe_start.as_str())
-        || OP_DIV.starts_with(maybe_start.as_str())
-        || OP_REM.starts_with(maybe_start.as_str())
-        || OP_EQ.starts_with(maybe_start.as_str())
-        || OP_COMP_EQ.starts_with(maybe_start.as_str())
-        || OP_COMP_NE.starts_with(maybe_start.as_str())
-        || OP_COMP_GT.starts_with(maybe_start.as_str())
-        || OP_COMP_LT.starts_with(maybe_start.as_str())
-        || OP_COMP_GTE.starts_with(maybe_start.as_str())
-        || OP_COMP_LTE.starts_with(maybe_start.as_str())
-        // || OP_OR.starts_with(maybe_start.as_str())
-        // || OP_AND.starts_with(maybe_start.as_str())
+    for operator in OPERATORS {
+        let is_op = operator.starts_with(&op);
+        if is_op {
+            dbg!(is_op);
+            dbg!(op_start);
+            return true;
+        }
+    }
+    false
+}
+
+fn filter_op(op: String) -> (String, usize) {
+    let mut res = String::new();
+    let mut offset = 0;
+    let mut is_op = false;
+    dbg!(&op);
+
+    // need_erase is true when is_op is true and when the next char is a white space
+    // so after that we erase the content.
+    let mut need_erase = false;
+    for ch in op.chars() {
+        if need_erase {
+            continue;
+        }
+        match ch {
+            c if c.is_alphanumeric() || c.is_whitespace() => {
+                // print!("here");
+                if !is_op {
+                    // print!(" and here ");
+                    offset += 1;
+                }else {
+                    need_erase = true;
+                }
+                continue;
+            },
+            _ => {
+                res.push(ch);
+                is_op = true;
+            },
+        }
+    }
+    dbg!(offset);
+    (res, offset)
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct OpResult {
+    pub is_op: bool,
+    pub op_length: usize,
+    pub op_offset: usize,
 }
 
 /// Check if the given string slice is an Operator (OP_**)
 ///
 /// return a tuple, the first element is if it's an operator and the second is the lenght of the operator.
-pub fn is_operator(maybe_op: &str) -> (bool, usize) {
-    // I think it can be improved...
-    // Single char operator.
-    if maybe_op.starts_with(OP_PLUS)
-        || maybe_op.starts_with(OP_MINUS)
-        || maybe_op.starts_with(OP_MUL)
-        || maybe_op.starts_with(OP_DIV)
-        || maybe_op.starts_with(OP_REM)
-        || maybe_op.starts_with(OP_COMP_GT)
-        || maybe_op.starts_with(OP_COMP_LT)
-    {
-        (true, 1)
-    } else if maybe_op.starts_with(OP_EQ) {
-        match maybe_op.get(1..=1) {
-            Some("=") | Some("<") | Some(">") => {
-                return (true, 2);
+pub fn is_operator(op: &str) -> OpResult {
+    println!();
+    let ref res @ (ref op, offset) = filter_op(op.to_string());
+    dbg!(res);
+    for operator in OPERATORS {
+        if &operator == &op {
+            dbg!(operator);
+            dbg!(op);
+            dbg!(operator.len());
+            println!();
+            return OpResult{
+                is_op: true,
+                op_length: operator.len(),
+                op_offset: offset
             }
-            _ => (),
         }
+    }
 
-        (true, 1)
-    }
-    // Dual char operator.
-    else if maybe_op == OP_COMP_NE
-    // || maybe_op == OP_OR || maybe_op == OP_AND
-    {
-        (true, 2)
-    }
-    // it's not an OP_**
-    else {
-        (false, 0)
+    OpResult{
+        is_op: false,
+        op_length: 0,
+        op_offset: 0
     }
 }
 
@@ -304,7 +361,7 @@ impl Token {
 pub enum TokenType {
     // Operators
     /// Operators, should only be an OP_** constant.
-    OpBin(BinaryOp),
+    Operator(Operator),
 
     // Structural symbols
 
@@ -373,7 +430,7 @@ impl TokenType {
 impl Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            OpBin(op) => write!(f, "binary operator `{}`", op),
+            Operator(_) => write!(f, "operator"),
             OpenParen => write!(f, "`(`"),
             CloseParen => write!(f, "`)`"),
             OpenBracket => write!(f, "`[`"),

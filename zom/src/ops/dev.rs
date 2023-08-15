@@ -42,7 +42,7 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
         }
     };
 
-    println!("tokens = {tokens:#?}");
+    // println!("tokens = {tokens:#?}");
 
     let parse_context = ParsingContext::new("<dev_cmd>.zom".to_owned(), buffer);
 

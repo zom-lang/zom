@@ -4,12 +4,12 @@
 
 use std::iter::Peekable;
 use std::str::Chars;
+use std::str::FromStr;
 
 use zom_common::error::Position;
 use zom_common::error::ZomError;
-use zom_common::token::Token;
 
-use zom_common::token::is_start_operator;
+use zom_common::token::{starts_operator, Token, OpResult};
 
 use zom_common::token::*;
 
@@ -42,6 +42,26 @@ macro_rules! match_arm {
     }};
 }
 
+macro_rules! unexpected_eof {
+    ($self:expr) => (
+        Box::new(ZomError::new(
+            Some(Position::new(
+                $self.pos,
+                $self.line,
+                $self.column + 1,
+                $self.line,
+                $self.column + 2,
+                $self.filename.clone(),
+                $self.text.clone(),
+            )),
+            "unexpected end of file".to_owned(),
+            false,
+            None,
+            vec![],
+        ))
+    );
+}
+
 impl<'a> Lexer<'a> {
     pub fn new(text: &str, filename: String) -> Lexer {
         Lexer {
@@ -70,24 +90,6 @@ impl<'a> Lexer<'a> {
             Some("You should avoid using this character".to_owned()),
             vec![],
         )
-    }
-
-    pub fn unexpected_eof(&mut self) -> Box<ZomError> {
-        Box::new(ZomError::new(
-            Some(Position::new(
-                self.pos,
-                self.line,
-                self.column + 1,
-                self.line,
-                self.column + 2,
-                self.filename.clone(),
-                self.text.clone(),
-            )),
-            "unexpected end of file".to_owned(),
-            false,
-            None,
-            vec![],
-        ))
     }
 
     #[inline]
@@ -126,26 +128,6 @@ impl<'a> Lexer<'a> {
                         old_pos..=(self.pos - 1),
                     ));
                     continue 'main;
-                }
-                ch if is_start_operator(ch) => {
-                    // let window = &self.text.get(self.pos..self.pos + 2);
-
-                    // if window.is_none() {
-                    //     continue;
-                    // }
-
-                    // let window = window.unwrap();
-                    // let (is_op, len) = is_operator(window);
-
-                    // if is_op {
-                    //     tokens.push(Token::new(
-                    //         OpBin(BinOp::from_str(window[..len].to_owned())),
-                    //         self.pos..=(self.pos + len - 1),
-                    //     ));
-                    //     self.pos += len;
-                    //     self.column += len;
-                    //     continue 'main;
-                    // }
                 }
                 '#' => loop {
                     let ch = self.chars.next();
@@ -217,6 +199,39 @@ impl<'a> Lexer<'a> {
                 w if w.is_whitespace() && w != '\n' => {
                     self.incr_pos();
                     continue;
+                }
+                ch if starts_operator(ch) => {
+                    println!("toks = {:?}", tokens.iter().map(|t| { t.tt.clone() }).collect::<Vec<_>>());
+                    let win = self.text.get(self.pos - 1..=self.pos + 2).clone();
+                    if win.is_none() {
+                        errs.push(*unexpected_eof!(self));
+                        continue 'main;
+                    }
+                    let win = win.unwrap();
+                    let OpResult {
+                        is_op,
+                        op_length: len,
+                        op_offset: offset
+                    } = is_operator(win);
+
+                    if is_op {
+                        let span = self.pos + offset..=(self.pos + len);
+                        let adjusted_win = win.get(offset..=len + offset - 1).unwrap();
+
+                        dbg!(adjusted_win);
+
+                        let operator = Operator::from_str(adjusted_win).unwrap();
+                        dbg!(&operator);
+
+                        tokens.push(Token::new(
+                            Operator(operator),
+                            span,
+                        ));
+                        self.pos += len;
+                        self.column += len;
+                        println!("\n\n");
+                        continue 'main;
+                    }
                 }
                 ch =>
                 //return Err(Self::illegal_char(self.clone(), ch)),
@@ -389,7 +404,7 @@ impl<'a> Lexer<'a> {
                     match self.chars.next() {
                         Some(c @ '"') => str.push(c),
                         Some(c) => str.push(self.lex_escape_sequence(c)?),
-                        _ => return Err(self.unexpected_eof()),
+                        _ => return Err(unexpected_eof!(self)),
                     }
                 }
                 Some(c) => {
@@ -425,7 +440,7 @@ impl<'a> Lexer<'a> {
 
         let window = match text.get(self.pos + 1..self.pos + 3) {
             Some(w) => w,
-            None => return Err(self.unexpected_eof()),
+            None => return Err(unexpected_eof!(self)),
         };
         let mut chars = window.chars();
         let first = chars.next();
@@ -438,9 +453,9 @@ impl<'a> Lexer<'a> {
             Some(_) => match first {
                 Some('\\') => is_char = true,
                 Some(_) => is_char = false,
-                _ => return Err(self.unexpected_eof()),
+                _ => return Err(unexpected_eof!(self)),
             },
-            _ => return Err(self.unexpected_eof()),
+            _ => return Err(unexpected_eof!(self)),
         }
 
         if is_char {
@@ -461,11 +476,11 @@ impl<'a> Lexer<'a> {
                 match self.chars.next() {
                     Some(c @ '\'') => c,
                     Some(c) => self.lex_escape_sequence(c)?,
-                    _ => return Err(self.unexpected_eof()),
+                    _ => return Err(unexpected_eof!(self)),
                 }
             }
             Some(c) => c,
-            _ => return Err(self.unexpected_eof()),
+            _ => return Err(unexpected_eof!(self)),
         };
         let next = self.chars.next();
         self.incr_pos();
@@ -488,7 +503,7 @@ impl<'a> Lexer<'a> {
                     vec![],
                 )))
             }
-            _ => return Err(self.unexpected_eof()),
+            _ => return Err(unexpected_eof!(self)),
         }
 
         Ok(Token {

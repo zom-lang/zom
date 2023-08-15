@@ -29,7 +29,7 @@ pub enum Expr {
     LiteralExpr(i32),
     VariableExpr(String),
     BinaryExpr {
-        op: BinaryOp,
+        op: Operator,
         lhs: Box<Expression>,
         rhs: Box<Expression>,
     },
@@ -230,7 +230,7 @@ pub fn parse_binary_expr(
     // continue until the current token is not an operator
     // or it is an operator with precedence lesser than expr_precedence
     while let Some(Token {
-        tt: OpBin(op),
+        tt: Operator(op),
         span: _,
     }) = tokens.last()
     {
@@ -255,7 +255,7 @@ pub fn parse_binary_expr(
         // parse all the RHS operators until their precedence is
         // bigger than the current one
         while let Some(Token {
-            tt: OpBin(ref op),
+            tt: Operator(ref op),
             span: _,
         }) = tokens.last().cloned()
         {

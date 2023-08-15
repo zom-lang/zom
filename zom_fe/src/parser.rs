@@ -119,12 +119,12 @@ macro_rules! err_et(
 #[derive(Debug)]
 pub struct ParserSettings {
     /// Binary operator precedence
-    operator_precedence: HashMap<BinaryOp, i32>,
+    operator_precedence: HashMap<Operator, i32>,
 }
 
 impl Default for ParserSettings {
     fn default() -> Self {
-        use zom_common::token::{*, BinaryOp::*};
+        use zom_common::token::{*, Operator::*};
         let mut operator_precedence = HashMap::with_capacity(19);
 
         // Setup Operator Precedence according to the documentation
