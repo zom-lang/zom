@@ -67,6 +67,8 @@ pub const OP_MINUS: &str = OP_SUB;
 /// Plus, `+` (unary), (alias of OP_ADD)
 pub const OP_PLUS: &str = OP_ADD;
 
+pub const OP_MAX_LENGHT: usize = 2;
+
 /// List of unique operators (contains no aliases)
 pub const OPERATORS: [&str; 21] = [
     OP_MUL,
@@ -211,90 +213,6 @@ pub const PR_LOGIC_AND: i32 = 3;
 pub const PR_LOGIC_OR: i32 = 2;
 /// Operator Precedence Value for Equal
 pub const PR_EQ: i32 = 1;
-
-/// This function get the first char of a potentil operator and returns true if the start of the operator look like an operator
-pub fn starts_operator(op_start: char) -> bool {
-    let op = op_start.to_string();
-
-    for operator in OPERATORS {
-        let is_op = operator.starts_with(&op);
-        if is_op {
-            dbg!(is_op);
-            dbg!(op_start);
-            return true;
-        }
-    }
-    false
-}
-
-fn filter_op(op: String) -> (String, usize) {
-    let mut res = String::new();
-    let mut offset = 0;
-    let mut is_op = false;
-    dbg!(&op);
-
-    // need_erase is true when is_op is true and when the next char is a white space
-    // so after that we erase the content.
-    let mut need_erase = false;
-    for ch in op.chars() {
-        if need_erase {
-            continue;
-        }
-        match ch {
-            c if c.is_alphanumeric() || c.is_whitespace() => {
-                // print!("here");
-                if !is_op {
-                    // print!(" and here ");
-                    offset += 1;
-                }else {
-                    need_erase = true;
-                }
-                continue;
-            },
-            _ => {
-                res.push(ch);
-                is_op = true;
-            },
-        }
-    }
-    dbg!(offset);
-    (res, offset)
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct OpResult {
-    pub is_op: bool,
-    pub op_length: usize,
-    pub op_offset: usize,
-}
-
-/// Check if the given string slice is an Operator (OP_**)
-///
-/// return a tuple, the first element is if it's an operator and the second is the lenght of the operator.
-pub fn is_operator(op: &str) -> OpResult {
-    println!();
-    let ref res @ (ref op, offset) = filter_op(op.to_string());
-    dbg!(res);
-    for operator in OPERATORS {
-        if &operator == &op {
-            dbg!(operator);
-            dbg!(op);
-            dbg!(operator.len());
-            println!();
-            return OpResult{
-                is_op: true,
-                op_length: operator.len(),
-                op_offset: offset
-            }
-        }
-    }
-
-    OpResult{
-        is_op: false,
-        op_length: 0,
-        op_offset: 0
-    }
-}
 
 /// const for the keyword `func`
 pub const KW_FUNC: &str = "func";

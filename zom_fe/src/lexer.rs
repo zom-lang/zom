@@ -9,7 +9,7 @@ use std::str::FromStr;
 use zom_common::error::Position;
 use zom_common::error::ZomError;
 
-use zom_common::token::{starts_operator, Token, OpResult};
+use zom_common::token::Token;
 
 use zom_common::token::*;
 
@@ -202,34 +202,25 @@ impl<'a> Lexer<'a> {
                 }
                 ch if starts_operator(ch) => {
                     println!("toks = {:?}", tokens.iter().map(|t| { t.tt.clone() }).collect::<Vec<_>>());
-                    let win = self.text.get(self.pos - 1..=self.pos + 2).clone();
+                    let win = self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
+
                     if win.is_none() {
                         errs.push(*unexpected_eof!(self));
                         continue 'main;
                     }
+
                     let win = win.unwrap();
-                    let OpResult {
-                        is_op,
-                        op_length: len,
-                        op_offset: offset
-                    } = is_operator(win);
+                    let (is_op, len) = is_operator(win);
 
                     if is_op {
-                        let span = self.pos + offset..=(self.pos + len);
-                        let adjusted_win = win.get(offset..=len + offset - 1).unwrap();
-
-                        dbg!(adjusted_win);
-
-                        let operator = Operator::from_str(adjusted_win).unwrap();
-                        dbg!(&operator);
-
+                        let op = Operator::from_str(&win[..len]).unwrap();
                         tokens.push(Token::new(
-                            Operator(operator),
-                            span,
+                            Operator(op),
+                            self.pos..=(self.pos + len - 1),
                         ));
                         self.pos += len;
                         self.column += len;
-                        println!("\n\n");
+
                         continue 'main;
                     }
                 }
@@ -510,5 +501,82 @@ impl<'a> Lexer<'a> {
             tt: TokenType::Char(content),
             span: pos_start..=self.pos,
         })
+    }
+}
+
+/// This function get the first char of a potentil operator and returns true if the start of the operator look like an operator
+pub fn starts_operator(op_start: char) -> bool {
+    let op = op_start.to_string();
+
+    for operator in OPERATORS {
+        let is_op = operator.starts_with(&op);
+        if is_op {
+            dbg!(is_op);
+            dbg!(op_start);
+            return true;
+        }
+    }
+    false
+}
+
+/// Check if the given string slice is an Operator (OP_**)
+///
+/// return a tuple, the first element is if it's an operator and the second is the lenght of the operator.
+pub fn is_operator(maybe_op: &str) -> (bool, usize) {
+    // I think it can be improved...
+    // Single char operator.
+    if maybe_op.starts_with(OP_MUL)
+        || maybe_op.starts_with(OP_DIV)
+        || maybe_op.starts_with(OP_REM)
+        || maybe_op.starts_with(OP_ADD)
+        || maybe_op.starts_with(OP_SUB)
+        || maybe_op.starts_with(OP_BIT_AND)
+        || maybe_op.starts_with(OP_BIT_XOR)
+        || maybe_op.starts_with(OP_BIT_OR)
+        || maybe_op.starts_with(OP_BIT_NOT)
+        || maybe_op.starts_with(OP_LOGIC_NOT)
+        || maybe_op.starts_with(OP_EQ)
+    {
+        (true, 1)
+    } else if maybe_op.starts_with(OP_COMP_LT) {
+        match maybe_op.get(1..=1) {
+            Some("<") | Some("=") => {
+                return (true, 2);
+            }
+            _ => (),
+        }
+
+        (true, 1)
+    }else if maybe_op.starts_with(OP_COMP_GT) {
+        match maybe_op.get(1..=1) {
+            Some(">") | Some("=") => {
+                return (true, 2);
+            }
+            _ => (),
+        }
+
+        (true, 1)
+    }else if maybe_op.starts_with(OP_LOGIC_NOT) {
+        if let Some("=") = maybe_op.get(1..=1) {
+            return (true, 2);
+        }
+
+        (true, 1)
+    }else if maybe_op.starts_with(OP_BIT_OR) {
+        if let Some("|") = maybe_op.get(1..=1) {
+            return (true, 2);
+        }
+
+        (true, 1)
+    }else if maybe_op.starts_with(OP_BIT_AND) {
+        if let Some("&") = maybe_op.get(1..=1) {
+            return (true, 2);
+        }
+
+        (true, 1)
+    }
+    // it's not an operator
+    else {
+        (false, 0)
     }
 }
