@@ -1,3 +1,7 @@
+func fourteen() u8 {
+    a = (9 >> 8 / 9 ) >= 2;
+    return a;
+}
 
 extern "C" c_function() void;
 
@@ -6,6 +10,3 @@ extern "C" c_function2() void {
 
 }
 
-func fourteen() u8 {
-    return 14;
-}

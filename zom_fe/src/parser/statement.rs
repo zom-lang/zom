@@ -51,17 +51,14 @@ impl Statement {
     }
 }
 
-pub(super) fn parse_statement(
+pub fn parse_statement(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<Statement> {
     let mut parsed_tokens = vec![];
     match tokens.last() {
-        Some(Token {
-            tt: Return,
-            span: _,
-        }) => parse_return(tokens, settings, context),
+        Some(Token { tt: Return, ..}) => parse_return(tokens, settings, context),
         None => NotComplete,
         _ => {
             let expr = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
@@ -78,23 +75,22 @@ pub(super) fn parse_statement(
     }
 }
 
-pub(super) fn parse_return(
+pub fn parse_return(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
-) -> PartParsingResult<Statement> {
+) -> PartParsingResult<Statement> { // FIXME: Cannot return a binary expression
     // eat Return keyword
     let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
 
     let start = *parsed_tokens.last().unwrap().span.start();
 
-    let expr = if token_parteq!(tokens.last(), &SemiColon) {
+    let expr = if token_parteq!(no_opt tokens.last().unwrap(), SemiColon) {
         None
     } else {
         Some(parse_try!(parse_expr, tokens, settings, context, parsed_tokens))
     };
-
 
     let end = *parsed_tokens.last().unwrap().span.end();
     Good(

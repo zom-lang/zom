@@ -118,35 +118,43 @@ macro_rules! err_et(
 
 #[derive(Debug)]
 pub struct ParserSettings {
-    operator_precedence: HashMap<String, i32>,
+    /// Binary operator precedence
+    operator_precedence: HashMap<Operator, i32>,
 }
 
 impl Default for ParserSettings {
     fn default() -> Self {
-        let mut operator_precedence = HashMap::with_capacity(14);
+        use zom_common::token::{*, Operator::*};
+        let mut operator_precedence = HashMap::with_capacity(19);
 
         // Setup Operator Precedence according to the documentation
 
-        operator_precedence.insert(OP_MUL.to_owned(), PRECEDE_MUL_DIV_REM);
-        operator_precedence.insert(OP_DIV.to_owned(), PRECEDE_MUL_DIV_REM);
-        operator_precedence.insert(OP_REM.to_owned(), PRECEDE_MUL_DIV_REM);
+        operator_precedence.insert(Mul, PR_MUL_DIV_REM);
+        operator_precedence.insert(Div, PR_MUL_DIV_REM);
+        operator_precedence.insert(Rem, PR_MUL_DIV_REM);
 
-        operator_precedence.insert(OP_PLUS.to_owned(), PRECEDE_ADD_SUB);
-        operator_precedence.insert(OP_MINUS.to_owned(), PRECEDE_ADD_SUB);
+        operator_precedence.insert(Add, PR_ADD_SUB);
+        operator_precedence.insert(Sub, PR_ADD_SUB);
 
-        operator_precedence.insert(OP_COMP_LT.to_owned(), PRECEDE_COMP);
-        operator_precedence.insert(OP_COMP_GT.to_owned(), PRECEDE_COMP);
-        operator_precedence.insert(OP_COMP_LTE.to_owned(), PRECEDE_COMP);
-        operator_precedence.insert(OP_COMP_GTE.to_owned(), PRECEDE_COMP);
+        operator_precedence.insert(RShift, PR_SHIFT);
+        operator_precedence.insert(LShift, PR_SHIFT);
 
-        operator_precedence.insert(OP_COMP_EQ.to_owned(), PRECEDE_EQ_NE);
-        operator_precedence.insert(OP_COMP_NE.to_owned(), PRECEDE_EQ_NE);
+        operator_precedence.insert(CompLT, PR_COMP);
+        operator_precedence.insert(CompGT, PR_COMP);
+        operator_precedence.insert(CompLTE, PR_COMP);
+        operator_precedence.insert(CompGTE, PR_COMP);
 
-        operator_precedence.insert(OP_AND.to_owned(), PRECEDE_AND);
+        operator_precedence.insert(CompEq, PR_COMP_EQ_NE);
+        operator_precedence.insert(CompNe, PR_COMP_EQ_NE);
 
-        operator_precedence.insert(OP_OR.to_owned(), PRECEDE_OR);
+        operator_precedence.insert(BitAnd, PR_BIT_AND);
+        operator_precedence.insert(BitXor, PR_BIT_XOR);
+        operator_precedence.insert(BitOr, PR_BIT_OR);
 
-        operator_precedence.insert(OP_EQ.to_owned(), PRECEDE_EQ);
+        operator_precedence.insert(LogicAnd, PR_LOGIC_AND);
+        operator_precedence.insert(LogicOr, PR_LOGIC_OR);
+
+        operator_precedence.insert(Equal, PR_EQ);
 
         ParserSettings {
             operator_precedence,

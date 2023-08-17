@@ -4,12 +4,12 @@
 
 use std::iter::Peekable;
 use std::str::Chars;
+use std::str::FromStr;
 
 use zom_common::error::Position;
 use zom_common::error::ZomError;
-use zom_common::token::Token;
 
-use zom_common::token::is_start_operator;
+use zom_common::token::Token;
 
 use zom_common::token::*;
 
@@ -42,6 +42,26 @@ macro_rules! match_arm {
     }};
 }
 
+macro_rules! unexpected_eof {
+    ($self:expr) => (
+        Box::new(ZomError::new(
+            Some(Position::new(
+                $self.pos,
+                $self.line,
+                $self.column + 1,
+                $self.line,
+                $self.column + 2,
+                $self.filename.clone(),
+                $self.text.clone(),
+            )),
+            "unexpected end of file".to_owned(),
+            false,
+            None,
+            vec![],
+        ))
+    );
+}
+
 impl<'a> Lexer<'a> {
     pub fn new(text: &str, filename: String) -> Lexer {
         Lexer {
@@ -70,24 +90,6 @@ impl<'a> Lexer<'a> {
             Some("You should avoid using this character".to_owned()),
             vec![],
         )
-    }
-
-    pub fn unexpected_eof(&mut self) -> Box<ZomError> {
-        Box::new(ZomError::new(
-            Some(Position::new(
-                self.pos,
-                self.line,
-                self.column + 1,
-                self.line,
-                self.column + 2,
-                self.filename.clone(),
-                self.text.clone(),
-            )),
-            "unexpected end of file".to_owned(),
-            false,
-            None,
-            vec![],
-        ))
     }
 
     #[inline]
@@ -126,26 +128,6 @@ impl<'a> Lexer<'a> {
                         old_pos..=(self.pos - 1),
                     ));
                     continue 'main;
-                }
-                ch if is_start_operator(ch) => {
-                    let window = &self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
-
-                    if window.is_none() {
-                        continue;
-                    }
-
-                    let window = window.unwrap();
-                    let (is_op, len) = is_operator(window);
-
-                    if is_op {
-                        tokens.push(Token::new(
-                            Operator(window[..len].to_owned()),
-                            self.pos..=(self.pos + len - 1),
-                        ));
-                        self.pos += len;
-                        self.column += len;
-                        continue 'main;
-                    }
                 }
                 '#' => loop {
                     let ch = self.chars.next();
@@ -217,6 +199,30 @@ impl<'a> Lexer<'a> {
                 w if w.is_whitespace() && w != '\n' => {
                     self.incr_pos();
                     continue;
+                }
+                ch if starts_operator(ch) => {
+                    println!("toks = {:?}", tokens.iter().map(|t| { t.tt.clone() }).collect::<Vec<_>>());
+                    let win = self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
+
+                    if win.is_none() {
+                        errs.push(*unexpected_eof!(self));
+                        continue 'main;
+                    }
+
+                    let win = win.unwrap();
+                    let (is_op, len) = is_operator(win);
+
+                    if is_op {
+                        let op = Operator::from_str(&win[..len]).unwrap();
+                        tokens.push(Token::new(
+                            Operator(op),
+                            self.pos..=(self.pos + len - 1),
+                        ));
+                        self.pos += len;
+                        self.column += len;
+
+                        continue 'main;
+                    }
                 }
                 ch =>
                 //return Err(Self::illegal_char(self.clone(), ch)),
@@ -389,7 +395,7 @@ impl<'a> Lexer<'a> {
                     match self.chars.next() {
                         Some(c @ '"') => str.push(c),
                         Some(c) => str.push(self.lex_escape_sequence(c)?),
-                        _ => return Err(self.unexpected_eof()),
+                        _ => return Err(unexpected_eof!(self)),
                     }
                 }
                 Some(c) => {
@@ -425,7 +431,7 @@ impl<'a> Lexer<'a> {
 
         let window = match text.get(self.pos + 1..self.pos + 3) {
             Some(w) => w,
-            None => return Err(self.unexpected_eof()),
+            None => return Err(unexpected_eof!(self)),
         };
         let mut chars = window.chars();
         let first = chars.next();
@@ -438,9 +444,9 @@ impl<'a> Lexer<'a> {
             Some(_) => match first {
                 Some('\\') => is_char = true,
                 Some(_) => is_char = false,
-                _ => return Err(self.unexpected_eof()),
+                _ => return Err(unexpected_eof!(self)),
             },
-            _ => return Err(self.unexpected_eof()),
+            _ => return Err(unexpected_eof!(self)),
         }
 
         if is_char {
@@ -461,11 +467,11 @@ impl<'a> Lexer<'a> {
                 match self.chars.next() {
                     Some(c @ '\'') => c,
                     Some(c) => self.lex_escape_sequence(c)?,
-                    _ => return Err(self.unexpected_eof()),
+                    _ => return Err(unexpected_eof!(self)),
                 }
             }
             Some(c) => c,
-            _ => return Err(self.unexpected_eof()),
+            _ => return Err(unexpected_eof!(self)),
         };
         let next = self.chars.next();
         self.incr_pos();
@@ -488,12 +494,89 @@ impl<'a> Lexer<'a> {
                     vec![],
                 )))
             }
-            _ => return Err(self.unexpected_eof()),
+            _ => return Err(unexpected_eof!(self)),
         }
 
         Ok(Token {
             tt: TokenType::Char(content),
             span: pos_start..=self.pos,
         })
+    }
+}
+
+/// This function get the first char of a potentil operator and returns true if the start of the operator look like an operator
+pub fn starts_operator(op_start: char) -> bool {
+    let op = op_start.to_string();
+
+    for operator in OPERATORS {
+        let is_op = operator.starts_with(&op);
+        if is_op {
+            dbg!(is_op);
+            dbg!(op_start);
+            return true;
+        }
+    }
+    false
+}
+
+/// Check if the given string slice is an Operator (OP_**)
+///
+/// return a tuple, the first element is if it's an operator and the second is the lenght of the operator.
+pub fn is_operator(maybe_op: &str) -> (bool, usize) {
+    // I think it can be improved...
+    // Single char operator.
+    if maybe_op.starts_with(OP_MUL)
+        || maybe_op.starts_with(OP_DIV)
+        || maybe_op.starts_with(OP_REM)
+        || maybe_op.starts_with(OP_ADD)
+        || maybe_op.starts_with(OP_SUB)
+        || maybe_op.starts_with(OP_BIT_AND)
+        || maybe_op.starts_with(OP_BIT_XOR)
+        || maybe_op.starts_with(OP_BIT_OR)
+        || maybe_op.starts_with(OP_BIT_NOT)
+        || maybe_op.starts_with(OP_LOGIC_NOT)
+        || maybe_op.starts_with(OP_EQ)
+    {
+        (true, 1)
+    } else if maybe_op.starts_with(OP_COMP_LT) {
+        match maybe_op.get(1..=1) {
+            Some("<") | Some("=") => {
+                return (true, 2);
+            }
+            _ => (),
+        }
+
+        (true, 1)
+    }else if maybe_op.starts_with(OP_COMP_GT) {
+        match maybe_op.get(1..=1) {
+            Some(">") | Some("=") => {
+                return (true, 2);
+            }
+            _ => (),
+        }
+
+        (true, 1)
+    }else if maybe_op.starts_with(OP_LOGIC_NOT) {
+        if let Some("=") = maybe_op.get(1..=1) {
+            return (true, 2);
+        }
+
+        (true, 1)
+    }else if maybe_op.starts_with(OP_BIT_OR) {
+        if let Some("|") = maybe_op.get(1..=1) {
+            return (true, 2);
+        }
+
+        (true, 1)
+    }else if maybe_op.starts_with(OP_BIT_AND) {
+        if let Some("&") = maybe_op.get(1..=1) {
+            return (true, 2);
+        }
+
+        (true, 1)
+    }
+    // it's not an operator
+    else {
+        (false, 0)
     }
 }

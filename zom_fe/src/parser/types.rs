@@ -103,7 +103,7 @@ pub const F128_TYPE_NAME: &str = "f128";
 pub const CHAR_TYPE_NAME: &str = "char";
 pub const STR_TYPE_NAME: &str = "str";
 
-pub(super) fn parse_type(
+pub fn parse_type(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
