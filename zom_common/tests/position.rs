@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use zom_common::error::ZomError;
 use zom_fe::lexer::Lexer;
 
@@ -5,7 +7,7 @@ use zom_fe::lexer::Lexer;
 fn test_from_range() {
     let buffer = "§ § § § § § § § § § § 987654321234567891234 §";
 
-    let mut lexer = Lexer::new(buffer, "tests.zom".to_string());
+    let mut lexer = Lexer::new(buffer, Path::new("tests.zom"));
 
     let res: Vec<ZomError> = lexer.make_tokens().unwrap_err();
 

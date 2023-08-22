@@ -55,7 +55,7 @@ pub fn build(mut args: Args) -> Result<ExitStatus, Box<dyn Error>> {
 
     let mut lexer = Lexer::new(
         source.as_str(),
-        args.source_file.to_str().unwrap().to_owned(),
+        &args.source_file,
     );
 
     let tokens = match lexer.make_tokens() {
