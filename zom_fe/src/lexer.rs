@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use zom_common::error::ZomError;
-use zom_common::token::{Token, TokenType};
+use zom_common::token::{Token, TokenType, TokenType::*};
 
 #[derive(Debug)]
 pub struct ZomFile<'a> {
@@ -25,6 +25,16 @@ impl<'a> ZomFile<'a> {
     pub fn get(&self, index: usize) -> Option<char> {
         self.text.chars().nth(index)
     }
+}
+
+use TokenResult::*;
+
+#[derive(Debug)]
+pub enum TokenResult {
+    Tok(TokenType),
+    Error(ZomError),
+    Comment,
+    Whitespace,
 }
 
 pub struct Lexer<'a> {
@@ -66,33 +76,60 @@ impl<'a> Lexer<'a> {
         let mut errors = Vec::new();
 
         loop {
+            dbg!(self.index);
             match self.make_token() {
-                Ok(tt) => {
-                    dbg!(tt);
+                Tok(tt) => {
+                    dbg!(&tt);
+                    if tt == EOF {
+                        break;
+                    }
                 }
-                Err(err) => errors.push(err),
+                Error(err) => {
+                    // TODO: add position to errors here
+                    println!("{}", err);
+                    errors.push(err)
+                }
+                _ => {
+                    println!("")
+                }
             }
+            dbg!(self.index);
+            println!();
         }
 
         todo!()
     }
 
-    fn make_token(&mut self) -> Result<TokenType, ZomError> {
+    fn make_token(&mut self) -> TokenResult {
         let t = match self.peek() {
-            Some('(') => TokenType::OpenParen,
-            Some(')') => TokenType::CloseParen,
-            Some('[') => TokenType::OpenBracket,
-            Some(']') => TokenType::CloseBracket,
-            Some('{') => TokenType::OpenBrace,
-            Some('}') => TokenType::CloseBrace,
-            Some(';') => TokenType::SemiColon,
-            Some(':') => TokenType::Colon,
-            Some(',') => TokenType::Comma,
-            Some('@') => TokenType::At,
-            _ => todo!("Add error here, illegal char"),
+            Some('(') => OpenParen,
+            Some(')') => CloseParen,
+            Some('[') => OpenBracket,
+            Some(']') => CloseBracket,
+            Some('{') => OpenBrace,
+            Some('}') => CloseBrace,
+            Some(';') => SemiColon,
+            Some(':') => Colon,
+            Some(',') => Comma,
+            Some('@') => At,
+            Some(w) if w.is_whitespace() => {
+                self.index += 1;
+                return Whitespace;
+            }
+            Some(c) => {
+                self.index += 1;
+                return Error(ZomError::new(
+                    None,
+                    format!("illegal char '{}'", c),
+                    false,
+                    Some("You should avoid using non-ascii characters, they are only supported in string literrals".to_string()),
+                    vec![]
+                ));
+            }
+            None => EOF,
         };
         self.index += 1;
 
-        Ok(t)
+        Tok(t)
     }
 }

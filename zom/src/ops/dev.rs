@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fs;
-use std::io::{stdout, Write, self};
+use std::io::{self, stdout, Write};
 use std::path::PathBuf;
 use zom_fe::lexer::Lexer;
 use zom_fe::parser::{parse, ParserSettings, ParsingContext};
@@ -26,7 +26,8 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
         path = PathBuf::from("example/test.zom");
     }
 
-    let buffer = fs::read_to_string(&path).expect("Should have been able to read the file");
+    let buffer = "( ) { } [ ] ; : , @ %".to_owned();
+    // fs::read_to_string(&path).expect("Should have been able to read the file");
 
     println!("file path = {}", path.display());
     println!("buffer = {:?}\n", buffer);
