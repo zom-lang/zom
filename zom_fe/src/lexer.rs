@@ -27,10 +27,10 @@ impl<'a> ZomFile<'a> {
     }
 }
 
-use TokenResult::*;
+use PartTokenResult::*;
 
 #[derive(Debug)]
-pub enum TokenResult {
+pub enum PartTokenResult {
     Tok(TokenType),
     Error(ZomError),
     Comment,
@@ -74,15 +74,23 @@ impl<'a> Lexer<'a> {
 
     pub fn make_tokens(&mut self) -> Result<Vec<Token>, Vec<ZomError>> {
         let mut errors = Vec::new();
+        let mut tokens = Vec::new();
 
         loop {
-            dbg!(self.index);
+            let start = self.index;
             match self.make_token() {
                 Tok(tt) => {
                     dbg!(&tt);
                     if tt == EOF {
                         break;
                     }
+                    let end = self.index;
+                    tokens.push(Token {
+                        tt,
+                        span: start..=end - 1, // we substact one from the span because the lexer works
+                                               // with non-range inclusive and the token stores a range
+                                               // inclusive.
+                    })
                 }
                 Error(err) => {
                     // TODO: add position to errors here
@@ -93,15 +101,22 @@ impl<'a> Lexer<'a> {
                     println!("")
                 }
             }
-            dbg!(self.index);
-            println!();
+        }
+
+        println!();
+        for t in tokens {
+            println!("{:?} -> {:?}", t.tt, &self.file_text()[t.span]);
         }
 
         todo!()
     }
 
-    fn make_token(&mut self) -> TokenResult {
+    fn make_token(&mut self) -> PartTokenResult {
         let t = match self.peek() {
+            Some('A'..='Z' | 'a'..='z' | '_') => {
+                println!("An ident / keyword / number");
+                todo!()
+            }
             Some('(') => OpenParen,
             Some(')') => CloseParen,
             Some('[') => OpenBracket,
