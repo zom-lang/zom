@@ -74,7 +74,7 @@ macro_rules! err_et(
                     $context.pos,
                     $last_token.span.clone(),
                     $context.source_file.clone(),
-                    $context.filename.clone()
+                    $context.filename.clone().into()
                 ),
                 if $expected.len() == 1 {
                     format!("expected {}, found {}", $expected[0], $found)
@@ -101,7 +101,7 @@ macro_rules! err_et(
                     $context.pos,
                     $last_token.span.clone(),
                     $context.source_file.clone(),
-                    $context.filename.clone()
+                    $context.filename.clone().into()
                 ),
                 if $expected.len() == 1 {
                     format!("expected {}, found {}", $expected[0], $found)
@@ -124,7 +124,7 @@ pub struct ParserSettings {
 
 impl Default for ParserSettings {
     fn default() -> Self {
-        use zom_common::token::{*, Operator::*};
+        use zom_common::token::{Operator::*, *};
         let mut operator_precedence = HashMap::with_capacity(19);
 
         // Setup Operator Precedence according to the documentation

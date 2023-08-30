@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use zom_common::error::ZomError;
+use zom_common::error::{Position, ZomError};
 use zom_common::token::{Token, TokenType, TokenType::*};
 
 #[derive(Debug)]

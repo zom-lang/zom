@@ -2,7 +2,7 @@
 
 use std::{ops::RangeInclusive, str::FromStr};
 
-use zom_common::token::{Token, Str};
+use zom_common::token::{Str, Token};
 
 use crate::{err_et, expect_token, impl_span, parse_try, parser::types::parse_type, token_parteq};
 
@@ -14,9 +14,9 @@ use super::{
 
 use self::PartParsingResult::{Bad, Good, NotComplete};
 
-use zom_common::token::{CloseParen, Colon, Comma, Ident, OpenParen, SemiColon, OpenBrace};
+use zom_common::token::{CloseParen, Colon, Comma, Ident, OpenBrace, OpenParen, SemiColon};
 
-use zom_common::error::{ZomError, Position};
+use zom_common::error::{Position, ZomError};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Function {
@@ -33,7 +33,7 @@ impl_span!(Function);
 pub enum ABI {
     C,
     CXX,
-    Zom
+    Zom,
 }
 
 impl ToString for ABI {
@@ -42,7 +42,8 @@ impl ToString for ABI {
             ABI::C => "C",
             ABI::CXX => "CXX",
             ABI::Zom => "Zom",
-        }.to_owned()
+        }
+        .to_owned()
     }
 }
 
@@ -54,7 +55,7 @@ impl FromStr for ABI {
             "C" => Ok(ABI::C),
             "CXX" => Ok(ABI::CXX),
             "Zom" => Ok(ABI::Zom),
-            abi => Err(format!("Unknown ABI `{}`", abi))
+            abi => Err(format!("Unknown ABI `{}`", abi)),
         }
     }
 }
@@ -103,13 +104,13 @@ pub fn parse_extern(
                 context.pos,
                 parsed_tokens.last().unwrap().span.clone(),
                 context.source_file.clone(),
-                context.filename.clone()
+                context.filename.clone().into(),
             ),
             err,
             false,
             None,
-            vec![]
-        ))
+            vec![],
+        ));
     }
 
     let abi = abi.unwrap();
@@ -121,7 +122,13 @@ pub fn parse_extern(
     let t = tokens.last().unwrap().clone();
 
     let body = if token_parteq!(no_opt t, OpenBrace) {
-        Some(parse_try!(parse_block, tokens, settings, context, parsed_tokens))
+        Some(parse_try!(
+            parse_block,
+            tokens,
+            settings,
+            context,
+            parsed_tokens
+        ))
     } else {
         expect_token!(
             context,

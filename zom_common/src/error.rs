@@ -6,6 +6,7 @@ use super::{build_date, build_target_triple, commit_hash};
 use std::error::Error;
 use std::fmt::{self, Display};
 use std::ops::RangeInclusive;
+use std::path::PathBuf;
 
 /// This function return spaces * len
 /// It is used for implement Display for errors
@@ -46,7 +47,7 @@ pub struct Position {
     col_start: usize,
     line_end: usize,
     col_end: usize,
-    filename: String,
+    filename: PathBuf,
     filetext: String,
 }
 
@@ -57,7 +58,7 @@ impl Position {
         col_start: usize,
         line_end: usize,
         col_end: usize,
-        filename: String,
+        filename: PathBuf,
         filetext: String,
     ) -> Position {
         Position {
@@ -77,7 +78,7 @@ impl Position {
         index: usize,
         range: RangeInclusive<usize>,
         filetext: String,
-        filename: String,
+        filename: PathBuf,
     ) -> Option<Position> {
         let mut line_start = 1;
         let mut col_start = 1;
@@ -237,6 +238,13 @@ impl ZomError {
         }
         Ok(())
     }
+
+    /// Add a position to an error if it doesn't have one. If it already have a position,
+    /// the function will panic.
+    pub fn add_position(&mut self, pos: Position) {
+        assert!(self.location.is_none(), "The error has already a position.");
+        self.location = Some(pos);
+    }
 }
 
 impl Display for ZomError {
@@ -252,7 +260,7 @@ impl Display for ZomError {
             writeln!(
                 f,
                 "  --> {}:{}:{}",
-                self.pos().filename,
+                self.pos().filename.display(),
                 self.pos().line_start,
                 self.pos().col_start
             )?;

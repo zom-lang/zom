@@ -183,7 +183,7 @@ pub fn parse_parenthesis_expr(
                     context.pos,
                     t.span.clone(),
                     context.source_file.clone(),
-                    context.filename.clone(),
+                    context.filename.clone().into(),
                 ),
                 "unclosed delimiter `)`".to_owned(),
                 false,
