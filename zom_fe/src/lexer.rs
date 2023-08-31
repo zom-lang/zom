@@ -92,8 +92,15 @@ impl<'a> Lexer<'a> {
                                                // inclusive.
                     })
                 }
-                Error(err) => {
-                    // TODO: add position to errors here
+                Error(mut err) => {
+                    let pos = Position::try_from_range(
+                        self.index,
+                        start..=self.index - 1,
+                        self.file_text().to_string(),
+                        self.file_path().to_path_buf(),
+                    )
+                    .expect("Unable to generate the position from the range.");
+                    err.add_position(pos);
                     println!("{}", err);
                     errors.push(err)
                 }
