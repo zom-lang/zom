@@ -30,7 +30,7 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     // fs::read_to_string(&path).expect("Should have been able to read the file");
 
     println!("file path = {}", path.display());
-    println!("buffer = {:?}\n", buffer);
+    println!("buffer = {:?} -> {}\n", buffer, buffer.len());
 
     let mut lexer = Lexer::new(&buffer, &path);
 

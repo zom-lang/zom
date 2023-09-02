@@ -3,6 +3,8 @@ use std::path::Path;
 use zom_common::error::{Position, ZomError};
 use zom_common::token::{Token, TokenType, TokenType::*};
 
+use zom_common::token::*;
+
 #[derive(Debug)]
 pub struct ZomFile<'a> {
     path: &'a Path,
@@ -80,17 +82,19 @@ impl<'a> Lexer<'a> {
             let start = self.index;
             match self.make_token() {
                 Tok(tt) => {
+                    let tt2 = tt.clone();
                     dbg!(&tt);
-                    if tt == EOF {
-                        break;
-                    }
                     let end = self.index;
                     tokens.push(Token {
                         tt,
                         span: start..=end - 1, // we substact one from the span because the lexer works
                                                // with non-range inclusive and the token stores a range
                                                // inclusive.
-                    })
+                    });
+
+                    if tt2 == EOF {
+                        break;
+                    }
                 }
                 Error(mut err) => {
                     let pos = Position::try_from_range(
@@ -111,19 +115,20 @@ impl<'a> Lexer<'a> {
         }
 
         println!();
-        for t in tokens {
-            println!("{:?} -> {:?}", t.tt, &self.file_text()[t.span]);
+        for t in &tokens {
+            print!("{:?}", t.tt);
+            println!(" -> {:?}", &self.file_text()[t.span.clone()]);
         }
 
-        todo!()
+        if !errors.is_empty() {
+            return Err(errors);
+        }
+        Ok(tokens)
     }
 
     fn make_token(&mut self) -> PartTokenResult {
         let t = match self.peek() {
-            Some('A'..='Z' | 'a'..='z' | '_') => {
-                println!("An ident / keyword / number");
-                todo!()
-            }
+            Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => self.lex_word(),
             Some('(') => OpenParen,
             Some(')') => CloseParen,
             Some('[') => OpenBracket,
@@ -142,10 +147,10 @@ impl<'a> Lexer<'a> {
                 self.index += 1;
                 return Error(ZomError::new(
                     None,
-                    format!("illegal char '{}'", c),
+                    format!("unknown start of token, '{}'", c),
                     false,
-                    Some("You should avoid using non-ascii characters, they are only supported in string literrals".to_string()),
-                    vec![]
+                    None,
+                    vec![],
                 ));
             }
             None => EOF,
@@ -153,5 +158,60 @@ impl<'a> Lexer<'a> {
         self.index += 1;
 
         Tok(t)
+    }
+
+    /// Lexes the input until while the content is alphanumeric with underscore(s) returns the content and if the
+    /// string is numeric, in a tuple.
+    pub fn make_word(&mut self) -> (String, bool) {
+        let mut word = String::new();
+        let mut is_numeric = true;
+
+        loop {
+            match self.peek() {
+                Some(c @ ('A'..='Z' | 'a'..='z' | '_')) => {
+                    is_numeric = false;
+                    word.push(c);
+                }
+                Some(c @ '0'..='9') => {
+                    word.push(c);
+                }
+                _ => break,
+            }
+            self.pop();
+        }
+        dbg!((&word, is_numeric));
+        (word, is_numeric)
+    }
+
+    pub fn lex_word(&mut self) -> TokenType {
+        let (word, is_numeric) = self.make_word();
+
+        if is_numeric {
+            todo!("Implement integer parsing.")
+        } else {
+            self.lex_keyword(word)
+        }
+    }
+
+    pub fn lex_keyword(&self, kw: String) -> TokenType {
+        match kw.as_str() {
+            KW_FUNC => Func,
+            KW_EXTERN => Extern,
+            KW_VAR => Var,
+            KW_CONST => Const,
+            KW_STRUCT => Struct,
+            KW_ENUM => Enum,
+            KW_RETURN => Return,
+            KW_IF => If,
+            KW_ELSE => Else,
+            KW_WHILE => While,
+            KW_FOR => For,
+            KW_PUB => Pub,
+            KW_ASYNC => Async,
+            KW_AWAIT => Await,
+            KW_MATCH => Match,
+            KW_IMPL => Impl,
+            _ => Ident(kw),
+        }
     }
 }
