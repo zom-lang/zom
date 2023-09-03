@@ -82,24 +82,28 @@ impl<'a> Lexer<'a> {
             let start = self.index;
             match self.make_token() {
                 Tok(tt) => {
-                    let tt2 = tt.clone();
+                    if tt == EOF {
+                        let text_len = self.file_text().len();
+                        // the length of the buffer is used for the span of the EOF, because
+                        // the EOF is the last char and its 'text_len..text_len' because if for
+                        // some reason we want to show the EOF in an error we can.
+                        tokens.push(Token {
+                            tt,
+                            span: text_len..text_len,
+                        });
+                        break;
+                    }
                     dbg!(&tt);
                     let end = self.index;
                     tokens.push(Token {
                         tt,
-                        span: start..=end - 1, // we substact one from the span because the lexer works
-                                               // with non-range inclusive and the token stores a range
-                                               // inclusive.
+                        span: start..end,
                     });
-
-                    if tt2 == EOF {
-                        break;
-                    }
                 }
                 Error(mut err) => {
                     let pos = Position::try_from_range(
                         self.index,
-                        start..=self.index - 1,
+                        start..self.index,
                         self.file_text().to_string(),
                         self.file_path().to_path_buf(),
                     )
@@ -116,7 +120,7 @@ impl<'a> Lexer<'a> {
 
         println!();
         for t in &tokens {
-            print!("{:?}", t.tt);
+            print!("{:?}", t);
             println!(" -> {:?}", &self.file_text()[t.span.clone()]);
         }
 
@@ -128,7 +132,7 @@ impl<'a> Lexer<'a> {
 
     fn make_token(&mut self) -> PartTokenResult {
         let t = match self.peek() {
-            Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => self.lex_word(),
+            Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => return Tok(self.lex_word()),
             Some('(') => OpenParen,
             Some(')') => CloseParen,
             Some('[') => OpenBracket,

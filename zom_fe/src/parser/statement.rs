@@ -1,8 +1,11 @@
 //! This module contains parsing for statements.
 
-use std::ops::RangeInclusive;
+use std::ops::Range;
 
-use zom_common::token::{Token, TokenType::{Return, SemiColon}};
+use zom_common::token::{
+    Token,
+    TokenType::{Return, SemiColon},
+};
 
 use crate::{impl_span, parse_try, parser::expr::parse_expr, token_parteq};
 
@@ -13,7 +16,7 @@ use crate::parser::PartParsingResult::*;
 #[derive(PartialEq, Clone, Debug)]
 pub struct Statement {
     pub stmt: Stmt,
-    pub span: RangeInclusive<usize>,
+    pub span: Range<usize>,
 }
 
 impl_span!(Statement);
@@ -32,7 +35,7 @@ pub enum Stmt {
         expr: Expression,
     },
     Return {
-        expr: Option<Expression>
+        expr: Option<Expression>,
     },
 }
 
@@ -58,7 +61,7 @@ pub fn parse_statement(
 ) -> PartParsingResult<Statement> {
     let mut parsed_tokens = vec![];
     match tokens.last() {
-        Some(Token { tt: Return, ..}) => parse_return(tokens, settings, context),
+        Some(Token { tt: Return, .. }) => parse_return(tokens, settings, context),
         None => NotComplete,
         _ => {
             let expr = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
@@ -79,27 +82,32 @@ pub fn parse_return(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
-) -> PartParsingResult<Statement> { // FIXME: Cannot return a binary expression
+) -> PartParsingResult<Statement> {
+    // FIXME: Cannot return a binary expression
     // eat Return keyword
     let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
 
-    let start = *parsed_tokens.last().unwrap().span.start();
+    let start = parsed_tokens.last().unwrap().span.start;
 
     let expr = if token_parteq!(no_opt tokens.last().unwrap(), SemiColon) {
         None
     } else {
-        Some(parse_try!(parse_expr, tokens, settings, context, parsed_tokens))
+        Some(parse_try!(
+            parse_expr,
+            tokens,
+            settings,
+            context,
+            parsed_tokens
+        ))
     };
 
-    let end = *parsed_tokens.last().unwrap().span.end();
+    let end = parsed_tokens.last().unwrap().span.end;
     Good(
         Statement {
-            stmt: Stmt::Return {
-                expr
-            },
-            span: start..=end
+            stmt: Stmt::Return { expr },
+            span: start..end,
         },
-        parsed_tokens
+        parsed_tokens,
     )
 }

@@ -1,6 +1,6 @@
 //! This module is responsible for the parsing of types.
 
-use std::ops::RangeInclusive;
+use std::ops::Range;
 
 use zom_common::token::Token;
 
@@ -15,7 +15,7 @@ use zom_common::token::*;
 #[derive(PartialEq, Clone, Debug)]
 pub struct Type {
     pub type_variant: TypeVariant,
-    pub span: RangeInclusive<usize>,
+    pub span: Range<usize>,
 }
 
 impl_span!(Type);

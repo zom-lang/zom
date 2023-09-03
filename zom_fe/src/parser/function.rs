@@ -1,6 +1,6 @@
 //! This module parse function
 
-use std::{ops::RangeInclusive, str::FromStr};
+use std::{ops::Range, str::FromStr};
 
 use zom_common::token::{Str, Token};
 
@@ -22,9 +22,9 @@ use zom_common::error::{Position, ZomError};
 pub struct Function {
     abi: ABI,
     prototype: Prototype,
-    body: Option<Block>,
     return_ty: Type,
-    span: RangeInclusive<usize>,
+    body: Option<Block>,
+    span: Range<usize>,
 }
 
 impl_span!(Function);
@@ -64,7 +64,7 @@ impl FromStr for ABI {
 pub struct Arg {
     pub name: String,
     pub type_arg: Type,
-    pub span: RangeInclusive<usize>,
+    pub span: Range<usize>,
 }
 
 impl_span!(Arg);
@@ -73,7 +73,7 @@ impl_span!(Arg);
 pub struct Prototype {
     pub name: String,
     pub args: Vec<Arg>,
-    pub span: RangeInclusive<usize>,
+    pub span: Range<usize>,
 }
 
 impl_span!(Prototype);
@@ -87,7 +87,7 @@ pub fn parse_extern(
     let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     tokens.pop();
 
-    let start = *parsed_tokens.last().unwrap().span.start();
+    let start = parsed_tokens.last().unwrap().span.start;
 
     let t = tokens.last().unwrap().clone();
 
@@ -139,14 +139,14 @@ pub fn parse_extern(
         None
     };
 
-    let end = *parsed_tokens.last().unwrap().span.start();
+    let end = parsed_tokens.last().unwrap().span.start;
     Good(
         ASTNode::FunctionNode(Function {
             abi,
             prototype,
             body,
             return_ty,
-            span: start..=end,
+            span: start..end,
         }),
         parsed_tokens,
     )
@@ -161,7 +161,7 @@ pub fn parse_function(
     let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
 
-    let start = *parsed_tokens.last().unwrap().span.start();
+    let start = parsed_tokens.last().unwrap().span.start;
 
     let prototype = parse_try!(parse_prototype, tokens, settings, context, parsed_tokens);
 
@@ -169,14 +169,14 @@ pub fn parse_function(
 
     let body = parse_try!(parse_block, tokens, settings, context, parsed_tokens);
 
-    let end = *parsed_tokens.last().unwrap().span.end();
+    let end = parsed_tokens.last().unwrap().span.end;
     Good(
         ASTNode::FunctionNode(Function {
             abi: ABI::Zom,
             prototype,
             body: Some(body),
             return_ty,
-            span: start..=end,
+            span: start..end,
         }),
         parsed_tokens,
     )
@@ -197,7 +197,7 @@ pub fn parse_prototype(
         err_et!(context, t, vec![Ident(String::new())], t.tt)
     );
 
-    let start = *parsed_tokens.last().unwrap().span.start();
+    let start = parsed_tokens.last().unwrap().span.start;
     let t = tokens.last().unwrap().clone();
 
     expect_token!(
@@ -219,7 +219,7 @@ pub fn parse_prototype(
              parsed_tokens,
             err_et!(context, t, vec![Ident(String::new())], t.tt)
         );
-        let start = *parsed_tokens.last().unwrap().span.start();
+        let start = parsed_tokens.last().unwrap().span.start;
 
         let t = tokens.last().unwrap().clone();
         expect_token!(
@@ -229,12 +229,12 @@ pub fn parse_prototype(
             err_et!(context, t, vec![Colon], t.tt)
         );
         let type_arg = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
-        let end = *parsed_tokens.last().unwrap().span.end();
+        let end = parsed_tokens.last().unwrap().span.end;
 
         args.push(Arg {
             name: name_arg,
             type_arg,
-            span: start..=end,
+            span: start..end,
         });
         let t = tokens.last().unwrap().clone();
 
@@ -248,13 +248,13 @@ pub fn parse_prototype(
         );
     }
 
-    let end = *parsed_tokens.last().unwrap().span.start();
+    let end = parsed_tokens.last().unwrap().span.start;
 
     Good(
         Prototype {
             name,
             args,
-            span: start..=end,
+            span: start..end,
         },
         parsed_tokens,
     )

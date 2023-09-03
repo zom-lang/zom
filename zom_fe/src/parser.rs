@@ -3,7 +3,7 @@
 //! It is entirely made for Zom, without using dependencies.
 
 use std::collections::HashMap;
-use std::ops::RangeInclusive;
+use std::ops::Range;
 
 use zom_common::error::ZomError;
 use zom_common::token::Token;
@@ -286,7 +286,7 @@ macro_rules! token_parteq(
 );
 
 pub trait CodeLocation {
-    fn span(&self) -> RangeInclusive<usize>;
+    fn span(&self) -> Range<usize>;
 }
 
 #[macro_export]
@@ -296,8 +296,8 @@ macro_rules! impl_span(
     );
     ($ast:ident, $span_field:ident) => (
         impl $crate::parser::CodeLocation for $ast {
-            fn span(&self) -> RangeInclusive<usize> {
-                self.span.clone()
+            fn span(&self) -> Range<usize> {
+                self.$span_field.clone()
             }
         }
     )
