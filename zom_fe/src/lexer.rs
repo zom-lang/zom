@@ -132,7 +132,7 @@ impl<'a> Lexer<'a> {
 
     fn make_token(&mut self) -> PartTokenResult {
         let t = match self.peek() {
-            Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => return Tok(self.lex_word()),
+            Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => return self.lex_word(),
             Some('(') => OpenParen,
             Some(')') => CloseParen,
             Some('[') => OpenBracket,
@@ -187,13 +187,16 @@ impl<'a> Lexer<'a> {
         (word, is_numeric)
     }
 
-    pub fn lex_word(&mut self) -> TokenType {
+    pub fn lex_word(&mut self) -> PartTokenResult {
         let (word, is_numeric) = self.make_word();
 
         if is_numeric {
-            todo!("Implement integer parsing.")
+            match self.lex_int(word) {
+                Ok(tt) => Tok(tt),
+                Err(err) => Error(*err),
+            }
         } else {
-            self.lex_keyword(word)
+            Tok(self.lex_keyword(word))
         }
     }
 
@@ -216,6 +219,19 @@ impl<'a> Lexer<'a> {
             KW_MATCH => Match,
             KW_IMPL => Impl,
             _ => Ident(kw),
+        }
+    }
+
+    pub fn lex_int(&self, num: String) -> Result<TokenType, Box<ZomError>> {
+        match num.parse() {
+            Ok(i) => Ok(Int(i)),
+            Err(err) => Err(Box::new(ZomError::new(
+                None,
+                "failed to lex integer literal".to_owned(),
+                false,
+                None,
+                vec![err.to_string()],
+            ))),
         }
     }
 }
