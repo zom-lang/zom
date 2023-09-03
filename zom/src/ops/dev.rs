@@ -27,7 +27,7 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     }
 
     let buffer =
-        "1234567891234 1234 ( ) { } [ ] ; : , @ test func test test / \n// test func".to_owned();
+        "1234567891234 1234 ( ) { } [ ] ; : , @ test func test test / \n// test func \n \"Zom is awesome!\"\n".to_owned() + r#" "test \n" "#;
     // fs::read_to_string(&path).expect("Should have been able to read the file");
 
     println!("file path = {}", path.display());

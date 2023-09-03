@@ -112,9 +112,7 @@ impl<'a> Lexer<'a> {
                     println!("{}", err);
                     errors.push(err)
                 }
-                _ => {
-                    println!("")
-                }
+                _ => {}
             }
         }
 
@@ -153,6 +151,25 @@ impl<'a> Lexer<'a> {
                     }
                     _ => return Tok(Operator(Operator::Div)),
                 }
+            }
+            Some('"') => {
+                self.pop();
+                let mut str = String::new();
+
+                loop {
+                    match self.peek() {
+                        Some(c) if c == '"' => break,
+                        Some('\\') => todo!("Handle escape sequences"),
+                        Some(c) => {
+                            str.push(c);
+                            self.pop();
+                        }
+                        None => break,
+                    }
+                }
+
+                dbg!(&str);
+                Str(str)
             }
             Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => return self.lex_word(),
             Some(w) if w.is_whitespace() => {
@@ -255,9 +272,7 @@ impl<'a> Lexer<'a> {
         let mut content = String::new();
         loop {
             match self.peek() {
-                Some(c) if c == stopper => {
-                    break content;
-                }
+                Some(c) if c == stopper => break content,
                 Some(c) => {
                     content.push(c);
                     self.pop();
