@@ -75,6 +75,7 @@ impl<'a> Lexer<'a> {
     }
 
     pub fn make_tokens(&mut self) -> Result<Vec<Token>, Vec<ZomError>> {
+        // TODO: rename this function 'lex' to avoid confusion with function 'make_token'
         let mut errors = Vec::new();
         let mut tokens = Vec::new();
 
@@ -146,20 +147,35 @@ impl<'a> Lexer<'a> {
                     Some('/') => {
                         self.pop();
                         let res = self.lex_until('\n');
-                        dbg!(res);
                         return Comment;
                     }
                     _ => return Tok(Operator(Operator::Div)),
                 }
             }
             Some('"') => {
+                // TODO: move the content of this match arm in an expression
                 self.pop();
                 let mut str = String::new();
 
                 loop {
                     match self.peek() {
                         Some(c) if c == '"' => break,
-                        Some('\\') => todo!("Handle escape sequences"),
+                        Some('\\') => {
+                            self.pop();
+                            let es = match self.pop() {
+                                Some(es) => es,
+                                _ => todo!(),
+                            };
+                            if es == '"' {
+                                str.push(es);
+                                continue;
+                            }
+                            dbg!(es);
+                            match self.make_escape_sequence(es) {
+                                Ok(res) => str.push(res),
+                                Err(err) => return Error(*err),
+                            }
+                        }
                         Some(c) => {
                             str.push(c);
                             self.pop();
@@ -280,5 +296,20 @@ impl<'a> Lexer<'a> {
                 None => break content,
             }
         }
+    }
+
+    /// Takes a char and maps it to the corresponding escape sequence
+    pub fn make_escape_sequence(&self, es: char) -> Result<char, Box<ZomError>> {
+        Ok(match es {
+            '0' => 0x00,
+            'n' => 0x0A,
+            'r' => 0x0D,
+            't' => 0x09,
+            'x' => todo!(
+                "this escape sequence will be supported but it's not actually implemented yet"
+            ),
+            '\\' => return Ok('\\'),
+            _ => todo!("Add an error here !"),
+        } as u8 as char)
     }
 }
