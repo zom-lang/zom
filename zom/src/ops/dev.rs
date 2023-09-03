@@ -26,7 +26,8 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
         path = PathBuf::from("example/test.zom");
     }
 
-    let buffer = "1234567891234 1234 ( ) { } [ ] ; : , @ test func test test".to_owned();
+    let buffer =
+        "1234567891234 1234 ( ) { } [ ] ; : , @ test func test test / \n// test func".to_owned();
     // fs::read_to_string(&path).expect("Should have been able to read the file");
 
     println!("file path = {}", path.display());

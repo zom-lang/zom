@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use zom_common::error::{Position, ZomError};
-use zom_common::token::{Token, TokenType, TokenType::*};
+use zom_common::token::{Operator, Token, TokenType, TokenType::*};
 
 use zom_common::token::*;
 
@@ -132,7 +132,6 @@ impl<'a> Lexer<'a> {
 
     fn make_token(&mut self) -> PartTokenResult {
         let t = match self.peek() {
-            Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => return self.lex_word(),
             Some('(') => OpenParen,
             Some(')') => CloseParen,
             Some('[') => OpenBracket,
@@ -143,6 +142,19 @@ impl<'a> Lexer<'a> {
             Some(':') => Colon,
             Some(',') => Comma,
             Some('@') => At,
+            Some('/') => {
+                self.pop();
+                match self.peek() {
+                    Some('/') => {
+                        self.pop();
+                        let res = self.lex_until('\n');
+                        dbg!(res);
+                        return Comment;
+                    }
+                    _ => return Tok(Operator(Operator::Div)),
+                }
+            }
+            Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => return self.lex_word(),
             Some(w) if w.is_whitespace() => {
                 self.index += 1;
                 return Whitespace;
@@ -222,6 +234,8 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Take the string containing the integer (num argument), parses it,
+    /// returns the corresponding TokenType or an error if the parsing failed.
     pub fn lex_int(&self, num: String) -> Result<TokenType, Box<ZomError>> {
         match num.parse() {
             Ok(i) => Ok(Int(i)),
@@ -232,6 +246,24 @@ impl<'a> Lexer<'a> {
                 None,
                 vec![err.to_string()],
             ))),
+        }
+    }
+
+    /// Lexes the input until the character that stops it (stopper argument)
+    /// and returns the content
+    pub fn lex_until(&mut self, stopper: char) -> String {
+        let mut content = String::new();
+        loop {
+            match self.peek() {
+                Some(c) if c == stopper => {
+                    break content;
+                }
+                Some(c) => {
+                    content.push(c);
+                    self.pop();
+                }
+                None => break content,
+            }
         }
     }
 }
