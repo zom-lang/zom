@@ -5,7 +5,7 @@
 use super::{build_date, build_target_triple, commit_hash};
 use std::error::Error;
 use std::fmt::{self, Display};
-use std::ops::RangeInclusive;
+use std::ops::Range;
 use std::path::PathBuf;
 
 /// This function return spaces * len
@@ -76,14 +76,14 @@ impl Position {
     /// Can return `None` if the range's start position is greater that its end position.
     pub fn try_from_range(
         index: usize,
-        range: RangeInclusive<usize>,
+        range: Range<usize>,
         filetext: String,
         filename: PathBuf,
     ) -> Option<Position> {
         let mut line_start = 1;
         let mut col_start = 1;
         let mut line_end = 1;
-        let mut col_end = 1;
+        let mut col_end = 0;
 
         let mut range_start_found = false;
         let mut index_r = 0;
@@ -91,7 +91,7 @@ impl Position {
         for (idx, chr) in filetext.char_indices() {
             index_r = idx;
 
-            if *range.start() == idx {
+            if range.start == idx {
                 range_start_found = true;
             }
 
@@ -110,19 +110,19 @@ impl Position {
             match chr {
                 '\n' => {
                     line_end += 1;
-                    col_end = 1;
+                    col_end = 0;
                 }
                 _ => {
                     col_end += 1;
                 }
             }
 
-            if *range.end() == idx {
+            if range.end == idx {
                 break;
             }
         }
 
-        if index_r < *range.end() {
+        if index_r < range.end {
             // The range extends beyond the end of the input string.
             return None;
         }

@@ -4,7 +4,8 @@
 
 use std::{
     fmt::{self, Display},
-    ops::RangeInclusive, str::FromStr,
+    ops::Range,
+    str::FromStr,
 };
 
 pub use TokenType::*;
@@ -184,7 +185,7 @@ impl FromStr for Operator {
             OP_LOGIC_NOT => Ok(LogicNot),
 
             OP_EQ => Ok(Equal),
-            op => Err(format!("unknown binary operator `{}`", op))
+            op => Err(format!("unknown binary operator `{}`", op)),
         }
     }
 }
@@ -266,11 +267,11 @@ pub const KW_IMPL: &str = "impl";
 pub struct Token {
     /// `tt` means token type.
     pub tt: TokenType,
-    pub span: RangeInclusive<usize>,
+    pub span: Range<usize>,
 }
 
 impl Token {
-    pub fn new(tt: TokenType, span: RangeInclusive<usize>) -> Token {
+    pub fn new(tt: TokenType, span: Range<usize>) -> Token {
         Token { tt, span }
     }
 }
