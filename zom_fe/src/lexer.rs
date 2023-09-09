@@ -33,9 +33,27 @@ use PartTokenResult::*;
 
 #[derive(Debug)]
 pub enum PartTokenResult {
+    /// used when the lexing is entirely successful
     Tok(TokenType),
+
+    /// used when the lexing failed and it cannot lex anymore the content
+    ///
+    /// In this case, we assume the error doesn't have a position
     Error(ZomError),
+
+    /// used when the lexing failed but it can ignore the error and keep lexing
+    /// and make result to a TokenType but with multiple errors.
+    ///
+    /// In this case, we assume every error in the vector to have a Position
+    ///
+    /// (This is prefered to be used when it's possible so the development experience
+    /// is not altered)
+    PartSuccess(TokenType, Vec<ZomError>),
+
+    /// used when the lexing result to a comment.
     Comment,
+
+    /// used when the lexing results to a whitespace.
     Whitespace,
 }
 
@@ -95,42 +113,43 @@ impl<'a> Lexer<'a> {
             let start = self.index;
             match self.make_token() {
                 Tok(tt) => {
-                    if tt == EOF {
-                        let text_len = self.file_text().len();
-                        // the length of the buffer is used for the span of the EOF, because
-                        // the EOF is the last char and its 'text_len..text_len' because if for
-                        // some reason we want to show the EOF in an error we can.
-                        tokens.push(Token {
-                            tt,
-                            span: text_len..text_len,
-                        });
+                    if self.push_token(&mut tokens, tt, start) {
                         break;
                     }
-                    dbg!(&tt);
-                    let end = self.index;
-                    tokens.push(Token {
-                        tt,
-                        span: start..end,
-                    });
                 }
                 Error(mut err) => {
-                    if !err.has_pos() {
-                        let pos = Position::try_from_range(
-                            self.index,
-                            start..self.index,
-                            self.file_text().to_string(),
-                            self.file_path().to_path_buf(),
-                        )
-                        .expect(POSITION_GEN_ERROR);
-                        err.add_position(pos);
-                    }
-                    errors.push(err)
+                    let pos = Position::try_from_range(
+                        self.index,
+                        start..self.index,
+                        self.file_text().to_string(),
+                        self.file_path().to_path_buf(),
+                    )
+                    .expect(POSITION_GEN_ERROR);
+                    err.add_position(pos);
+
+                    errors.push(err);
                 }
-                _ => {}
+                PartSuccess(tt, mut errs) => {
+                    dbg!(&tt);
+                    debug_assert!(!errs.is_empty(), "the list of errors shouldn't be empty");
+
+                    #[cfg(debug_assertions)]
+                    {
+                        for error in &errs {
+                            assert!(error.has_pos(), "error should have position");
+                        }
+                    }
+
+                    errors.append(&mut errs);
+                    if self.push_token(&mut tokens, tt, start) {
+                        break;
+                    }
+                }
+                Comment | Whitespace => {}
             }
         }
 
-        println!();
+        println!("\n~~~  SEPARTOR  ~~~");
         for t in &tokens {
             print!("{:?}", t);
             println!(" -> {:?}", &self.file_text()[t.span.clone()]);
@@ -140,6 +159,32 @@ impl<'a> Lexer<'a> {
             return Err(errors);
         }
         Ok(tokens)
+    }
+
+    /// This functions takes a vector of tokens, and push a Token containing the given TokenType
+    /// with the start arg and the index at that moment.
+    ///
+    /// And if the TokenType is a EOF it returns true, either false.
+    fn push_token(&self, tokens: &mut Vec<Token>, tt: TokenType, start: usize) -> bool {
+        if tt == EOF {
+            let text_len = self.file_text().len();
+            // the length of the buffer is used for the span of the EOF, because
+            // the EOF is the last char and its 'text_len..text_len' because if for
+            // some reason we want to show the EOF in an error we can.
+            tokens.push(Token {
+                tt,
+                span: text_len..text_len,
+            });
+            return true;
+        }
+        dbg!(&tt);
+        let end = self.index;
+        tokens.push(Token {
+            tt,
+            span: start..end,
+        });
+
+        false
     }
 
     fn make_token(&mut self) -> PartTokenResult {
@@ -165,44 +210,7 @@ impl<'a> Lexer<'a> {
                     _ => return Tok(Operator(Operator::Div)),
                 }
             }
-            Some('"') => {
-                // TODO: move the content of this match arm in a function
-                pop_expect!(self => Some('"'));
-                let mut str = String::new();
-
-                loop {
-                    match self.peek() {
-                        Some(c) if c == '"' => {
-                            pop_expect!(self => Some('"'));
-                            break;
-                        }
-                        Some('\\') => {
-                            pop_expect!(self => Some('\\'));
-                            let es = match self.pop() {
-                                Some(es) => es,
-                                _ => todo!(),
-                            };
-                            if es == '"' {
-                                str.push(es);
-                                continue;
-                            }
-                            dbg!(es);
-                            match self.make_escape_sequence(es) {
-                                Ok(res) => str.push(res),
-                                Err(err) => return Error(*err),
-                            }
-                        }
-                        Some(c) => {
-                            str.push(c);
-                            pop_expect!(self => Some(c));
-                        }
-                        None => break,
-                    }
-                }
-
-                dbg!(&str);
-                return Tok(Str(str));
-            }
+            Some('"') => return self.lex_string_literal(),
             Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => return self.lex_word(),
             Some(w) if w.is_whitespace() => {
                 self.index += 1;
@@ -338,5 +346,53 @@ impl<'a> Lexer<'a> {
                     vec![]
                 )))
         } as u8 as char)
+    }
+
+    /// Lexes the input until the end of the string literal, handles escape sequences and replace with the corresponding char.
+    ///
+    /// In case of an unknown character escape, both the backslash and the character following it will be ignored, and the error
+    /// will be pushed to the vector, and returned with the Str tokentype contening the string but without the erronous escape
+    /// character in a PartSuccess enum variant.
+    pub fn lex_string_literal(&mut self) -> PartTokenResult {
+        pop_expect!(self => Some('"'));
+        let mut str = String::new();
+        let mut errors = Vec::new();
+
+        loop {
+            match self.peek() {
+                Some(c) if c == '"' => {
+                    pop_expect!(self => Some('"'));
+                    break;
+                }
+                Some('\\') => {
+                    pop_expect!(self => Some('\\'));
+                    let es = match self.pop() {
+                        Some(es) => es,
+                        _ => todo!("Unterminated string literal"),
+                    };
+                    if es == '"' {
+                        str.push(es);
+                        continue;
+                    }
+                    dbg!(es);
+                    match self.make_escape_sequence(es) {
+                        Ok(res) => str.push(res),
+                        Err(err) => errors.push(*err),
+                    }
+                }
+                Some(c) => {
+                    str.push(c);
+                    pop_expect!(self => Some(c));
+                }
+                None => todo!("Unterminated string literal"),
+            }
+        }
+        dbg!(&str);
+        let tt = Str(str);
+        if !errors.is_empty() {
+            return PartSuccess(tt, errors);
+        }
+
+        Tok(tt)
     }
 }
