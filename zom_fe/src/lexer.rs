@@ -39,6 +39,18 @@ pub enum PartTokenResult {
     Whitespace,
 }
 
+const POSITION_GEN_ERROR: &str = "Unable to generate the position from the range";
+
+/// This macro pop a character using the function 'pop()'
+/// and assert when the compiler is compiled is debug mode, that
+/// the thing poped is what is expected.
+macro_rules! pop_expect {
+    ($self:expr => $expected:expr) => {{
+        let poped = $self.pop();
+        debug_assert_eq!(poped, $expected)
+    }};
+}
+
 pub struct Lexer<'a> {
     file: ZomFile<'a>,
     index: usize,
@@ -102,15 +114,16 @@ impl<'a> Lexer<'a> {
                     });
                 }
                 Error(mut err) => {
-                    let pos = Position::try_from_range(
-                        self.index,
-                        start..self.index,
-                        self.file_text().to_string(),
-                        self.file_path().to_path_buf(),
-                    )
-                    .expect("Unable to generate the position from the range.");
-                    err.add_position(pos);
-                    println!("{}", err);
+                    if !err.has_pos() {
+                        let pos = Position::try_from_range(
+                            self.index,
+                            start..self.index,
+                            self.file_text().to_string(),
+                            self.file_path().to_path_buf(),
+                        )
+                        .expect(POSITION_GEN_ERROR);
+                        err.add_position(pos);
+                    }
                     errors.push(err)
                 }
                 _ => {}
@@ -146,22 +159,25 @@ impl<'a> Lexer<'a> {
                 match self.peek() {
                     Some('/') => {
                         self.pop();
-                        let res = self.lex_until('\n');
+                        self.lex_until('\n');
                         return Comment;
                     }
                     _ => return Tok(Operator(Operator::Div)),
                 }
             }
             Some('"') => {
-                // TODO: move the content of this match arm in an expression
-                self.pop();
+                // TODO: move the content of this match arm in a function
+                pop_expect!(self => Some('"'));
                 let mut str = String::new();
 
                 loop {
                     match self.peek() {
-                        Some(c) if c == '"' => break,
+                        Some(c) if c == '"' => {
+                            pop_expect!(self => Some('"'));
+                            break;
+                        }
                         Some('\\') => {
-                            self.pop();
+                            pop_expect!(self => Some('\\'));
                             let es = match self.pop() {
                                 Some(es) => es,
                                 _ => todo!(),
@@ -178,14 +194,14 @@ impl<'a> Lexer<'a> {
                         }
                         Some(c) => {
                             str.push(c);
-                            self.pop();
+                            pop_expect!(self => Some(c));
                         }
                         None => break,
                     }
                 }
 
                 dbg!(&str);
-                Str(str)
+                return Tok(Str(str));
             }
             Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => return self.lex_word(),
             Some(w) if w.is_whitespace() => {
@@ -309,7 +325,18 @@ impl<'a> Lexer<'a> {
                 "this escape sequence will be supported but it's not actually implemented yet"
             ),
             '\\' => return Ok('\\'),
-            _ => todo!("Add an error here !"),
+            es => return Err(Box::new(ZomError::new(
+                    Some(Position::try_from_range(
+                        self.index,
+                        self.index - 1..self.index,
+                        self.file_text().to_string(),
+                        self.file_path().to_path_buf()
+                    ).expect(POSITION_GEN_ERROR)),
+                    format!("unknown character escape sequence: '{}'", es),
+                    false,
+                    Some(r#"supported escapse sequence are, '\0', '\n', '\r', '\t'; and '\'' or '\"', depending if it is a string or char literal."#.to_string()),
+                    vec![]
+                )))
         } as u8 as char)
     }
 }

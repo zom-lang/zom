@@ -26,12 +26,11 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
         path = PathBuf::from("example/test.zom");
     }
 
-    let buffer =
-        "1234567891234 1234 ( ) { } [ ] ; : , @ test func test test / \n// test func \n \"Zom is awesome!\"\n".to_owned() + r#" "test \"\n\r\t\0\\" "#;
+    let buffer = r#""t\F""#.to_string();
     // fs::read_to_string(&path).expect("Should have been able to read the file");
 
     println!("file path = {}", path.display());
-    println!("buffer = {:?} -> {}\n", buffer, buffer.len());
+    println!("buffer = \\\n{}\n\\-> {}\n", buffer, buffer.len());
 
     let mut lexer = Lexer::new(&buffer, &path);
 
