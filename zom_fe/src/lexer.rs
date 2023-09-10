@@ -230,6 +230,10 @@ impl<'a> Lexer<'a> {
                 return Whitespace;
             }
             Some(c) => {
+                if let Some(op) = self.lex_operator() {
+                    println!("Their is an operator !! {op} -> {op:?}");
+                    return Tok(Operator(op));
+                }
                 self.pop();
                 return Error(ZomError::new(
                     None,
@@ -478,5 +482,45 @@ impl<'a> Lexer<'a> {
         let (res, _) = self.make_word();
         dbg!(&res);
         Tok(Lifetime(res))
+    }
+
+    /// Lexes an operator if it matches an operators and return which operator was been lexed
+    pub fn lex_operator(&mut self) -> Option<Operator> {
+        use zom_common::token::Operator::*;
+        match (self.peek(), self.peek_nth(1)) {
+            (Some(o1), wo2) => {
+                let o2 = wo2.unwrap_or(' ');
+                let (op, len) = match (o1, o2) {
+                    ('>', '>') => (RShift, 2),
+                    ('<', '<') => (LShift, 2),
+                    ('<', '=') => (CompLTE, 2),
+                    ('>', '=') => (CompGTE, 2),
+                    ('=', '=') => (CompEq, 2),
+                    ('!', '=') => (CompNe, 2),
+                    ('&', '&') => (LogicAnd, 2),
+                    ('|', '|') => (LogicOr, 2),
+                    ('*', ..) => (Mul, 1),
+                    ('/', ..) => (Div, 1),
+                    ('%', ..) => (Rem, 1),
+                    ('+', ..) => (Add, 1),
+                    ('-', ..) => (Sub, 1),
+                    ('<', ..) => (CompLT, 1),
+                    ('>', ..) => (CompGT, 1),
+                    ('&', ..) => (BitAnd, 1),
+                    ('^', ..) => (BitXor, 1),
+                    ('|', ..) => (BitOr, 1),
+                    ('~', ..) => (BitNot, 1),
+                    ('!', ..) => (LogicNot, 1),
+                    ('=', ..) => (Equal, 1),
+                    _ => return None,
+                };
+                self.index += len;
+                Some(op)
+            }
+            op => {
+                dbg!(op);
+                None
+            }
+        }
     }
 }
