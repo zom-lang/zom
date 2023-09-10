@@ -130,7 +130,6 @@ impl<'a> Lexer<'a> {
                     errors.push(err);
                 }
                 PartSuccess(tt, mut errs) => {
-                    dbg!(&tt);
                     debug_assert!(!errs.is_empty(), "the list of errors shouldn't be empty");
 
                     #[cfg(debug_assertions)]
@@ -152,7 +151,7 @@ impl<'a> Lexer<'a> {
         println!("\n~~~  SEPARTOR  ~~~");
         for t in &tokens {
             print!("{:?}", t);
-            println!(" -> {:?}", &self.file_text()[t.span.clone()]);
+            println!(" -> {:?}", self.file_text().get(t.span.clone()));
         }
 
         if !errors.is_empty() {
@@ -177,7 +176,6 @@ impl<'a> Lexer<'a> {
             });
             return true;
         }
-        dbg!(&tt);
         let end = self.index;
         tokens.push(Token {
             tt,
@@ -217,7 +215,7 @@ impl<'a> Lexer<'a> {
                 return Whitespace;
             }
             Some(c) => {
-                self.index += 1;
+                self.pop();
                 return Error(ZomError::new(
                     None,
                     format!("unknown start of token, '{}'", c),
@@ -323,7 +321,8 @@ impl<'a> Lexer<'a> {
     }
 
     /// Takes a char and maps it to the corresponding escape sequence
-    pub fn make_escape_sequence(&self, es: char) -> Result<char, Box<ZomError>> {
+    /// The argument 'is_string' is used to generate the error message.
+    pub fn make_escape_sequence(&self, es: char, is_string: bool) -> Result<char, Box<ZomError>> {
         Ok(match es {
             '0' => 0x00,
             'n' => 0x0A,
@@ -340,9 +339,9 @@ impl<'a> Lexer<'a> {
                         self.file_text().to_string(),
                         self.file_path().to_path_buf()
                     ).expect(POSITION_GEN_ERROR)),
-                    format!("unknown character escape sequence: '{}'", es),
+                    format!("unknown character escape: '{}'", es),
                     false,
-                    Some(r#"supported escapse sequence are, '\0', '\n', '\r', '\t'; and '\'' or '\"', depending if it is a string or char literal."#.to_string()),
+                    Some(r"supported escapse sequence are, '\0', '\n', '\r', '\t', '\xNN' (not yet supported) ".to_string() + if is_string {r#"and '\"'."#} else {r"and '\''"}),
                     vec![]
                 )))
         } as u8 as char)
@@ -368,14 +367,13 @@ impl<'a> Lexer<'a> {
                     pop_expect!(self => Some('\\'));
                     let es = match self.pop() {
                         Some(es) => es,
-                        _ => todo!("Unterminated string literal"),
+                        _ => continue,
                     };
                     if es == '"' {
                         str.push(es);
                         continue;
                     }
-                    dbg!(es);
-                    match self.make_escape_sequence(es) {
+                    match self.make_escape_sequence(es, true) {
                         Ok(res) => str.push(res),
                         Err(err) => errors.push(*err),
                     }
@@ -384,10 +382,17 @@ impl<'a> Lexer<'a> {
                     str.push(c);
                     pop_expect!(self => Some(c));
                 }
-                None => todo!("Unterminated string literal"),
+                None => {
+                    return Error(ZomError::new(
+                        None,
+                        "unterminated double quote string".to_string(),
+                        false,
+                        None,
+                        vec![],
+                    ));
+                }
             }
         }
-        dbg!(&str);
         let tt = Str(str);
         if !errors.is_empty() {
             return PartSuccess(tt, errors);
