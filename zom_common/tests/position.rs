@@ -9,7 +9,7 @@ fn test_from_range() {
 
     let mut lexer = Lexer::new(buffer, Path::new("tests.zom"));
 
-    let res: Vec<ZomError> = lexer.make_tokens().unwrap_err();
+    let res: Vec<ZomError> = lexer.lex().unwrap_err();
 
     let mut err = "".to_owned();
     for error in res {
