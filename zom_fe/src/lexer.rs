@@ -1,3 +1,4 @@
+//! The module containing the lexer.
 use std::path::Path;
 
 use zom_common::error::{Position, ZomError};
@@ -5,6 +6,7 @@ use zom_common::token::{Operator, Token, TokenType, TokenType::*};
 
 use zom_common::token::*;
 
+/// This is a struct representing a Zom source file, it contains a ref to both the path and the text
 #[derive(Debug)]
 pub struct ZomFile<'a> {
     path: &'a Path,
@@ -12,25 +14,30 @@ pub struct ZomFile<'a> {
 }
 
 impl<'a> ZomFile<'a> {
+    /// Create a new ZomFile
     pub fn new(text: &'a str, path: &'a Path) -> Self {
         Self { path, text }
     }
 
+    /// Get the text contained inside the ZomFile
     pub fn text(&self) -> &str {
         self.text
     }
 
+    /// Get the path contained inside the ZomFile
     pub fn path(&self) -> &Path {
         self.path
     }
 
+    /// Get the nth char inside the file and returns it.
     pub fn get(&self, index: usize) -> Option<char> {
-        self.text.chars().nth(index)
+        self.text.chars().nth(index) // the current implementation of this function is very bad, we would need to improve it, e.g: store the iterator instead of recreating it every time.
     }
 }
 
 use PartTokenResult::*;
 
+/// Used by lexing methods of the lexer to tell the lexer how the lexing occured.
 #[derive(Debug)]
 pub enum PartTokenResult {
     /// used when the lexing is entirely successful
@@ -57,6 +64,7 @@ pub enum PartTokenResult {
     Whitespace,
 }
 
+/// Used when we expect to not have a None when we generate the position with the range.
 const POSITION_GEN_ERROR: &str = "Unable to generate the position from the range";
 
 /// This macro pop a character using the function 'pop()'
@@ -76,6 +84,7 @@ macro_rules! pop_expect {
     );
 }
 
+/// Used to lexe the content of a file into tokens thatthe parser can understand.
 pub struct Lexer<'a> {
     file: ZomFile<'a>,
     index: usize,
@@ -89,24 +98,29 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Get the ZomFile inside the lexer
     pub fn file(&self) -> &ZomFile {
         &self.file
     }
 
+    /// Get the path of the file.
     pub fn file_path(&self) -> &Path {
         self.file.path()
     }
 
+    /// Get the text of the file.
     pub fn file_text(&self) -> &str {
         self.file.text()
     }
 
+    /// Get the char at the current index, then increment the index by one and returns the char he gets before
     pub fn pop(&mut self) -> Option<char> {
         let c = self.peek();
         self.index += 1;
         c
     }
 
+    /// Get the char at the current index, and returns it. It returns EOF if the index is out of bounds.
     pub fn peek(&self) -> Option<char> {
         self.file.get(self.index)
     }
@@ -118,8 +132,9 @@ impl<'a> Lexer<'a> {
         self.file.get(self.index + offset)
     }
 
-    pub fn make_tokens(&mut self) -> Result<Vec<Token>, Vec<ZomError>> {
-        // TODO: rename this function 'lex' to avoid confusion with function 'make_token'
+    /// Lex the whole file and returns either a vector of Tokens if it succeeds or,
+    /// a list of errors if it doesn't.
+    pub fn lex(&mut self) -> Result<Vec<Token>, Vec<ZomError>> {
         let mut errors = Vec::new();
         let mut tokens = Vec::new();
 
@@ -162,12 +177,6 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        println!("\n~~~  SEPARTOR  ~~~");
-        for t in &tokens {
-            print!("{:?}", t);
-            println!(" -> {:?}", self.file_text().get(t.span.clone()));
-        }
-
         if !errors.is_empty() {
             return Err(errors);
         }
@@ -199,6 +208,7 @@ impl<'a> Lexer<'a> {
         false
     }
 
+    /// Given the current char (self.peek()) calls a function and returns the result.
     fn make_token(&mut self) -> PartTokenResult {
         let t = match self.peek() {
             Some('(') => OpenParen,
@@ -231,7 +241,6 @@ impl<'a> Lexer<'a> {
             }
             Some(c) => {
                 if let Some(op) = self.lex_operator() {
-                    println!("Their is an operator !! {op} -> {op:?}");
                     return Tok(Operator(op));
                 }
                 self.pop();
@@ -269,10 +278,10 @@ impl<'a> Lexer<'a> {
             }
             self.index += 1;
         }
-        dbg!((&word, is_numeric));
         (word, is_numeric)
     }
 
+    /// Lexes either an integer or an identifier or a keyword, and returns it.
     pub fn lex_word(&mut self) -> PartTokenResult {
         let (word, is_numeric) = self.make_word();
 
@@ -286,6 +295,8 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Lexes either a keyword if the argument kw match a keyword or an identifier if it doesn't match
+    /// a keyword. And then return it.
     pub fn lex_keyword(&self, kw: String) -> TokenType {
         match kw.as_str() {
             KW_FUNC => Func,
@@ -424,6 +435,7 @@ impl<'a> Lexer<'a> {
         Tok(tt)
     }
 
+    /// Lexes either a char literal or a lifetime and returns it.
     pub fn lex_single_quote(&mut self) -> PartTokenResult {
         match (self.peek_nth(1), self.peek_nth(2), self.peek_nth(3)) {
             (Some(_), Some('\''), _) | (Some('\\'), Some(_), Some('\'')) => self.lex_char_literal(),
@@ -460,14 +472,12 @@ impl<'a> Lexer<'a> {
                     }
                     None => unreachable!(),
                 };
-                dbg!(content);
                 pop_expect!(self => Some('\''); unreachable!());
             }
             Some(c) => {
                 pop_expect!(self => Some(c));
 
                 content = c;
-                dbg!(content);
                 pop_expect!(self => Some('\''); unreachable!());
             }
             None => unreachable!(),
@@ -480,7 +490,6 @@ impl<'a> Lexer<'a> {
     pub fn lex_lifetime(&mut self) -> PartTokenResult {
         pop_expect!(self => Some('\''));
         let (res, _) = self.make_word();
-        dbg!(&res);
         Tok(Lifetime(res))
     }
 
@@ -517,10 +526,7 @@ impl<'a> Lexer<'a> {
                 self.index += len;
                 Some(op)
             }
-            op => {
-                dbg!(op);
-                None
-            }
+            _ => None,
         }
     }
 }

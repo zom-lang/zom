@@ -10,6 +10,7 @@ use crate::{err, ExitStatus};
 pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     println!("Development command.\n");
 
+    #[allow(unused_assignments)]
     let mut path =
         // String::from("func foo(bar: i16, baz: str) void { foo(test, test); foo = 999 + 9 / 4; foo } extern foo_c(boobar: u32) void;");
         PathBuf::new();
@@ -26,15 +27,14 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
         path = PathBuf::from("example/test.zom");
     }
 
-    let buffer = r#"*/%+->><<<><=>===!=&^|~&&||! ="#.to_string();
-    // fs::read_to_string(&path).expect("Should have been able to read the file");
+    let buffer = fs::read_to_string(&path).expect("Should have been able to read the file");
 
     println!("file path = {}", path.display());
     println!("buffer = \\\n{}\n\\-> {}\n", buffer, buffer.len());
 
     let mut lexer = Lexer::new(&buffer, &path);
 
-    let tokens = match lexer.make_tokens() {
+    let tokens = match lexer.lex() {
         Ok(t) => t,
         Err(errs) => {
             let mut err = "".to_owned();
@@ -45,7 +45,12 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
         }
     };
 
-    println!("tokens = {tokens:#?}");
+    for t in &tokens {
+        print!("{:?}", t);
+        println!(" -> {:?}", buffer.get(t.span.clone()));
+    }
+
+    println!("\n~~~  SEPARTOR  ~~~");
 
     let parse_context = ParsingContext::new("<dev_cmd>.zom".to_owned(), buffer);
 
