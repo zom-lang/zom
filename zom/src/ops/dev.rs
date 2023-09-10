@@ -26,7 +26,7 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
         path = PathBuf::from("example/test.zom");
     }
 
-    let buffer = r#"func "test\Ftest\Ftest""#.to_string();
+    let buffer = r#"func 't' '\'' '\n' 'test"#.to_string();
     // fs::read_to_string(&path).expect("Should have been able to read the file");
 
     println!("file path = {}", path.display());

@@ -63,10 +63,17 @@ const POSITION_GEN_ERROR: &str = "Unable to generate the position from the range
 /// and assert when the compiler is compiled is debug mode, that
 /// the thing poped is what is expected.
 macro_rules! pop_expect {
-    ($self:expr => $expected:expr) => {{
+    ($self:expr => $expected:expr $(, $msg:expr)?) => (
         let poped = $self.pop();
-        debug_assert_eq!(poped, $expected)
-    }};
+        debug_assert_eq!(poped, $expected $(, $msg)?)
+    );
+
+    ($self:expr => $expected:expr; $else:stmt) => (
+        let poped = $self.pop();
+        if !(poped == $expected) {
+            $else
+        }
+    );
 }
 
 pub struct Lexer<'a> {
@@ -102,6 +109,13 @@ impl<'a> Lexer<'a> {
 
     pub fn peek(&self) -> Option<char> {
         self.file.get(self.index)
+    }
+
+    /// Get the nth char in the file, at index + offset
+    ///
+    /// May return `None` if the index is out of bounds of the file text.
+    pub fn peek_nth(&self, offset: usize) -> Option<char> {
+        self.file.get(self.index + offset)
     }
 
     pub fn make_tokens(&mut self) -> Result<Vec<Token>, Vec<ZomError>> {
@@ -209,6 +223,7 @@ impl<'a> Lexer<'a> {
                 }
             }
             Some('"') => return self.lex_string_literal(),
+            Some('\'') => return self.lex_single_quote(),
             Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => return self.lex_word(),
             Some(w) if w.is_whitespace() => {
                 self.index += 1;
@@ -248,7 +263,7 @@ impl<'a> Lexer<'a> {
                 }
                 _ => break,
             }
-            self.pop();
+            self.index += 1;
         }
         dbg!((&word, is_numeric));
         (word, is_numeric)
@@ -333,12 +348,16 @@ impl<'a> Lexer<'a> {
             ),
             '\\' => return Ok('\\'),
             es => return Err(Box::new(ZomError::new(
-                    Some(Position::try_from_range(
-                        self.index,
-                        self.index - 1..self.index,
-                        self.file_text().to_string(),
-                        self.file_path().to_path_buf()
-                    ).expect(POSITION_GEN_ERROR)),
+                    if is_string {
+                        Some(Position::try_from_range(
+                            self.index,
+                            self.index - 1..self.index,
+                            self.file_text().to_string(),
+                            self.file_path().to_path_buf()
+                        ).expect(POSITION_GEN_ERROR))
+                    }else {
+                        None
+                    },
                     format!("unknown character escape: '{}'", es),
                     false,
                     Some(r"supported escapse sequence are, '\0', '\n', '\r', '\t', '\xNN' (not yet supported) ".to_string() + if is_string {r#"and '\"'."#} else {r"and '\''"}),
@@ -399,5 +418,65 @@ impl<'a> Lexer<'a> {
         }
 
         Tok(tt)
+    }
+
+    pub fn lex_single_quote(&mut self) -> PartTokenResult {
+        match (self.peek_nth(1), self.peek_nth(2), self.peek_nth(3)) {
+            (Some(_), Some('\''), _) | (Some('\\'), Some(_), Some('\'')) => self.lex_char_literal(),
+            (Some(c), _, _) if c != '\\' => self.lex_lifetime(),
+            _ => Error(ZomError::new(
+                None,
+                "unterminated single quote char or lifetime".to_string(),
+                false,
+                None,
+                vec![],
+            )),
+        }
+    }
+
+    /// Lexes a char literal and return it.
+    pub fn lex_char_literal(&mut self) -> PartTokenResult {
+        pop_expect!(self => Some('\''));
+        let content: char;
+
+        match self.peek() {
+            Some('\\') => {
+                pop_expect!(self => Some('\\'));
+
+                content = match self.peek() {
+                    Some(es) => 'a: {
+                        pop_expect!(self => Some(es));
+                        if es == '\'' {
+                            break 'a es;
+                        }
+                        match self.make_escape_sequence(es, false) {
+                            Ok(c) => c,
+                            Err(e) => return Error(*e),
+                        }
+                    }
+                    None => unreachable!(),
+                };
+                dbg!(content);
+                pop_expect!(self => Some('\''); unreachable!());
+            }
+            Some(c) => {
+                pop_expect!(self => Some(c));
+
+                content = c;
+                dbg!(content);
+                pop_expect!(self => Some('\''); unreachable!());
+            }
+            None => unreachable!(),
+        }
+
+        Tok(Char(content))
+    }
+
+    /// Lexes a lifetime and returns it.
+    pub fn lex_lifetime(&mut self) -> PartTokenResult {
+        pop_expect!(self => Some('\''));
+        let (res, _) = self.make_word();
+        dbg!(&res);
+        Tok(Lifetime(res))
     }
 }
