@@ -201,7 +201,6 @@ impl<'a> Lexer<'a> {
                     continue;
                 }
                 ch if starts_operator(ch) => {
-                    println!("toks = {:?}", tokens.iter().map(|t| { t.tt.clone() }).collect::<Vec<_>>());
                     let win = self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
 
                     if win.is_none() {
@@ -511,8 +510,6 @@ pub fn starts_operator(op_start: char) -> bool {
     for operator in OPERATORS {
         let is_op = operator.starts_with(&op);
         if is_op {
-            dbg!(is_op);
-            dbg!(op_start);
             return true;
         }
     }
