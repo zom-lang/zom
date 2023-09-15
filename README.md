@@ -2,7 +2,7 @@
 
 [![lines of code](https://tokei.rs/b1/github/zom-lang/zom)](https://github.com/Aaronepower/tokei)
 [![License][licence-badge]](https://github.com/zom-lang/zom/tree/main#license)
-[![Rust tests](https://github.com/zom-lang/zom/actions/workflows/rust.yml/badge.svg)](https://github.com/zom-lang/zom/actions/workflows/rust.yml)
+[![Zom checks](https://github.com/zom-lang/zom/actions/workflows/checks_zom.yml/badge.svg)](https://github.com/zom-lang/zom/actions/workflows/checks_zom.yml)
 [![discord server](https://img.shields.io/discord/1115546838729240596?label=Discord%20Server&color=5765F2)](https://discord.gg/pcDknYP9Bf)
 
 [licence-badge]: https://img.shields.io/badge/License-%20Apache--2.0%20with%20LLVM--Exception-lightblue
