@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fs;
-use std::io::{stdout, Write, self};
+use std::io::{self, stdout, Write};
+use std::path::PathBuf;
 use zom_fe::lexer::Lexer;
 use zom_fe::parser::{parse, ParserSettings, ParsingContext};
 
@@ -9,29 +10,31 @@ use crate::{err, ExitStatus};
 pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     println!("Development command.\n");
 
+    #[allow(unused_assignments)]
     let mut path =
         // String::from("func foo(bar: i16, baz: str) void { foo(test, test); foo = 999 + 9 / 4; foo } extern foo_c(boobar: u32) void;");
-        String::new();
+        PathBuf::new();
 
     print!("path: ");
     stdout().flush().expect("ERR: Flush the output failed.");
-    match io::stdin().read_line(&mut path) {
-        Ok(_) => {}
+    let mut path_buf = "".to_owned();
+    match io::stdin().read_line(&mut path_buf) {
+        Ok(_) => path = PathBuf::from(path_buf),
         Err(err) => return err!(fmt "{}", err),
     }
 
-    if path.trim() == "" {
-        path = "example/test.zom".to_owned();
+    if path.to_str().unwrap().trim() == "" {
+        path = PathBuf::from("example/test.zom");
     }
 
-    let buffer = fs::read_to_string(path).expect("Should have been able to read the file");
+    let buffer = fs::read_to_string(&path).expect("Should have been able to read the file");
 
+    println!("file path = {}", path.display());
+    println!("buffer = \\\n{}\n\\-> {}\n", buffer, buffer.len());
 
-    println!("buffer = {:?}\n", buffer);
+    let mut lexer = Lexer::new(&buffer, &path);
 
-    let mut lexer = Lexer::new(buffer.as_str(), "<dev_cmd>.zom".to_string());
-
-    let tokens = match lexer.make_tokens() {
+    let tokens = match lexer.lex() {
         Ok(t) => t,
         Err(errs) => {
             let mut err = "".to_owned();
@@ -42,7 +45,12 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
         }
     };
 
-    // println!("tokens = {tokens:#?}");
+    for t in &tokens {
+        print!("{:?}", t);
+        println!(" -> {:?}", buffer.get(t.span.clone()));
+    }
+
+    println!("\n~~~  SEPARTOR  ~~~");
 
     let parse_context = ParsingContext::new("<dev_cmd>.zom".to_owned(), buffer);
 

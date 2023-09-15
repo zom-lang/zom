@@ -1,305 +1,303 @@
-//! This is the lexer of Zom
-//!
-//! It is entirely made for Zom, without using dependencies.
+//! The module containing the lexer.
+use std::path::Path;
 
-use std::iter::Peekable;
-use std::str::Chars;
-use std::str::FromStr;
-
-use zom_common::error::Position;
-use zom_common::error::ZomError;
-
-use zom_common::token::Token;
+use zom_common::error::{Position, ZomError};
+use zom_common::token::{Operator, Token, TokenType, TokenType::*};
 
 use zom_common::token::*;
 
-#[derive(Debug, Clone)]
-pub struct Lexer<'a> {
-    text: String,
-    pos: usize, // position in the text
-    chars: Box<Peekable<Chars<'a>>>,
-    line: usize, // Will probably replaced with #4
-    column: usize,
-    filename: String,
+/// This is a struct representing a Zom source file, it contains a ref to both the path and the text
+#[derive(Debug)]
+pub struct ZomFile<'a> {
+    path: &'a Path,
+    text: &'a str,
 }
 
-#[macro_export]
-macro_rules! try_unwrap {
-    ($e:expr, $errs:expr) => {
-        match $e {
-            Ok(v) => v,
-            Err(err) => {
-                $errs.push(*err);
-                continue;
-            }
+impl<'a> ZomFile<'a> {
+    /// Create a new ZomFile
+    pub fn new(text: &'a str, path: &'a Path) -> Self {
+        Self { path, text }
+    }
+
+    /// Get the text contained inside the ZomFile
+    pub fn text(&self) -> &str {
+        self.text
+    }
+
+    /// Get the path contained inside the ZomFile
+    pub fn path(&self) -> &Path {
+        self.path
+    }
+
+    /// Get the nth char inside the file and returns it.
+    pub fn get(&self, index: usize) -> Option<char> {
+        self.text.chars().nth(index) // the current implementation of this function is very bad, we would need to improve it, e.g: store the iterator instead of recreating it every time.
+    }
+}
+
+use PartTokenResult::*;
+
+/// Used by lexing methods of the lexer to tell the lexer how the lexing occured.
+#[derive(Debug)]
+pub enum PartTokenResult {
+    /// used when the lexing is entirely successful
+    Tok(TokenType),
+
+    /// used when the lexing failed and it cannot lex anymore the content
+    ///
+    /// In this case, we assume the error doesn't have a position
+    Error(ZomError),
+
+    /// used when the lexing failed but it can ignore the error and keep lexing
+    /// and make result to a TokenType but with multiple errors.
+    ///
+    /// In this case, we assume every error in the vector to have a Position
+    ///
+    /// (This is prefered to be used when it's possible so the development experience
+    /// is not altered)
+    PartSuccess(TokenType, Vec<ZomError>),
+
+    /// used when the lexing result to a comment.
+    Comment,
+
+    /// used when the lexing results to a whitespace.
+    Whitespace,
+}
+
+/// Used when we expect to not have a None when we generate the position with the range.
+const POSITION_GEN_ERROR: &str = "Unable to generate the position from the range";
+
+/// This macro pop a character using the function 'pop()'
+/// and assert when the compiler is compiled is debug mode, that
+/// the thing poped is what is expected.
+macro_rules! pop_expect {
+    ($self:expr => $expected:expr $(, $msg:expr)?) => (
+        let poped = $self.pop();
+        debug_assert_eq!(poped, $expected $(, $msg)?)
+    );
+
+    ($self:expr => $expected:expr; $else:stmt) => (
+        let poped = $self.pop();
+        if !(poped == $expected) {
+            $else
         }
-    };
-}
-
-macro_rules! match_arm {
-    ($self:expr, $tokens:expr, $tt:expr) => {{
-        $tokens.push(Token::new($tt, $self.pos..=$self.pos));
-    }};
-}
-
-macro_rules! unexpected_eof {
-    ($self:expr) => (
-        Box::new(ZomError::new(
-            Some(Position::new(
-                $self.pos,
-                $self.line,
-                $self.column + 1,
-                $self.line,
-                $self.column + 2,
-                $self.filename.clone(),
-                $self.text.clone(),
-            )),
-            "unexpected end of file".to_owned(),
-            false,
-            None,
-            vec![],
-        ))
     );
 }
 
+/// Used to lexe the content of a file into tokens thatthe parser can understand.
+pub struct Lexer<'a> {
+    file: ZomFile<'a>,
+    index: usize,
+}
+
 impl<'a> Lexer<'a> {
-    pub fn new(text: &str, filename: String) -> Lexer {
+    pub fn new(text: &'a str, path: &'a Path) -> Lexer<'a> {
         Lexer {
-            text: text.to_string(),
-            pos: 0,
-            chars: Box::new(text.chars().peekable()),
-            line: 1,
-            column: 0,
-            filename,
+            file: ZomFile::new(text, path),
+            index: 0,
         }
     }
 
-    fn illegal_char(lexer: Lexer, ch: char) -> ZomError {
-        ZomError::new(
-            Some(Position::new(
-                lexer.pos,
-                lexer.line,
-                lexer.column + 1, // + 1 because when the function is called, the column hasn't been advance
-                lexer.line,
-                lexer.column + 2, // + 2 because like col_start and either it will panic (see ZomError::new())
-                lexer.filename,
-                lexer.text,
-            )),
-            format!("illegal char `{}`", ch),
-            false,
-            Some("You should avoid using this character".to_owned()),
-            vec![],
-        )
+    /// Get the ZomFile inside the lexer
+    pub fn file(&self) -> &ZomFile {
+        &self.file
     }
 
-    #[inline]
-    pub fn pos(&self) -> usize {
-        self.pos
+    /// Get the path of the file.
+    pub fn file_path(&self) -> &Path {
+        self.file.path()
     }
 
-    #[inline]
-    pub fn column(&self) -> usize {
-        self.column
+    /// Get the text of the file.
+    pub fn file_text(&self) -> &str {
+        self.file.text()
     }
 
-    #[inline]
-    pub fn filename(&self) -> String {
-        self.filename.clone()
+    /// Get the char at the current index, then increment the index by one and returns the char he gets before
+    pub fn pop(&mut self) -> Option<char> {
+        let c = self.peek();
+        self.index += 1;
+        c
     }
 
-    #[inline]
-    fn incr_pos(&mut self) {
-        self.pos += 1;
-        self.column += 1;
+    /// Get the char at the current index, and returns it. It returns EOF if the index is out of bounds.
+    pub fn peek(&self) -> Option<char> {
+        self.file.get(self.index)
     }
 
-    /// Generate tokens out of the text.
-    pub fn make_tokens(&'a mut self) -> Result<Vec<Token>, Vec<ZomError>> {
-        let mut tokens: Vec<Token> = Vec::new();
-        let mut errs = Vec::new();
+    /// Get the nth char in the file, at index + offset
+    ///
+    /// May return `None` if the index is out of bounds of the file text.
+    pub fn peek_nth(&self, offset: usize) -> Option<char> {
+        self.file.get(self.index + offset)
+    }
 
-        'main: while let Some(ch) = self.chars.next() {
-            match ch {
-                '0'..='9' | 'A'..='Z' | 'a'..='z' | '_' => {
-                    let old_pos = self.pos;
-                    let start = (self.line, self.column);
-                    tokens.push(Token::new(
-                        try_unwrap!(self.make_word(ch, start), errs),
-                        old_pos..=(self.pos - 1),
-                    ));
-                    continue 'main;
-                }
-                '#' => loop {
-                    let ch = self.chars.next();
-                    self.incr_pos();
+    /// Lex the whole file and returns either a vector of Tokens if it succeeds or,
+    /// a list of errors if it doesn't.
+    pub fn lex(&mut self) -> Result<Vec<Token>, Vec<ZomError>> {
+        let mut errors = Vec::new();
+        let mut tokens = Vec::new();
 
-                    if ch == Some('\n') {
-                        continue 'main;
+        loop {
+            let start = self.index;
+            match self.make_token() {
+                Tok(tt) => {
+                    if self.push_token(&mut tokens, tt, start) {
+                        break;
                     }
-                },
-                '"' => tokens.push(try_unwrap!(self.lex_string_literal(), errs)),
-                '\'' => tokens.push(try_unwrap!(self.lex_single_quote(), errs)),
-                '(' => {
-                    if let Some('*') = self.chars.peek() {
-                        // Eat the `*` char
-                        self.chars.next();
-                        self.incr_pos();
-                        let mut comment = String::new();
+                }
+                Error(mut err) => {
+                    let pos = Position::try_from_range(
+                        self.index,
+                        start..self.index,
+                        self.file_text().to_string(),
+                        self.file_path().to_path_buf(),
+                    )
+                    .expect(POSITION_GEN_ERROR);
+                    err.add_position(pos);
 
-                        'comment: loop {
-                            let ch = self.chars.next();
+                    errors.push(err);
+                }
+                PartSuccess(tt, mut errs) => {
+                    debug_assert!(!errs.is_empty(), "the list of errors shouldn't be empty");
 
-                            if ch == Some('\n') {
-                                self.line += 1;
-                                self.column = 0;
-                                self.pos += 1;
-                                continue 'comment;
-                            } else {
-                                self.incr_pos();
-                            }
-
-                            let window = &self.text.get(self.pos..self.pos + 2);
-
-                            if ch.is_none() {
-                                break 'comment;
-                            }
-
-                            if window.is_none() {
-                                continue;
-                            }
-                            let window = window.unwrap();
-
-                            if window == "*)" {
-                                self.incr_pos();
-                                break 'comment;
-                            }
-                            comment.push(ch.unwrap());
+                    #[cfg(debug_assertions)]
+                    {
+                        for error in &errs {
+                            assert!(error.has_pos(), "error should have position");
                         }
-                        self.chars.next();
-                        self.incr_pos();
-                        continue 'main;
-                    }
-                    tokens.push(Token::new(OpenParen, self.pos..=self.pos));
-                }
-                ')' => match_arm!(self, tokens, CloseParen),
-                '[' => match_arm!(self, tokens, OpenBracket),
-                ']' => match_arm!(self, tokens, CloseBracket),
-                '{' => match_arm!(self, tokens, OpenBrace),
-                '}' => match_arm!(self, tokens, CloseBrace),
-                ';' => match_arm!(self, tokens, SemiColon),
-                ':' => match_arm!(self, tokens, Colon),
-                ',' => match_arm!(self, tokens, Comma),
-                '@' => match_arm!(self, tokens, At),
-                '\n' => {
-                    self.line += 1;
-                    self.column = 0;
-                    self.pos += 1;
-                    continue 'main;
-                }
-                w if w.is_whitespace() && w != '\n' => {
-                    self.incr_pos();
-                    continue;
-                }
-                ch if starts_operator(ch) => {
-                    let win = self.text.get(self.pos..self.pos + OP_MAX_LENGHT);
-
-                    if win.is_none() {
-                        errs.push(*unexpected_eof!(self));
-                        continue 'main;
                     }
 
-                    let win = win.unwrap();
-                    let (is_op, len) = is_operator(win);
-
-                    if is_op {
-                        let op = Operator::from_str(&win[..len]).unwrap();
-                        tokens.push(Token::new(
-                            Operator(op),
-                            self.pos..=(self.pos + len - 1),
-                        ));
-                        self.pos += len;
-                        self.column += len;
-
-                        continue 'main;
+                    errors.append(&mut errs);
+                    if self.push_token(&mut tokens, tt, start) {
+                        break;
                     }
                 }
-                ch =>
-                //return Err(Self::illegal_char(self.clone(), ch)),
-                {
-                    errs.push(Self::illegal_char(self.clone(), ch));
-                }
+                Comment | Whitespace => {}
             }
-            self.incr_pos();
-        }
-        tokens.push(Token {
-            tt: EOF,
-            span: self.pos..=self.pos,
-        });
-
-        if !errs.is_empty() {
-            return Err(errs);
         }
 
+        if !errors.is_empty() {
+            return Err(errors);
+        }
         Ok(tokens)
     }
 
-    /// Make a word out of the iterator and then, if the word is
-    /// * numeric, Lexer::lex_number(..) is called
-    /// * a keyword or an identifier,
-    fn make_word(&mut self, ch: char, start: (usize, usize)) -> Result<TokenType, Box<ZomError>> {
-        let mut num_str = String::new();
-        let mut dot_count = 0;
+    /// This functions takes a vector of tokens, and push a Token containing the given TokenType
+    /// with the start arg and the index at that moment.
+    ///
+    /// And if the TokenType is a EOF it returns true, either false.
+    fn push_token(&self, tokens: &mut Vec<Token>, tt: TokenType, start: usize) -> bool {
+        if tt == EOF {
+            let text_len = self.file_text().len();
+            // the length of the buffer is used for the span of the EOF, because
+            // the EOF is the last char and its 'text_len..text_len' because if for
+            // some reason we want to show the EOF in an error we can.
+            tokens.push(Token {
+                tt,
+                span: text_len..text_len,
+            });
+            return true;
+        }
+        let end = self.index;
+        tokens.push(Token {
+            tt,
+            span: start..end,
+        });
+
+        false
+    }
+
+    /// Given the current char (self.peek()) calls a function and returns the result.
+    fn make_token(&mut self) -> PartTokenResult {
+        let t = match self.peek() {
+            Some('(') => OpenParen,
+            Some(')') => CloseParen,
+            Some('[') => OpenBracket,
+            Some(']') => CloseBracket,
+            Some('{') => OpenBrace,
+            Some('}') => CloseBrace,
+            Some(';') => SemiColon,
+            Some(':') => Colon,
+            Some(',') => Comma,
+            Some('@') => At,
+            Some('/') => {
+                self.pop();
+                match self.peek() {
+                    Some('/') => {
+                        self.pop();
+                        self.lex_until('\n');
+                        return Comment;
+                    }
+                    _ => return Tok(Operator(Operator::Div)),
+                }
+            }
+            Some('"') => return self.lex_string_literal(),
+            Some('\'') => return self.lex_single_quote(),
+            Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => return self.lex_word(),
+            Some(w) if w.is_whitespace() => {
+                self.index += 1;
+                return Whitespace;
+            }
+            Some(c) => {
+                if let Some(op) = self.lex_operator() {
+                    return Tok(Operator(op));
+                }
+                self.pop();
+                return Error(ZomError::new(
+                    None,
+                    format!("unknown start of token, '{}'", c),
+                    false,
+                    None,
+                    vec![],
+                ));
+            }
+            None => EOF,
+        };
+        self.index += 1;
+
+        Tok(t)
+    }
+
+    /// Lexes the input until while the content is alphanumeric with underscore(s) returns the content and if the
+    /// string is numeric, in a tuple.
+    pub fn make_word(&mut self) -> (String, bool) {
+        let mut word = String::new();
         let mut is_numeric = true;
-        let mut ch = ch;
 
         loop {
-            self.incr_pos();
-            if ch == '.' {
-                dot_count += 1;
-                if dot_count > 1 {
-                    break;
+            match self.peek() {
+                Some(c @ ('A'..='Z' | 'a'..='z' | '_')) => {
+                    is_numeric = false;
+                    word.push(c);
                 }
-            } else if ch.is_whitespace() || !ch.is_alphanumeric() && ch != '_' {
-                is_numeric = false;
-                break;
-            } else if !ch.is_numeric() {
-                is_numeric = false;
-            }
-            if self.pos > self.text.len() {
-                break;
-            } else {
-                num_str.push(ch);
-            }
-            if let Some(ch_peek) = self.chars.peek() {
-                if ch_peek.is_whitespace() || !ch_peek.is_alphanumeric() && *ch_peek != '_' {
-                    break;
-                } else if let Some(char) = self.chars.next() {
-                    ch = char;
-                } else {
-                    break;
+                Some(c @ '0'..='9') => {
+                    word.push(c);
                 }
+                _ => break,
             }
+            self.index += 1;
         }
+        (word, is_numeric)
+    }
+
+    /// Lexes either an integer or an identifier or a keyword, and returns it.
+    pub fn lex_word(&mut self) -> PartTokenResult {
+        let (word, is_numeric) = self.make_word();
 
         if is_numeric {
-            let pos = Position::new(
-                self.pos,
-                start.0,
-                start.1 + 1,
-                self.line,
-                self.column + 1,
-                self.filename.clone(),
-                self.text.clone(),
-            );
-            Lexer::lex_number(num_str, dot_count, pos)
+            match self.lex_int(word) {
+                Ok(tt) => Tok(tt),
+                Err(err) => Error(*err),
+            }
         } else {
-            Ok(Lexer::lex_keyword(num_str))
+            Tok(self.lex_keyword(word))
         }
     }
 
-    /// if kw matches a keyword, the corresponding keyword is returned
-    /// but if it doesn't match an ident with is returned with kw as name.
-    fn lex_keyword(kw: String) -> TokenType {
+    /// Lexes either a keyword if the argument kw match a keyword or an identifier if it doesn't match
+    /// a keyword. And then return it.
+    pub fn lex_keyword(&self, kw: String) -> TokenType {
         match kw.as_str() {
             KW_FUNC => Func,
             KW_EXTERN => Extern,
@@ -317,263 +315,218 @@ impl<'a> Lexer<'a> {
             KW_AWAIT => Await,
             KW_MATCH => Match,
             KW_IMPL => Impl,
-            _ => Ident(kw.clone()),
+            _ => Ident(kw),
         }
     }
 
-    /// This function lexes the `num` string with the dot count and the position of the string
-    /// and return a TokenType corresponding to an Int literal or a float literal or a ZomError
-    /// with position if the lexing failed.
-    fn lex_number(num: String, dot_count: i32, pos: Position) -> Result<TokenType, Box<ZomError>> {
-        if dot_count == 0 {
-            match num.parse() {
-                Ok(i) => Ok(Int(i)),
-                Err(err) => Err(Box::new(ZomError::new(
-                    Some(pos),
-                    "failed to lex integer literal".to_owned(),
-                    false,
-                    None,
-                    vec![err.to_string()],
-                ))),
-            }
-        } else {
-            match num.parse() {
-                Ok(f) => Ok(Float(f)),
-                Err(err) => Err(Box::new(ZomError::new(
-                    Some(pos),
-                    "failed to lex float literal".to_owned(),
-                    false,
-                    None,
-                    vec![err.to_string()],
-                ))),
-            }
-        }
-    }
-
-    /// Takes a character corrsponding to an escape sequence and returns the char
-    /// corresponding to the escape sequence, if the char isn't an escape sequence an
-    /// error is returned.
-    fn lex_escape_sequence(&mut self, es: char) -> Result<char, Box<ZomError>> {
-        match es {
-            '0' => Ok(0x00 as char),
-            'n' => Ok(0x0A as char),
-            'r' => Ok(0x0D as char),
-            't' => Ok(0x09 as char),
-            '"' => Ok('"'),
-            '\\' => Ok('\\'),
-            _ => Err(Box::new(ZomError::new(
-                Some(Position::new(
-                    self.pos,
-                    self.line,
-                    self.column + 1,
-                    self.line,
-                    self.column + 2,
-                    self.filename.clone(),
-                    self.text.clone(),
-                )),
-                format!("unknown character escape: `{}`", es),
+    /// Take the string containing the integer (num argument), parses it,
+    /// returns the corresponding TokenType or an error if the parsing failed.
+    pub fn lex_int(&self, num: String) -> Result<TokenType, Box<ZomError>> {
+        match num.parse() {
+            Ok(i) => Ok(Int(i)),
+            Err(err) => Err(Box::new(ZomError::new(
+                None,
+                "failed to lex integer literal".to_owned(),
                 false,
-                Some("You should avoid using this character".to_owned()),
-                vec![],
+                None,
+                vec![err.to_string()],
             ))),
         }
     }
 
-    /// Lexes the input into a string literal
-    fn lex_string_literal(&mut self) -> Result<Token, Box<ZomError>> {
-        let pos_start = self.pos;
-        let mut str = String::new();
+    /// Lexes the input until the character that stops it (stopper argument)
+    /// and returns the content
+    pub fn lex_until(&mut self, stopper: char) -> String {
+        let mut content = String::new();
         loop {
-            let ch = self.chars.next();
-            self.incr_pos();
+            match self.peek() {
+                Some(c) if c == stopper => break content,
+                Some(c) => {
+                    content.push(c);
+                    self.pop();
+                }
+                None => break content,
+            }
+        }
+    }
 
-            match ch {
-                Some('"') => break,
+    /// Takes a char and maps it to the corresponding escape sequence
+    /// The argument 'is_string' is used to generate the error message.
+    pub fn make_escape_sequence(&self, es: char, is_string: bool) -> Result<char, Box<ZomError>> {
+        Ok(match es {
+            '0' => 0x00,
+            'n' => 0x0A,
+            'r' => 0x0D,
+            't' => 0x09,
+            'x' => todo!(
+                "this escape sequence will be supported but it's not actually implemented yet"
+            ),
+            '\\' => return Ok('\\'),
+            es => return Err(Box::new(ZomError::new(
+                    if is_string {
+                        Some(Position::try_from_range(
+                            self.index,
+                            self.index - 1..self.index,
+                            self.file_text().to_string(),
+                            self.file_path().to_path_buf()
+                        ).expect(POSITION_GEN_ERROR))
+                    }else {
+                        None
+                    },
+                    format!("unknown character escape: '{}'", es),
+                    false,
+                    Some(r"supported escapse sequence are, '\0', '\n', '\r', '\t', '\xNN' (not yet supported) ".to_string() + if is_string {r#"and '\"'."#} else {r"and '\''"}),
+                    vec![]
+                )))
+        } as u8 as char)
+    }
+
+    /// Lexes the input until the end of the string literal, handles escape sequences and replace with the corresponding char.
+    ///
+    /// In case of an unknown character escape, both the backslash and the character following it will be ignored, and the error
+    /// will be pushed to the vector, and returned with the Str tokentype contening the string but without the erronous escape
+    /// character in a PartSuccess enum variant.
+    pub fn lex_string_literal(&mut self) -> PartTokenResult {
+        pop_expect!(self => Some('"'));
+        let mut str = String::new();
+        let mut errors = Vec::new();
+
+        loop {
+            match self.peek() {
+                Some(c) if c == '"' => {
+                    pop_expect!(self => Some('"'));
+                    break;
+                }
                 Some('\\') => {
-                    self.incr_pos();
-                    match self.chars.next() {
-                        Some(c @ '"') => str.push(c),
-                        Some(c) => str.push(self.lex_escape_sequence(c)?),
-                        _ => return Err(unexpected_eof!(self)),
+                    pop_expect!(self => Some('\\'));
+                    let es = match self.pop() {
+                        Some(es) => es,
+                        _ => continue,
+                    };
+                    if es == '"' {
+                        str.push(es);
+                        continue;
+                    }
+                    match self.make_escape_sequence(es, true) {
+                        Ok(res) => str.push(res),
+                        Err(err) => errors.push(*err),
                     }
                 }
                 Some(c) => {
                     str.push(c);
+                    pop_expect!(self => Some(c));
                 }
-                _ => {
-                    return Err(Box::new(ZomError::new(
-                        Some(
-                            Position::try_from_range(
-                                self.pos,
-                                pos_start..=pos_start,
-                                self.text.clone(),
-                                self.filename.clone(),
-                            )
-                            .unwrap(),
-                        ),
-                        "unterminated double quote string".to_owned(),
+                None => {
+                    return Error(ZomError::new(
+                        None,
+                        "unterminated double quote string".to_string(),
                         false,
-                        Some(r#"add `"` at the end of the string literal"#.to_owned()),
+                        None,
                         vec![],
-                    )))
+                    ));
                 }
             }
         }
-        Ok(Token {
-            tt: TokenType::Str(str),
-            span: pos_start..=self.pos,
-        })
-    }
-
-    fn lex_single_quote(&mut self) -> Result<Token, Box<ZomError>> {
-        let text = self.text.clone();
-
-        let window = match text.get(self.pos + 1..self.pos + 3) {
-            Some(w) => w,
-            None => return Err(unexpected_eof!(self)),
-        };
-        let mut chars = window.chars();
-        let first = chars.next();
-        let second = chars.next();
-
-        let is_char;
-
-        match second {
-            Some('\'') => is_char = true,
-            Some(_) => match first {
-                Some('\\') => is_char = true,
-                Some(_) => is_char = false,
-                _ => return Err(unexpected_eof!(self)),
-            },
-            _ => return Err(unexpected_eof!(self)),
+        let tt = Str(str);
+        if !errors.is_empty() {
+            return PartSuccess(tt, errors);
         }
 
-        if is_char {
-            self.lex_char()
-        } else {
-            todo!("Write lifetime lexer")
+        Tok(tt)
+    }
+
+    /// Lexes either a char literal or a lifetime and returns it.
+    pub fn lex_single_quote(&mut self) -> PartTokenResult {
+        match (self.peek_nth(1), self.peek_nth(2), self.peek_nth(3)) {
+            (Some(_), Some('\''), _) | (Some('\\'), Some(_), Some('\'')) => self.lex_char_literal(),
+            (Some(c), _, _) if c != '\\' => self.lex_lifetime(),
+            _ => Error(ZomError::new(
+                None,
+                "unterminated single quote char or lifetime".to_string(),
+                false,
+                None,
+                vec![],
+            )),
         }
     }
 
-    pub(crate) fn lex_char(&mut self) -> Result<Token, Box<ZomError>> {
-        let pos_start = self.pos;
-        let ch = self.chars.next();
-        self.incr_pos();
+    /// Lexes a char literal and return it.
+    pub fn lex_char_literal(&mut self) -> PartTokenResult {
+        pop_expect!(self => Some('\''));
+        let content: char;
 
-        let content = match ch {
+        match self.peek() {
             Some('\\') => {
-                self.incr_pos();
-                match self.chars.next() {
-                    Some(c @ '\'') => c,
-                    Some(c) => self.lex_escape_sequence(c)?,
-                    _ => return Err(unexpected_eof!(self)),
-                }
+                pop_expect!(self => Some('\\'));
+
+                content = match self.peek() {
+                    Some(es) => 'a: {
+                        pop_expect!(self => Some(es));
+                        if es == '\'' {
+                            break 'a es;
+                        }
+                        match self.make_escape_sequence(es, false) {
+                            Ok(c) => c,
+                            Err(e) => return Error(*e),
+                        }
+                    }
+                    None => unreachable!(),
+                };
+                pop_expect!(self => Some('\''); unreachable!());
             }
-            Some(c) => c,
-            _ => return Err(unexpected_eof!(self)),
-        };
-        let next = self.chars.next();
-        self.incr_pos();
-        match next {
-            Some('\'') => {}
-            Some(_) => {
-                return Err(Box::new(ZomError::new(
-                    Some(
-                        Position::try_from_range(
-                            self.pos,
-                            pos_start..=pos_start,
-                            self.text.clone(),
-                            self.filename.clone(),
-                        )
-                        .unwrap(),
-                    ),
-                    "unterminated simple quote string".to_owned(),
-                    false,
-                    Some("add `'` at the end of the char literal".to_owned()),
-                    vec![],
-                )))
+            Some(c) => {
+                pop_expect!(self => Some(c));
+
+                content = c;
+                pop_expect!(self => Some('\''); unreachable!());
             }
-            _ => return Err(unexpected_eof!(self)),
+            None => unreachable!(),
         }
 
-        Ok(Token {
-            tt: TokenType::Char(content),
-            span: pos_start..=self.pos,
-        })
+        Tok(Char(content))
     }
-}
 
-/// This function get the first char of a potentil operator and returns true if the start of the operator look like an operator
-pub fn starts_operator(op_start: char) -> bool {
-    let op = op_start.to_string();
-
-    for operator in OPERATORS {
-        let is_op = operator.starts_with(&op);
-        if is_op {
-            return true;
-        }
+    /// Lexes a lifetime and returns it.
+    pub fn lex_lifetime(&mut self) -> PartTokenResult {
+        pop_expect!(self => Some('\''));
+        let (res, _) = self.make_word();
+        Tok(Lifetime(res))
     }
-    false
-}
 
-/// Check if the given string slice is an Operator (OP_**)
-///
-/// return a tuple, the first element is if it's an operator and the second is the lenght of the operator.
-pub fn is_operator(maybe_op: &str) -> (bool, usize) {
-    // I think it can be improved...
-    // Single char operator.
-    if maybe_op.starts_with(OP_MUL)
-        || maybe_op.starts_with(OP_DIV)
-        || maybe_op.starts_with(OP_REM)
-        || maybe_op.starts_with(OP_ADD)
-        || maybe_op.starts_with(OP_SUB)
-        || maybe_op.starts_with(OP_BIT_AND)
-        || maybe_op.starts_with(OP_BIT_XOR)
-        || maybe_op.starts_with(OP_BIT_OR)
-        || maybe_op.starts_with(OP_BIT_NOT)
-        || maybe_op.starts_with(OP_LOGIC_NOT)
-        || maybe_op.starts_with(OP_EQ)
-    {
-        (true, 1)
-    } else if maybe_op.starts_with(OP_COMP_LT) {
-        match maybe_op.get(1..=1) {
-            Some("<") | Some("=") => {
-                return (true, 2);
+    /// Lexes an operator if it matches an operators and return which operator was been lexed
+    pub fn lex_operator(&mut self) -> Option<Operator> {
+        use zom_common::token::Operator::*;
+        match (self.peek(), self.peek_nth(1)) {
+            (Some(o1), wo2) => {
+                let o2 = wo2.unwrap_or(' ');
+                let (op, len) = match (o1, o2) {
+                    ('>', '>') => (RShift, 2),
+                    ('<', '<') => (LShift, 2),
+                    ('<', '=') => (CompLTE, 2),
+                    ('>', '=') => (CompGTE, 2),
+                    ('=', '=') => (CompEq, 2),
+                    ('!', '=') => (CompNe, 2),
+                    ('&', '&') => (LogicAnd, 2),
+                    ('|', '|') => (LogicOr, 2),
+                    ('*', ..) => (Mul, 1),
+                    ('/', ..) => (Div, 1),
+                    ('%', ..) => (Rem, 1),
+                    ('+', ..) => (Add, 1),
+                    ('-', ..) => (Sub, 1),
+                    ('<', ..) => (CompLT, 1),
+                    ('>', ..) => (CompGT, 1),
+                    ('&', ..) => (BitAnd, 1),
+                    ('^', ..) => (BitXor, 1),
+                    ('|', ..) => (BitOr, 1),
+                    ('~', ..) => (BitNot, 1),
+                    ('!', ..) => (LogicNot, 1),
+                    ('=', ..) => (Equal, 1),
+                    _ => return None,
+                };
+                self.index += len;
+                Some(op)
             }
-            _ => (),
+            _ => None,
         }
-
-        (true, 1)
-    }else if maybe_op.starts_with(OP_COMP_GT) {
-        match maybe_op.get(1..=1) {
-            Some(">") | Some("=") => {
-                return (true, 2);
-            }
-            _ => (),
-        }
-
-        (true, 1)
-    }else if maybe_op.starts_with(OP_LOGIC_NOT) {
-        if let Some("=") = maybe_op.get(1..=1) {
-            return (true, 2);
-        }
-
-        (true, 1)
-    }else if maybe_op.starts_with(OP_BIT_OR) {
-        if let Some("|") = maybe_op.get(1..=1) {
-            return (true, 2);
-        }
-
-        (true, 1)
-    }else if maybe_op.starts_with(OP_BIT_AND) {
-        if let Some("&") = maybe_op.get(1..=1) {
-            return (true, 2);
-        }
-
-        (true, 1)
-    }
-    // it's not an operator
-    else {
-        (false, 0)
     }
 }

@@ -1,4 +1,4 @@
-use std::ops::RangeInclusive;
+use std::ops::Range;
 
 use zom_common::token::{Token, TokenType::*};
 
@@ -20,7 +20,7 @@ use crate::parser::PartParsingResult::*;
 pub struct Block {
     pub code: Vec<Statement>,
     pub returned_expr: Option<Box<Expression>>,
-    pub span: RangeInclusive<usize>,
+    pub span: Range<usize>,
 }
 
 impl_span!(Block);
@@ -35,7 +35,7 @@ pub fn parse_block(
     let t = tokens.last().unwrap().clone();
     tokens.pop();
 
-    let start = *parsed_tokens.last().unwrap().span.start();
+    let start = parsed_tokens.last().unwrap().span.start;
 
     let mut code = vec![];
     let mut returned_expr: Option<Box<Expression>> = None;
@@ -85,7 +85,7 @@ pub fn parse_block(
                     context.pos,
                     t.span.clone(),
                     context.source_file.clone(),
-                    context.filename.clone(),
+                    context.filename.clone().into(),
                 ),
                 "unclosed delimiter `}`".to_owned(),
                 false,
@@ -95,13 +95,13 @@ pub fn parse_block(
         }
     );
 
-    let end = *parsed_tokens.last().unwrap().span.end();
+    let end = parsed_tokens.last().unwrap().span.end;
 
     Good(
         Block {
             code,
             returned_expr,
-            span: start..=end,
+            span: start..end,
         },
         parsed_tokens,
     )

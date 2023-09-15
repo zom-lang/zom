@@ -53,12 +53,9 @@ pub fn build(mut args: Args) -> Result<ExitStatus, Box<dyn Error>> {
         Err(_) => return err!("Error while trying to read the source file."),
     };
 
-    let mut lexer = Lexer::new(
-        source.as_str(),
-        args.source_file.to_str().unwrap().to_owned(),
-    );
+    let mut lexer = Lexer::new(source.as_str(), &args.source_file);
 
-    let tokens = match lexer.make_tokens() {
+    let tokens = match lexer.lex() {
         Ok(src) => src,
         Err(err) => return err!(fmt "\n{:?}\n", err),
     };

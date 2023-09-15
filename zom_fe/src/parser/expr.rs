@@ -1,6 +1,6 @@
 //! This module contains the parsing for expressions.
 
-use std::ops::RangeInclusive;
+use std::ops::Range;
 
 use zom_common::token::Token;
 use zom_common::token::*;
@@ -19,7 +19,7 @@ use super::{ParserSettings, ParsingContext};
 #[derive(PartialEq, Clone, Debug)]
 pub struct Expression {
     pub expr: Expr,
-    pub span: RangeInclusive<usize>,
+    pub span: Range<usize>,
 }
 
 impl_span!(Expression);
@@ -88,15 +88,15 @@ pub fn parse_ident_expr(
         )
     );
 
-    let start = *parsed_tokens.last().unwrap().clone().span.start();
+    let start = parsed_tokens.last().unwrap().clone().span.start;
 
-    let end = *parsed_tokens.last().unwrap().clone().span.end();
+    let end = parsed_tokens.last().unwrap().clone().span.end;
 
     expect_token!(
         context,
         [OpenParen, OpenParen, ()]
         else {return Good(
-            Expression { expr: VariableExpr(name), span: start..=end },
+            Expression { expr: VariableExpr(name), span: start..end },
             parsed_tokens)}
         <= tokens, parsed_tokens);
 
@@ -122,12 +122,12 @@ pub fn parse_ident_expr(
         );
     }
 
-    let end = *parsed_tokens.last().unwrap().span.end();
+    let end = parsed_tokens.last().unwrap().span.end;
 
     Good(
         Expression {
             expr: CallExpr(name, args),
-            span: start..=end,
+            span: start..end,
         },
         parsed_tokens,
     )
@@ -147,14 +147,14 @@ pub fn parse_literal_expr(
         parsed_tokens,
         err_et!(context, t, vec![Int(0), Float(0.0)], t.tt)
     );
-    let start = *parsed_tokens.last().unwrap().span.start();
+    let start = parsed_tokens.last().unwrap().span.start;
 
-    let end = *parsed_tokens.last().unwrap().span.end();
+    let end = parsed_tokens.last().unwrap().span.end;
 
     Good(
         Expression {
             expr: LiteralExpr(value),
-            span: start..=end,
+            span: start..end,
         },
         parsed_tokens,
     )
@@ -183,7 +183,7 @@ pub fn parse_parenthesis_expr(
                     context.pos,
                     t.span.clone(),
                     context.source_file.clone(),
-                    context.filename.clone(),
+                    context.filename.clone().into(),
                 ),
                 "unclosed delimiter `)`".to_owned(),
                 false,
@@ -292,7 +292,7 @@ pub fn parse_binary_expr(
                 lhs: Box::new(result),
                 rhs: Box::new(rhs.clone()),
             },
-            span: *lhs.span.start()..=*rhs.span.end(),
+            span: lhs.span.start..rhs.span.end,
         };
     }
 

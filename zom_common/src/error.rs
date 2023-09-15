@@ -5,7 +5,8 @@
 use super::{build_date, build_target_triple, commit_hash};
 use std::error::Error;
 use std::fmt::{self, Display};
-use std::ops::RangeInclusive;
+use std::ops::Range;
+use std::path::PathBuf;
 
 /// This function return spaces * len
 /// It is used for implement Display for errors
@@ -38,6 +39,29 @@ fn pad_string(string: String, len: usize) -> String {
     str
 }
 
+/// Takes a string and an index into that string and iterate over it,
+/// and return the line and column corresponding to that index in the file.
+/// The line starts at 1 and column starts at 1.
+pub fn line_col(text: &str, index: usize) -> (usize, usize) {
+    let mut line = 1;
+    let mut col = 1;
+
+    for (idx, ch) in text.char_indices() {
+        if index == idx {
+            break;
+        }
+        match ch {
+            '\n' => {
+                col = 1;
+                line += 1;
+            }
+            _ => col += 1,
+        }
+    }
+
+    (line, col)
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Position {
     /// The index when you iterate over the filetext.
@@ -46,7 +70,7 @@ pub struct Position {
     col_start: usize,
     line_end: usize,
     col_end: usize,
-    filename: String,
+    filename: PathBuf,
     filetext: String,
 }
 
@@ -57,7 +81,7 @@ impl Position {
         col_start: usize,
         line_end: usize,
         col_end: usize,
-        filename: String,
+        filename: PathBuf,
         filetext: String,
     ) -> Position {
         Position {
@@ -75,56 +99,13 @@ impl Position {
     /// Can return `None` if the range's start position is greater that its end position.
     pub fn try_from_range(
         index: usize,
-        range: RangeInclusive<usize>,
+        range: Range<usize>,
         filetext: String,
-        filename: String,
+        filename: PathBuf,
     ) -> Option<Position> {
-        let mut line_start = 1;
-        let mut col_start = 1;
-        let mut line_end = 1;
-        let mut col_end = 1;
-
-        let mut range_start_found = false;
-        let mut index_r = 0;
-
-        for (idx, chr) in filetext.char_indices() {
-            index_r = idx;
-
-            if *range.start() == idx {
-                range_start_found = true;
-            }
-
-            if !range_start_found {
-                match chr {
-                    '\n' => {
-                        line_start += 1;
-                        col_start = 1;
-                    }
-                    _ => {
-                        col_start += 1;
-                    }
-                }
-            }
-
-            match chr {
-                '\n' => {
-                    line_end += 1;
-                    col_end = 1;
-                }
-                _ => {
-                    col_end += 1;
-                }
-            }
-
-            if *range.end() == idx {
-                break;
-            }
-        }
-
-        if index_r < *range.end() {
-            // The range extends beyond the end of the input string.
-            return None;
-        }
+        assert!(range.start < range.end); // TODO: add an error message for this assertion
+        let (line_start, col_start) = line_col(&filetext, range.start);
+        let (line_end, col_end) = line_col(&filetext, range.end);
 
         Some(Position {
             index,
@@ -189,7 +170,7 @@ impl ZomError {
             details: "internal compiler error: ".to_owned() + &details,
             is_warning: false,
             help: None,
-            notes: vec!(
+            notes: [
             "the compiler unexpectedly panicked. this is a bug.",
             "we would appreciate a bug report: https://github.com/zom-lang/zom/issues/new?assignees=&labels=C-bug%2C+I-ICE%2C+A-compiler&projects=&template=ice.md",
             format!("zomc {} ({} {}) running on {}",
@@ -197,7 +178,7 @@ impl ZomError {
                     &commit_hash()[..7],
                     build_date(),
                     build_target_triple()).as_str()
-            )
+            ]
             .iter()
             .map(|v| v.to_string())
             .collect(),
@@ -237,6 +218,13 @@ impl ZomError {
         }
         Ok(())
     }
+
+    /// Add a position to an error if it doesn't have one. If it already have a position,
+    /// the function will panic.
+    pub fn add_position(&mut self, pos: Position) {
+        assert!(self.location.is_none(), "The error has already a position.");
+        self.location = Some(pos);
+    }
 }
 
 impl Display for ZomError {
@@ -252,7 +240,7 @@ impl Display for ZomError {
             writeln!(
                 f,
                 "  --> {}:{}:{}",
-                self.pos().filename,
+                self.pos().filename.display(),
                 self.pos().line_start,
                 self.pos().col_start
             )?;
@@ -274,7 +262,7 @@ impl Display for ZomError {
                 .pos()
                 .filetext
                 .lines()
-                .nth(self.pos().line_start - 1)
+                .nth(self.pos().line_start - 1) // minus one because the line number starts at 1 and an the nth function "starts" at 0
                 .unwrap();
 
             writeln!(f, "{}|", spaces(margin))?;
@@ -283,15 +271,15 @@ impl Display for ZomError {
             if self.pos().line_start == self.pos().line_end {
                 writeln!(
                     f,
-                    "{}|{}^{}",
+                    "{}|{}{}",
                     spaces(margin),
                     spaces(self.pos().col_start),
-                    "^".repeat(self.pos().col_end - self.pos().col_start - 1)
+                    "^".repeat(self.pos().col_end - self.pos().col_start)
                 )?;
             } else {
                 writeln!(
                     f,
-                    "{}|{}^{}",
+                    "{}|{}{}",
                     spaces(margin),
                     spaces(self.pos().col_start),
                     "~".repeat(line_start.len() - self.pos().col_start)
@@ -303,14 +291,14 @@ impl Display for ZomError {
                     .pos()
                     .filetext
                     .lines()
-                    .nth(self.pos().line_end - 1)
+                    .nth(self.pos().line_end - 1) // minus 1, same as line_start
                     .unwrap();
-                writeln!(f, "{}| {}", pad_string(line_end_str, margin), line_end)?;
+                writeln!(f, "{}|{}", pad_string(line_end_str, margin), line_end)?;
                 writeln!(
                     f,
-                    "{}| {}^",
+                    "{}|{}^",
                     spaces(margin),
-                    "~".repeat(self.pos().col_end - 2)
+                    "~".repeat(self.pos().col_end - 1)
                 )?;
             }
             // Write an help message if there is one
