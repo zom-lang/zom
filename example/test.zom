@@ -1,5 +1,5 @@
 func fourteen() u8 {
-    const test1 = 1;
+    const test1 = false;
     var test2: usize = 2;
 
     a = (9 >> 8 / 9 ) >= 2;

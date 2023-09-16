@@ -315,6 +315,8 @@ impl<'a> Lexer<'a> {
             KW_AWAIT => Await,
             KW_MATCH => Match,
             KW_IMPL => Impl,
+            KW_TRUE => True,
+            KW_FALSE => False,
             _ => Ident(kw),
         }
     }

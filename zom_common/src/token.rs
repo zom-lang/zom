@@ -263,6 +263,12 @@ pub const KW_MATCH: &str = "match";
 /// const for the keyword `impl`
 pub const KW_IMPL: &str = "impl";
 
+/// const for the keyword `true`
+pub const KW_TRUE: &str = "true";
+
+/// const for the keyword `false`
+pub const KW_FALSE: &str = "false";
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     /// `tt` means token type.
@@ -322,6 +328,8 @@ pub enum TokenType {
     Await,
     Match,
     Impl,
+    True,
+    False,
 
     // Identifier
     Ident(String), // Identifier is a alphanumeric with `_` string
@@ -383,6 +391,8 @@ impl Display for TokenType {
             Await => write!(f, "keyword `await`"),
             Match => write!(f, "keyword `match`"),
             Impl => write!(f, "keyword `impl`"),
+            True => write!(f, "keyword `true`"),
+            False => write!(f, "keyword `false`"),
 
             Ident(_) => write!(f, "identifier"),
             Lifetime(_) => write!(f, "lifetime"),

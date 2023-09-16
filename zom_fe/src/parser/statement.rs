@@ -10,10 +10,7 @@ use crate::{
     token_parteq,
 };
 
-use super::{
-    expr::Expression, symbol::Symbol, types::Type, ParserSettings, ParsingContext,
-    PartParsingResult,
-};
+use super::{expr::Expression, symbol::Symbol, ParserSettings, ParsingContext, PartParsingResult};
 
 use crate::parser::PartParsingResult::*;
 

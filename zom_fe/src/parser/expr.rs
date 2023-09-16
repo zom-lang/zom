@@ -35,6 +35,7 @@ pub enum Expr {
     },
     CallExpr(String, Vec<Expression>),
     BlockExpr(Block),
+    BooleanExpr(bool),
 }
 
 impl Expression {
@@ -59,6 +60,9 @@ pub fn parse_primary_expr(
         Some(Token { tt: Int(_), .. }) => parse_literal_expr(tokens, settings, context),
         Some(Token { tt: OpenParen, .. }) => parse_parenthesis_expr(tokens, settings, context),
         Some(Token { tt: OpenBrace, .. }) => parse_block_expr(tokens, settings, context),
+        Some(Token {
+            tt: True | False, ..
+        }) => parse_boolean_expr(tokens, settings, context),
         None => NotComplete,
         _ => err_et!(
             context,
@@ -297,4 +301,35 @@ pub fn parse_binary_expr(
     }
 
     Good(result, parsed_tokens)
+}
+
+pub fn parse_boolean_expr(
+    tokens: &mut Vec<Token>,
+    _settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Expression> {
+    // eat either True or False keyword
+    let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
+    let bool = expect_token!(
+        context,
+        [True, True, true;
+         False, False, false] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![True, False],
+            tokens.last().unwrap().tt
+        )
+    );
+
+    let span = parsed_tokens.last().unwrap().span.clone();
+
+    Good(
+        Expression {
+            expr: Expr::BooleanExpr(bool),
+            span,
+        },
+        parsed_tokens,
+    )
 }
