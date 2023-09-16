@@ -30,17 +30,22 @@ pub fn parse_symbol(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Symbol> {
     // eat either Var or Const keyword
-    let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
-    let tok = tokens.pop();
+    let mut parsed_tokens = vec![];
+
+    let is_var = expect_token!(
+        context,
+        [Var, Var, true;
+         Const, Const, false] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![Var, Const],
+            tokens.last().unwrap().tt
+        )
+    );
 
     let start = parsed_tokens.last().unwrap().span.start;
-
-    let is_var = match tok.map(|t| t.tt) {
-        Some(Var) => true,
-        Some(Const) => false,
-        None => return NotComplete,
-        _ => panic!("WTF a symbol doesn't starting with either 'var' or 'const'"),
-    };
 
     let name = expect_token!(
         context,
