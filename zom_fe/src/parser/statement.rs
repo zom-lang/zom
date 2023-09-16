@@ -2,14 +2,18 @@
 
 use std::ops::Range;
 
-use zom_common::token::{
-    Token,
-    TokenType::{Return, SemiColon},
+use zom_common::token::{Token, TokenType::*};
+
+use crate::{
+    impl_span, parse_try,
+    parser::{expr::parse_expr, symbol::parse_symbol},
+    token_parteq,
 };
 
-use crate::{impl_span, parse_try, parser::expr::parse_expr, token_parteq};
-
-use super::{expr::Expression, types::Type, ParserSettings, ParsingContext, PartParsingResult};
+use super::{
+    expr::Expression, symbol::Symbol, types::Type, ParserSettings, ParsingContext,
+    PartParsingResult,
+};
 
 use crate::parser::PartParsingResult::*;
 
@@ -24,19 +28,8 @@ impl_span!(Statement);
 #[derive(PartialEq, Clone, Debug)]
 pub enum Stmt {
     Expr(Expression),
-    Var {
-        name: String,
-        ty: Option<Type>,
-        expr: Expression,
-    },
-    Const {
-        name: String,
-        ty: Option<Type>,
-        expr: Expression,
-    },
-    Return {
-        expr: Option<Expression>,
-    },
+    Symbol(Symbol),
+    Return { expr: Option<Expression> },
 }
 
 impl Stmt {
@@ -62,6 +55,20 @@ pub fn parse_statement(
     let mut parsed_tokens = vec![];
     match tokens.last() {
         Some(Token { tt: Return, .. }) => parse_return(tokens, settings, context),
+        Some(Token {
+            tt: Var | Const, ..
+        }) => {
+            let symbol = parse_try!(parse_symbol, tokens, settings, context, parsed_tokens);
+            let syb_span = symbol.span.clone();
+
+            Good(
+                Statement {
+                    stmt: Stmt::Symbol(symbol),
+                    span: syb_span,
+                },
+                parsed_tokens,
+            )
+        }
         None => NotComplete,
         _ => {
             let expr = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
@@ -83,7 +90,6 @@ pub fn parse_return(
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<Statement> {
-    // FIXME: Cannot return a binary expression
     // eat Return keyword
     let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
