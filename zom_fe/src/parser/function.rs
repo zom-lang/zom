@@ -9,10 +9,10 @@ use crate::{err_et, expect_token, impl_span, parse_try, parser::types::parse_typ
 use super::{
     block::{parse_block, Block},
     types::Type,
-    ASTNode, ParserSettings, ParsingContext, PartParsingResult,
+    ParserSettings, ParsingContext, PartParsingResult,
 };
 
-use self::PartParsingResult::{Bad, Good, NotComplete};
+use self::PartParsingResult::*;
 
 use zom_common::token::{CloseParen, Colon, Comma, Ident, OpenBrace, OpenParen, SemiColon};
 
@@ -24,7 +24,7 @@ pub struct Function {
     prototype: Prototype,
     return_ty: Type,
     body: Option<Block>,
-    span: Range<usize>,
+    pub span: Range<usize>,
 }
 
 impl_span!(Function);
@@ -82,7 +82,7 @@ pub fn parse_extern(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
-) -> PartParsingResult<ASTNode> {
+) -> PartParsingResult<Function> {
     // eat Extern keyword
     let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
     tokens.pop();
@@ -141,13 +141,13 @@ pub fn parse_extern(
 
     let end = parsed_tokens.last().unwrap().span.start;
     Good(
-        ASTNode::FunctionNode(Function {
+        Function {
             abi,
             prototype,
             body,
             return_ty,
             span: start..end,
-        }),
+        },
         parsed_tokens,
     )
 }
@@ -156,7 +156,7 @@ pub fn parse_function(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
-) -> PartParsingResult<ASTNode> {
+) -> PartParsingResult<Function> {
     // eat Func keyword
     let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
@@ -171,13 +171,13 @@ pub fn parse_function(
 
     let end = parsed_tokens.last().unwrap().span.end;
     Good(
-        ASTNode::FunctionNode(Function {
+        Function {
             abi: ABI::Zom,
             prototype,
             body: Some(body),
             return_ty,
             span: start..end,
-        }),
+        },
         parsed_tokens,
     )
 }

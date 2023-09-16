@@ -9,7 +9,7 @@ use crate::{err_et, expect_token, impl_span, parse_try};
 
 use self::Expr::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
 
-use crate::parser::PartParsingResult::{Bad, Good, NotComplete};
+use crate::parser::PartParsingResult::*;
 
 use crate::parser::PartParsingResult;
 

@@ -2,13 +2,15 @@
 
 use core::ops::Range;
 
-use crate::parser::expr::parse_expr;
+use crate::parser::expr::{parse_expr, Expr};
 use crate::parser::types::{parse_type, Type};
 use crate::{err_et, expect_token, parse_try};
 use crate::{impl_span, parser::expr::Expression};
 
 use super::{ParserSettings, ParsingContext, PartParsingResult, PartParsingResult::*};
 
+use zom_common::error::Position;
+use zom_common::error::ZomError;
 use zom_common::token::Operator;
 use zom_common::token::{Token, TokenType::*};
 
@@ -59,8 +61,6 @@ pub fn parse_symbol(
         )
     );
 
-    dbg!(tokens.last());
-
     let ty = if let Some(Token { tt: Colon, .. }) = tokens.last() {
         expect_token!(
             context,
@@ -98,7 +98,6 @@ pub fn parse_symbol(
     );
 
     let value = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
-    dbg!(&value);
 
     let end = parsed_tokens.last().unwrap().span.end;
 
@@ -112,4 +111,43 @@ pub fn parse_symbol(
         },
         parsed_tokens,
     )
+}
+
+pub fn parse_global_symbol(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Symbol> {
+    let mut parsed_tokens = Vec::new();
+    let symbol = parse_try!(parse_symbol, tokens, settings, context, parsed_tokens);
+
+    if let Expression {
+        expr: Expr::UndefinedExpr,
+        ref span,
+    } = symbol.value
+    {
+        context.push_err(ZomError::new(
+            Position::try_from_range(
+                context.pos,
+                span.clone(),
+                context.source_file.clone(),
+                context.filename.clone().into(),
+            ),
+            "a global cannot have an undefined value".to_string(),
+            false,
+            None,
+            vec![],
+        ))
+    }
+
+    let t = parsed_tokens.last().unwrap();
+
+    expect_token!(
+        context,
+        [SemiColon, SemiColon, ()] <= tokens,
+        parsed_tokens,
+        err_et!(context, t, vec![SemiColon], t.tt)
+    );
+
+    Good(symbol, parsed_tokens)
 }

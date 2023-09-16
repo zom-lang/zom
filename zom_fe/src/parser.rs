@@ -9,22 +9,18 @@ use zom_common::error::ZomError;
 use zom_common::token::Token;
 use zom_common::token::*;
 
-use self::function::{parse_extern, parse_function, Function};
-use self::PartParsingResult::{Bad, Good, NotComplete};
+use self::item::{parse_item, Item};
+use self::PartParsingResult::*;
 
 pub mod block;
 pub mod expr;
 pub mod function;
+pub mod item;
 pub mod statement;
 pub mod symbol;
 pub mod types;
 
-#[derive(PartialEq, Clone, Debug)]
-pub enum ASTNode {
-    FunctionNode(Function),
-}
-
-pub type ParsingResult = Result<(Vec<ASTNode>, Vec<Token>), Vec<ZomError>>;
+pub type ParsingResult = Result<(Vec<Item>, Vec<Token>), Vec<ZomError>>;
 
 #[derive(Debug)]
 pub enum PartParsingResult<T> {
@@ -57,6 +53,10 @@ impl ParsingContext {
 
     pub fn push_err(&mut self, err: ZomError) {
         self.errors.push(err);
+    }
+
+    pub fn push_errors(&mut self, errors: Vec<ZomError>) {
+        self.errors.extend(errors);
     }
 }
 
@@ -165,7 +165,7 @@ impl Default for ParserSettings {
 
 pub fn parse(
     tokens: &[Token],
-    parsed_tree: &[ASTNode],
+    parsed_tree: &[Item],
     settings: &mut ParserSettings,
     mut context: ParsingContext,
 ) -> ParsingResult {
@@ -177,25 +177,13 @@ pub fn parse(
     // we will add new AST nodes to already parsed ones
     let mut ast = parsed_tree.to_vec();
 
-    while let Some(cur_token) = rest.last() {
-        let result = match &cur_token.tt {
-            Func => parse_function(&mut rest, settings, &mut context),
-            Extern => parse_extern(&mut rest, settings, &mut context),
-            EOF => {
-                rest.pop();
-                break;
-            }
-            tt => err_et!(context, cur_token.clone(), vec![Func, Extern, EOF], tt, {
-                rest.pop();
-                continue;
-            }),
-        };
-        match result {
+    while let Some(item) = parse_item(&mut rest, settings, &mut context) {
+        match item {
             Good(ast_node, _) => ast.push(ast_node),
             NotComplete => break,
             Bad(err) => {
                 context.push_err(err);
-                return Err(context.errors); // TODO: try to do not return here and keep parsing Func or extern
+                return Err(context.errors); // TODO: try to not return here and keep parsing items.
             }
         }
     }
@@ -220,12 +208,12 @@ macro_rules! parse_try(
             Good(ast, toks) => {
                 $parsed_tokens.extend(toks.into_iter());
                 ast
-            },
+            }
             NotComplete => {
                 $parsed_tokens.reverse();
                 $tokens.extend($parsed_tokens.into_iter());
                 return NotComplete;
-            },
+            }
             Bad(error) => return Bad(error)
         }
     )

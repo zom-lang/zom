@@ -103,7 +103,12 @@ impl Position {
         filetext: String,
         filename: PathBuf,
     ) -> Option<Position> {
-        assert!(range.start < range.end); // TODO: add an error message for this assertion
+        assert!(
+            range.start < range.end,
+            "the range start is greater than the range end,\nstart:{} end:{}",
+            range.start,
+            range.end
+        );
         let (line_start, col_start) = line_col(&filetext, range.start);
         let (line_end, col_end) = line_col(&filetext, range.end);
 
