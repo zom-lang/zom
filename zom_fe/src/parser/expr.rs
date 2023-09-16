@@ -36,6 +36,7 @@ pub enum Expr {
     CallExpr(String, Vec<Expression>),
     BlockExpr(Block),
     BooleanExpr(bool),
+    UndefinedExpr,
 }
 
 impl Expression {
@@ -63,6 +64,7 @@ pub fn parse_primary_expr(
         Some(Token {
             tt: True | False, ..
         }) => parse_boolean_expr(tokens, settings, context),
+        Some(Token { tt: Undefined, .. }) => parse_undefined_expr(tokens, settings, context),
         None => NotComplete,
         _ => err_et!(
             context,
@@ -305,11 +307,11 @@ pub fn parse_binary_expr(
 
 pub fn parse_boolean_expr(
     tokens: &mut Vec<Token>,
-    _settings: &mut ParserSettings,
+    _: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
     // eat either True or False keyword
-    let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
+    let mut parsed_tokens = vec![];
     let bool = expect_token!(
         context,
         [True, True, true;
@@ -329,6 +331,33 @@ pub fn parse_boolean_expr(
         Expression {
             expr: Expr::BooleanExpr(bool),
             span,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_undefined_expr(
+    tokens: &mut Vec<Token>,
+    _: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Expression> {
+    // eat Undefined keyword
+    let mut parsed_tokens = Vec::new();
+    expect_token!(
+        context,
+        [Undefined, Undefined, ()] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![Undefined],
+            tokens.last().unwrap().tt
+        )
+    );
+    Good(
+        Expression {
+            expr: Expr::UndefinedExpr,
+            span: parsed_tokens.last().unwrap().span.clone(),
         },
         parsed_tokens,
     )

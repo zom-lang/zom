@@ -269,6 +269,9 @@ pub const KW_TRUE: &str = "true";
 /// const for the keyword `false`
 pub const KW_FALSE: &str = "false";
 
+/// const for the keyword `undefined`
+pub const KW_UNDEFINED: &str = "undefined";
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     /// `tt` means token type.
@@ -330,6 +333,7 @@ pub enum TokenType {
     Impl,
     True,
     False,
+    Undefined,
 
     // Identifier
     Ident(String), // Identifier is a alphanumeric with `_` string
@@ -357,7 +361,7 @@ impl TokenType {
 impl Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Operator(_) => write!(f, "operator"),
+            Operator(op) => write!(f, "`{}`", op),
             OpenParen => write!(f, "`(`"),
             CloseParen => write!(f, "`)`"),
             OpenBracket => write!(f, "`[`"),
@@ -393,6 +397,7 @@ impl Display for TokenType {
             Impl => write!(f, "keyword `impl`"),
             True => write!(f, "keyword `true`"),
             False => write!(f, "keyword `false`"),
+            Undefined => write!(f, "keyword `undefined`"),
 
             Ident(_) => write!(f, "identifier"),
             Lifetime(_) => write!(f, "lifetime"),

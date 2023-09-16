@@ -317,6 +317,7 @@ impl<'a> Lexer<'a> {
             KW_IMPL => Impl,
             KW_TRUE => True,
             KW_FALSE => False,
+            KW_UNDEFINED => Undefined,
             _ => Ident(kw),
         }
     }
