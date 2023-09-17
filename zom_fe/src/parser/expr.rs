@@ -2,12 +2,14 @@
 
 use std::ops::Range;
 
+use zom_common::error::Position;
+use zom_common::error::ZomError;
 use zom_common::token::Token;
 use zom_common::token::*;
 
-use crate::{err_et, expect_token, impl_span, parse_try};
+use crate::{err_et, expect_token, impl_span, parse_try, token_parteq};
 
-use self::Expr::{BinaryExpr, BlockExpr, CallExpr, LiteralExpr, VariableExpr};
+use self::Expr::*;
 
 use crate::parser::PartParsingResult::*;
 
@@ -37,17 +39,27 @@ pub enum Expr {
     BlockExpr(Block),
     BooleanExpr(bool),
     UndefinedExpr,
-}
+    ConditionalExpr {
+        cond: Box<Expression>,
+        then_expr: Box<Expression>,
+        else_expr: Box<Option<Expression>>,
+        /// Semi colon needed ?
+        sc_need: bool,
+    },
+} // TODO: make the return statement an expression.
 
 impl Expression {
     pub fn is_semicolon_needed(&self) -> bool {
-        !matches!(
-            *self,
+        match *self {
             Expression {
-                expr: BlockExpr(_),
+                expr: BlockExpr(_), ..
+            } => false,
+            Expression {
+                expr: ConditionalExpr { sc_need, .. },
                 ..
-            }
-        )
+            } => sc_need,
+            _ => true,
+        }
     }
 }
 
@@ -65,6 +77,7 @@ pub fn parse_primary_expr(
             tt: True | False, ..
         }) => parse_boolean_expr(tokens, settings, context),
         Some(Token { tt: Undefined, .. }) => parse_undefined_expr(tokens, settings, context),
+        Some(Token { tt: If, .. }) => parse_conditional_expr(tokens, settings, context),
         None => NotComplete,
         _ => err_et!(
             context,
@@ -358,6 +371,113 @@ pub fn parse_undefined_expr(
         Expression {
             expr: Expr::UndefinedExpr,
             span: parsed_tokens.last().unwrap().span.clone(),
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_conditional_expr(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Expression> {
+    let mut parsed_tokens = Vec::new();
+
+    expect_token!(
+        context,
+        [If, If, ()] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![If],
+            tokens.last().unwrap().tt
+        )
+    );
+
+    let start = parsed_tokens.last().unwrap().span.start;
+
+    let starts_paren = token_parteq!(tokens.last().cloned(), OpenParen);
+    dbg!(&starts_paren);
+
+    let cond = Box::new(parse_try!(
+        parse_expr,
+        tokens,
+        settings,
+        context,
+        parsed_tokens
+    ));
+    dbg!(&cond);
+
+    let then_expr = Box::new(parse_try!(
+        parse_expr,
+        tokens,
+        settings,
+        context,
+        parsed_tokens
+    ));
+    dbg!(&then_expr);
+
+    if let Expression {
+        expr: BlockExpr(..),
+        ..
+    } = *then_expr
+    {
+    } else if !starts_paren {
+        context.push_err(ZomError::new(
+            Position::try_from_range(
+                context.pos,
+                cond.span.clone(),
+                context.source_file.clone(),
+                context.filename.clone().into(),
+            ),
+            "unparenthesized condition when their is no block".to_string(),
+            false,
+            Some("wrap the condition in parentheses".to_string()),
+            vec![],
+        ))
+    }
+
+    let else_expr = Box::new(if token_parteq!(tokens.last().cloned(), Else) {
+        expect_token!(
+            context,
+            [Else, Else, ()] <= tokens,
+            parsed_tokens,
+            err_et!(
+                context,
+                tokens.last().unwrap(),
+                vec![Else],
+                tokens.last().unwrap().tt
+            )
+        );
+        Some(parse_try!(
+            parse_expr,
+            tokens,
+            settings,
+            context,
+            parsed_tokens
+        ))
+    } else {
+        None
+    });
+    dbg!(&else_expr);
+    let lpt = parsed_tokens.last().unwrap();
+    dbg!(&lpt);
+
+    let sc_need = !token_parteq!(no_opt lpt, CloseBrace);
+    dbg!(&sc_need);
+
+    let end = lpt.span.end;
+
+    Good(
+        Expression {
+            expr: Expr::ConditionalExpr {
+                cond,
+                then_expr,
+                else_expr,
+                sc_need,
+            },
+            span: start..end,
         },
         parsed_tokens,
     )

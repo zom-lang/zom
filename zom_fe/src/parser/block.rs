@@ -61,7 +61,7 @@ pub fn parse_block(
 
         code.push(stmt);
 
-        let t = parsed_tokens.last().unwrap().clone();
+        let t = tokens.last().unwrap().clone();
         if semi {
             expect_token!(
                 context,
