@@ -46,7 +46,8 @@ pub enum Expr {
         /// Semi colon needed ?
         sc_need: bool,
     },
-} // TODO: make the return statement an expression.
+    ReturnExpr(Option<Box<Expression>>),
+}
 
 impl Expression {
     pub fn is_semicolon_needed(&self) -> bool {
@@ -78,6 +79,7 @@ pub fn parse_primary_expr(
         }) => parse_boolean_expr(tokens, settings, context),
         Some(Token { tt: Undefined, .. }) => parse_undefined_expr(tokens, settings, context),
         Some(Token { tt: If, .. }) => parse_conditional_expr(tokens, settings, context),
+        Some(Token { tt: Return, .. }) => parse_return(tokens, settings, context),
         None => NotComplete,
         _ => err_et!(
             context,
@@ -477,6 +479,39 @@ pub fn parse_conditional_expr(
                 else_expr,
                 sc_need,
             },
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_return(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Expression> {
+    // eat Return keyword
+    let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
+    tokens.pop();
+
+    let start = parsed_tokens.last().unwrap().span.start;
+
+    let expr = if token_parteq!(no_opt tokens.last().unwrap(), SemiColon) {
+        None
+    } else {
+        Some(Box::new(parse_try!(
+            parse_expr,
+            tokens,
+            settings,
+            context,
+            parsed_tokens
+        )))
+    };
+
+    let end = parsed_tokens.last().unwrap().span.end;
+    Good(
+        Expression {
+            expr: ReturnExpr(expr),
             span: start..end,
         },
         parsed_tokens,

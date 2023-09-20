@@ -7,7 +7,6 @@ use zom_common::token::{Token, TokenType::*};
 use crate::{
     impl_span, parse_try,
     parser::{expr::parse_expr, symbol::parse_symbol},
-    token_parteq,
 };
 
 use super::{expr::Expression, symbol::Symbol, ParserSettings, ParsingContext, PartParsingResult};
@@ -26,7 +25,6 @@ impl_span!(Statement);
 pub enum Stmt {
     Expr(Expression),
     Symbol(Symbol),
-    Return { expr: Option<Expression> },
 }
 
 impl Stmt {
@@ -51,7 +49,6 @@ pub fn parse_statement(
 ) -> PartParsingResult<Statement> {
     let mut parsed_tokens = vec![];
     match tokens.last() {
-        Some(Token { tt: Return, .. }) => parse_return(tokens, settings, context),
         Some(Token {
             tt: Var | Const, ..
         }) => {
@@ -80,37 +77,4 @@ pub fn parse_statement(
             )
         }
     }
-}
-
-pub fn parse_return(
-    tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
-    context: &mut ParsingContext,
-) -> PartParsingResult<Statement> {
-    // eat Return keyword
-    let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
-    tokens.pop();
-
-    let start = parsed_tokens.last().unwrap().span.start;
-
-    let expr = if token_parteq!(no_opt tokens.last().unwrap(), SemiColon) {
-        None
-    } else {
-        Some(parse_try!(
-            parse_expr,
-            tokens,
-            settings,
-            context,
-            parsed_tokens
-        ))
-    };
-
-    let end = parsed_tokens.last().unwrap().span.end;
-    Good(
-        Statement {
-            stmt: Stmt::Return { expr },
-            span: start..end,
-        },
-        parsed_tokens,
-    )
 }
