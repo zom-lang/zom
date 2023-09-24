@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use zom_common::error::ZomError;
-use zom_fe::lexer::Lexer;
+use zom_lexer::Lexer;
 
 #[test]
 fn test_from_range() {

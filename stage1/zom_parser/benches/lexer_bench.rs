@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use zom_fe::lexer::Lexer;
+use zom_lexer::Lexer;
 
 fn simple_lexer_benchmark(c: &mut Criterion) {
     c.bench_function("lexer 1 + 1", |b| {
