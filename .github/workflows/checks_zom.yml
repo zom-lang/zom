@@ -23,8 +23,8 @@ jobs:
           - windows-latest
           - macos-latest
         crate:
-          - ["zom_fe", "./zom_fe"]
-          - ["zom_common", "./zom_common"]
+          - ["zom_parser", "./stage1/zom_parser"]
+          - ["zom_common", "./stage1/zom_common"]
     steps:
     - uses: actions/checkout@v3
 
