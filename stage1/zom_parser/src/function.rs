@@ -4,7 +4,7 @@ use std::{ops::Range, str::FromStr};
 
 use zom_common::token::{Str, Token};
 
-use crate::{err_et, expect_token, impl_span, parse_try, types::parse_type, token_parteq};
+use crate::{err_et, expect_token, impl_span, parse_try, token_parteq, types::parse_type};
 
 use super::{
     block::{parse_block, Block},
@@ -95,7 +95,16 @@ pub fn parse_extern(
         context,
         [Str(abi), Str(abi.clone()), abi] <= tokens,
         parsed_tokens,
-        err_et!(context, t, vec![Str("C".to_string()), Str("CXX".to_string()), Str("Zom".to_string())], t.tt)
+        err_et!(
+            context,
+            t,
+            vec![
+                Str("C".to_string()),
+                Str("CXX".to_string()),
+                Str("Zom".to_string())
+            ],
+            t.tt
+        )
     ));
 
     if let Err(err) = abi {

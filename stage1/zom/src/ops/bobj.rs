@@ -8,9 +8,7 @@ use std::{
 use inkwell::{context::Context, passes::PassManager};
 // use zom_codegen::gen::CodeGen;
 // use zom_compiler::compiler::Compiler;
-use zom_parser::{
-    parse, ParserSettings, ParsingContext
-};
+use zom_parser::{parse, ParserSettings, ParsingContext};
 
 use zom_lexer::Lexer;
 

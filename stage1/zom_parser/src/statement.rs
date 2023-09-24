@@ -4,10 +4,7 @@ use std::ops::Range;
 
 use zom_common::token::{Token, TokenType::*};
 
-use crate::{
-    impl_span, parse_try,
-    expr::parse_expr, symbol::parse_symbol
-};
+use crate::{expr::parse_expr, impl_span, parse_try, symbol::parse_symbol};
 
 use super::{expr::Expression, symbol::Symbol, ParserSettings, ParsingContext, PartParsingResult};
 

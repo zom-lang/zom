@@ -5,7 +5,7 @@ use core::ops::Range;
 use crate::expr::{parse_expr, Expr};
 use crate::types::{parse_type, Type};
 use crate::{err_et, expect_token, parse_try};
-use crate::{impl_span, expr::Expression};
+use crate::{expr::Expression, impl_span};
 
 use crate::{ParserSettings, ParsingContext, PartParsingResult, PartParsingResult::*};
 
