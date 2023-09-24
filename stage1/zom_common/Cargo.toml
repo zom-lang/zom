@@ -16,5 +16,5 @@ authors.workspace = true
 chrono = "0.4.26"
 
 [dev-dependencies]
-zom_parser = { path = "../zom_parser" }
-zom_lexer = { path = "../zom_lexer" }
+zom_lexer.workspace = true
+zom_parser.workspace = true

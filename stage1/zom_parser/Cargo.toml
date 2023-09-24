@@ -1,5 +1,5 @@
 [package]
-name = "zom_fe"
+name = "zom_parser"
 description = "Zom crate, where the lexer, parser, token list and AST are."
 repository = "https://github.com/zom-lang/zom/tree/main/zom_fe"
 
@@ -11,7 +11,7 @@ authors.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-zom_common = { path = "../zom_common" }
+zom_common.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

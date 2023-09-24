@@ -2,12 +2,12 @@
 
 use core::ops::Range;
 
-use crate::parser::expr::{parse_expr, Expr};
-use crate::parser::types::{parse_type, Type};
+use crate::expr::{parse_expr, Expr};
+use crate::types::{parse_type, Type};
 use crate::{err_et, expect_token, parse_try};
-use crate::{impl_span, parser::expr::Expression};
+use crate::{impl_span, expr::Expression};
 
-use super::{ParserSettings, ParsingContext, PartParsingResult, PartParsingResult::*};
+use crate::{ParserSettings, ParsingContext, PartParsingResult, PartParsingResult::*};
 
 use zom_common::error::Position;
 use zom_common::error::ZomError;

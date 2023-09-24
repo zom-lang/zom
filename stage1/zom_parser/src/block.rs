@@ -4,7 +4,7 @@ use zom_common::token::{Token, TokenType::*};
 
 use crate::{
     err_et, expect_token, impl_span, parse_try,
-    parser::statement::{parse_statement, Stmt},
+    statement::{parse_statement, Stmt},
     token_parteq,
 };
 
@@ -14,7 +14,7 @@ use super::{
     ParserSettings, ParsingContext, PartParsingResult,
 };
 
-use crate::parser::PartParsingResult::*;
+use crate::PartParsingResult::*;
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Block {

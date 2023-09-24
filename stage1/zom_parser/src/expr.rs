@@ -11,9 +11,9 @@ use crate::{err_et, expect_token, impl_span, parse_try, token_parteq};
 
 use self::Expr::*;
 
-use crate::parser::PartParsingResult::*;
+use crate::PartParsingResult::*;
 
-use crate::parser::PartParsingResult;
+use crate::PartParsingResult;
 
 use super::block::{parse_block_expr, Block};
 use super::{ParserSettings, ParsingContext};

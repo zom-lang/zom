@@ -6,12 +6,12 @@ use zom_common::token::{Token, TokenType::*};
 
 use crate::{
     impl_span, parse_try,
-    parser::{expr::parse_expr, symbol::parse_symbol},
+    expr::parse_expr, symbol::parse_symbol
 };
 
 use super::{expr::Expression, symbol::Symbol, ParserSettings, ParsingContext, PartParsingResult};
 
-use crate::parser::PartParsingResult::*;
+use crate::PartParsingResult::*;
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Statement {

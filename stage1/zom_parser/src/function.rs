@@ -4,7 +4,7 @@ use std::{ops::Range, str::FromStr};
 
 use zom_common::token::{Str, Token};
 
-use crate::{err_et, expect_token, impl_span, parse_try, parser::types::parse_type, token_parteq};
+use crate::{err_et, expect_token, impl_span, parse_try, types::parse_type, token_parteq};
 
 use super::{
     block::{parse_block, Block},

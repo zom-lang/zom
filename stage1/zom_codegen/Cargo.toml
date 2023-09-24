@@ -12,8 +12,10 @@ authors.workspace = true
 
 [dependencies]
 inkwell.workspace = true
-zom_parser = { path = "../zom_parser" }
-zom_common ={ path = "../zom_common" }
+
+zom_lexer.workspace = true
+zom_parser.workspace = true
+zom_common.workspace = true
 
 [features]
 default = ["llvm15-0"]

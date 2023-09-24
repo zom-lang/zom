@@ -14,13 +14,14 @@ readme.workspace = true
 [dependencies]
 clap = { version = "4.3.0", features = ["derive", "cargo"] }
 
-zom_compiler = { path = "../zom_compiler" }
-zom_codegen = { path = "../zom_codegen" }
-zom_parser = { path = "../zom_parser" }
-zom_lexer = { path = "../zom_lexer" }
-zom_common = { path = "../zom_common" }
-
 inkwell.workspace = true
+
+zom_lexer.workspace = true
+zom_parser.workspace = true
+zom_common.workspace = true
+zom_codegen.workspace = true
+zom_compiler.workspace = true
+
 
 [features]
 default = ["llvm15-0"]

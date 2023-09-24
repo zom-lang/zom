@@ -2,8 +2,8 @@ use std::error::Error;
 use std::fs;
 use std::io::{self, stdout, Write};
 use std::path::PathBuf;
-use zom_fe::lexer::Lexer;
-use zom_fe::parser::{parse, ParserSettings, ParsingContext};
+use zom_lexer::Lexer;
+use zom_parser::{parse, ParserSettings, ParsingContext};
 
 use crate::{err, ExitStatus};
 
