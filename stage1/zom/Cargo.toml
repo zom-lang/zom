@@ -15,8 +15,9 @@ readme.workspace = true
 clap = { version = "4.3.0", features = ["derive", "cargo"] }
 
 zom_compiler = { path = "../zom_compiler" }
-zom_codegen ={ path = "../zom_codegen" }
-zom_fe = { path = "../zom_fe" }
+zom_codegen = { path = "../zom_codegen" }
+zom_parser = { path = "../zom_parser" }
+zom_lexer = { path = "../zom_lexer" }
 zom_common = { path = "../zom_common" }
 
 inkwell.workspace = true
