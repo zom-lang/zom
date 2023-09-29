@@ -1,0 +1,29 @@
+[package]
+name = "zom"
+description = "Binary for the Zom Compiler."
+repository = "https://github.com/zom-lang/zom/tree/main/zom"
+
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+readme.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.3.0", features = ["derive", "cargo"] }
+
+inkwell.workspace = true
+
+zom_lexer.workspace = true
+zom_parser.workspace = true
+zom_common.workspace = true
+zom_codegen.workspace = true
+zom_compiler.workspace = true
+
+
+[features]
+default = ["llvm15-0"]
+llvm14-0 = ["inkwell/llvm14-0"]
+llvm15-0 = ["inkwell/llvm15-0"]
