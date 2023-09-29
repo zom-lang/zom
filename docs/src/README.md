@@ -1,17 +1,40 @@
-# Introduction
-**Zom is experimental and don't fully work yet.**
+> **Warning**
+> the compiler doesn't actually works, and even if it did, the Zom Language is highly experimental and shouldn't be used in production for now.
 
-⚡ Zom will be a safe system programming.
+# Introduction
+
+⚡ Zom, a safe system programming.
 
 I will highly appreciate your contribution on the Zom Project !
 
-## Feature / Goal
+## Features
 
-*This section is named "Feature / Goal" because some of the things listed
-isn't actually implemented*
+* **Safe**, using a system inspired by C++ *RAII* and Rust *OBRM*, like that everything is cleaned up when it needs.
+* **Comptime**, Zom doesn't have macros or preprocessor but compile-time execution of code without RT overhead.
+* **Pointers**, Zom have pointers, pointers with length at RT / comptime, to empower safety.
+* **Type as value**, Zom treat types as values so you define types like global variables, Zom handles generics by
+  passing type as argument; without runtime overhead.
 
-* **Safe**, using a system inspired by C++ *Resource Acquisition Is Initialization* and Rust *Ownership Based Ressource Management*.
-* **Compile-time**, instead of macros, Zom uses `comptime`-things, and that also replace generic types.
-* **Safe pointers, references**, inspired by Rust, Zom has references and a borrow checker.
-* **Non-std dependant**, Zom has (will have) a standard library but it won't be imported by default.
-* **Type as value**, Zom treat types as values so you define types kinda like global variables.
+## Examples
+
+* **Hello World!**
+
+```zom
+const print = @import("std")::debug::print;
+
+func main() void {
+  print("Hello world!");
+}
+```
+
+* **Recursive Fibonacci**
+
+```zom
+func fibonacci(n: u32) u32 {
+  if n <= 1 {
+    return n;
+  }
+  fibonacci(n - 1) + fibonacci(n - 2)
+}
+```
+
