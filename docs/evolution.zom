@@ -82,3 +82,40 @@ impl[T: ?Sized] Drop for Rc[T] {
 test "Rc creation" {
     // ...
 }
+
+// example of a function taking a function pointer.
+pub func map[T](list: []T, f: func (T) T) void {
+    //                        ^^^^^^^^^^ function pointer type
+    //                        takes an argument of type 'T' and returns of type 'T'
+    for e in &list {
+        *e = f();
+    }
+}
+
+test "map function" {
+    var list = {1, 2, 3, 4, 5};
+    //         ---------------
+    //         array / slice expression
+
+    map(list, [e] e * 2);
+    //        ^^^^^^^^^
+    //        closure expression,
+    //        arguments are in brackets, without types annoted, because types are in the type of the function pointer.
+    //        after the args, their is an expression, it can just be a simple expression or an block expression if more logic is needed.
+
+    // list = {2, 4, 6, 8, 10}
+
+    const hw: func(*const str, u32) = [name, fav_number] {
+        println("Hello {}! Your favorite number is {}  ", _{name, fav_number});
+        //                                                ^^^^^^^^^^^^^^^^^^^ anonymous struct => tuple
+    };
+
+    hb()
+}
+
+func println(comptime fmt: *const str, args: anytype = _{}) void {
+    //                                 --------------^^^^^ argument defaulted to a zero-sized, annonymous type.
+    //                                 Like that you can just call this function with `println("Hello world!")`
+    //                                 instead of `println("Hello world!", _{})`
+    // some compile-time logic, TODO: explain / write this function
+}
