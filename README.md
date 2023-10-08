@@ -12,6 +12,7 @@
 
 Zom is a Ahead Of Time compiled system programming language.
 
+<!--
 ## Features
 
 * **Safe**, using a system inspired by C++ *RAII* and Rust *OBRM*, Zom automatically clears data when they can't be accessed anymore.
@@ -96,7 +97,7 @@ impl(T) Drop for Rc(T) {
   }
 }
 ```
-
+-->
 ## Usage
 
 Not yet done, see [#42](https://github.com/zom-lang/zom/issues/42)
