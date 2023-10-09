@@ -45,18 +45,18 @@ the work by you shall be licensed as above, without any additional terms or cond
 [What is the Zom Project?]: #what-is-the-zom-project
 
 The Zom Project is a collection of projects,
-* the Zom Programming Language, the actual language.
-* the Compiler, the implementation of the Zom Programming Language.
-* the tree sitter zom parser (SOON)
-* the vscode extension
+* the [Zom Programming Language][Zom Repository], the actual language.
+* the [Compiler][Zom Repository], the implementation of the Zom Programming Language.
+* the [tree sitter zom](https://github.com/zom-lang/tree-sitter-zom) parser (SOON)
+* the [vscode extension](https://github.com/zom-lang/vscode-ext-zom)
 
 The Zom Toolchain refer to:
 * the Zom Compiler
-* tools of the Zom Compiler like,
- - a formatter,
- - a linter,
- - a language server
- - etc...
+* tools of the Zom Compiler like:
+  - a formatter,
+  - a linter,
+  - a language server
+  - etc...
 
 ## Code of Conduct
 [Code of Conduct]: #code-of-conduct
@@ -91,8 +91,8 @@ You found an idea to improve the language ? or the standard library ?
 * Is their unresolved questions ? What part of the design is not yet determined?
 
 **During the [issue]**
-> This part is not really consistent for the moment. In general, a bunch of discussion
-> and then your issue is closed or your feature is accepted.
+> This part is not really consistent and subject to change, for the moment.
+> In general, a bunch of discussion and then your issue is closed or your feature is accepted.
 * Discuss with contributor on part of the design that needs to be determined.
 * A bunch of discussions, if your idea is a good idea, if it fits in project mentality, etc..
 * At some point a contributor may start a poll if the idea is accepted
