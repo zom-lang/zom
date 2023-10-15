@@ -1,18 +1,12 @@
 //! Module responsible for parsing symbol, `const` and `var`.
 
-use core::ops::Range;
+use crate::prelude::*;
 
-use crate::expr::{parse_expr, Expr};
+use crate::expr::{parse_expr, Expr, Expression};
 use crate::types::{parse_type, Type};
-use crate::{err_et, expect_token, parse_try};
-use crate::{expr::Expression, impl_span};
 
-use crate::{ParserSettings, ParsingContext, PartParsingResult, PartParsingResult::*};
-
-use zom_common::error::Position;
-use zom_common::error::ZomError;
+// it's imported to disambiguate global imports of the prelude
 use zom_common::token::Operator;
-use zom_common::token::{Token, TokenType::*};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Symbol {

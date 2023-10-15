@@ -1,22 +1,15 @@
 //! This module parse function
 
-use std::{ops::Range, str::FromStr};
+use crate::prelude::*;
 
-use zom_common::token::{Str, Token};
+use std::str::FromStr;
 
-use crate::{err_et, expect_token, impl_span, parse_try, token_parteq, types::parse_type};
+use crate::types::parse_type;
 
 use super::{
     block::{parse_block, Block},
     types::Type,
-    ParserSettings, ParsingContext, PartParsingResult,
 };
-
-use self::PartParsingResult::*;
-
-use zom_common::token::{CloseParen, Colon, Comma, Ident, OpenBrace, OpenParen, SemiColon};
-
-use zom_common::error::{Position, ZomError};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Function {

@@ -1,14 +1,8 @@
 //! This module contains parsing for statements.
 
-use std::ops::Range;
+use crate::prelude::*;
 
-use zom_common::token::{Token, TokenType::*};
-
-use crate::{expr::parse_expr, impl_span, parse_try, symbol::parse_symbol};
-
-use super::{expr::Expression, symbol::Symbol, ParserSettings, ParsingContext, PartParsingResult};
-
-use crate::PartParsingResult::*;
+use crate::{expr::{parse_expr, Expression}, symbol::{parse_symbol, Symbol}};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Statement {

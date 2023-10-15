@@ -1,22 +1,13 @@
 //! This module contains the parsing for expressions.
 
-use std::ops::Range;
-
-use zom_common::error::Position;
-use zom_common::error::ZomError;
-use zom_common::token::Token;
-use zom_common::token::*;
-
-use crate::{err_et, expect_token, impl_span, parse_try, token_parteq};
+use crate::prelude::*;
 
 use self::Expr::*;
 
-use crate::PartParsingResult::*;
-
-use crate::PartParsingResult;
-
 use super::block::{parse_block_expr, Block};
-use super::{ParserSettings, ParsingContext};
+
+// it's imported to disambiguate global imports of the prelude
+use zom_common::token::Operator;
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Expression {

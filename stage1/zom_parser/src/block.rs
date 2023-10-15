@@ -1,20 +1,15 @@
-use std::ops::Range;
+//! Block statement parsing module.
 
-use zom_common::token::{Token, TokenType::*};
+use crate::prelude::*;
 
 use crate::{
-    err_et, expect_token, impl_span, parse_try,
     statement::{parse_statement, Stmt},
-    token_parteq,
 };
 
 use super::{
     expr::{Expr, Expression},
     statement::Statement,
-    ParserSettings, ParsingContext, PartParsingResult,
 };
-
-use crate::PartParsingResult::*;
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Block {

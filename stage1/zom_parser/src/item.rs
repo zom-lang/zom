@@ -1,20 +1,14 @@
 //! Module responsible for parsing items, function definition, function declaration or global symbols.
 
-use crate::parse_try;
+use crate::prelude::*;
+
 use crate::symbol::Symbol;
 use crate::CodeLocation;
-use crate::{err_et, function::Function};
+use crate::function::Function;
 
-use crate::PartParsingResult::*;
-use zom_common::token::{Token, TokenType::*};
-
-use core::ops::Range;
 
 use crate::symbol::parse_global_symbol;
-use crate::{
-    function::{parse_extern, parse_function},
-    ParserSettings, ParsingContext, PartParsingResult,
-};
+use crate::function::{parse_extern, parse_function};
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum Item {

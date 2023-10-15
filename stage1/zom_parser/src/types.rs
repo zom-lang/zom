@@ -1,16 +1,6 @@
 //! This module is responsible for the parsing of types.
 
-use std::ops::Range;
-
-use zom_common::token::Token;
-
-use crate::{err_et, expect_token, impl_span};
-
-use super::{ParserSettings, ParsingContext, PartParsingResult};
-
-use self::PartParsingResult::{Bad, Good, NotComplete};
-
-use zom_common::token::*;
+use crate::prelude::*;
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Type {

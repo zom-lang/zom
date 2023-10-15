@@ -16,6 +16,7 @@ pub mod block;
 pub mod expr;
 pub mod function;
 pub mod item;
+pub(crate) mod prelude;
 pub mod statement;
 pub mod symbol;
 pub mod types;
