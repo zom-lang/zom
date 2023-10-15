@@ -8,62 +8,124 @@
 [licence-badge]: https://img.shields.io/badge/License-%20Apache--2.0%20with%20LLVM--Exception-lightblue
 
 > **Warning**
-> the compiler doesn't actually works, and even if it did, the Zom Language is highly experimental and shouldn't be used in production for now.
+> the compiler doesn't actually works, and even if it did, the Zom Language is experimental and shouldn't be used in production for now.
 
-Zom is a Ahead Of Time compiled programming language, the code generation and compilation is made with LLVM.  
+Zom is a Ahead Of Time compiled system programming language.
 
-## Goals
+<!--
+## Features
 
-- **Ahead of Time** compiled programmaing language, that mean you will have great performance, because the transformation of the source code to assembly is done before. Contrary to Just In Time compilation who's occur at the same time as the execution.
-- **Statically typed**, Zom solves types at compile time, and not at run time.
-- **Performance**, because Zom is Ahead of Time compiled, all the hard work is done before the execution. And because Zom uses LLVM, a bunch of optimization is made at compile-time.
-- **Safety and Simplicity**, Zom is safe and simple at the same time, because it doesn't have a very strict design.
+* **Safe**, using a system inspired by C++ *RAII* and Rust *OBRM*, Zom automatically clears data when they can't be accessed anymore.
+* **Comptime**, Zom doesn't have macros or preprocessor but compile-time execution of code without RT overhead.
+* **Pointers**, Zom have pointers; slices, a pointer with a runtime length, and array, a pointer with length at compile-time, to empower safety.
+* **Type as value**, Zom treat types as values. You can pass type as argument to functions, 
 
+## Examples
+
+* **Hello World!**
+
+```zom
+const print = @import("std").debug.print;
+
+func main() void {
+  print("Hello world!");
+}
+```
+
+* **Recursive Fibonacci**
+
+```zom
+func fibonacci(n: u32) u32 {
+  if n <= 1 {
+    return n;
+  }
+  fibonacci(n - 1) + fibonacci(n - 2)
+}
+```
+
+* **Generics**
+
+*This code is experimental and doesn't actually works (and compile), it's just a proof of concept.*
+
+```zom
+/// Reference Counted Smart Pointer
+pub func Rc(T: type) type {
+  const RcInner = struct {
+    count: usize,
+    data: T,
+  };
+  return struct {
+    ptr: *RcInner,
+
+    /// Create an Rc for a Pointer
+    pub func from_ptr(ptr: *T) Self {
+      return Rc(T) {
+        ptr: _ {
+          count: 1,
+          ptr: *T
+        }
+      }
+    }
+
+    /// Increase the count of references to the data.
+    func increase_count(self: *Self) void {
+      self->ptr->count += 1;
+    }
+
+    /// Decrease the count of references to the data.
+    func decrease_count(self: *Self) void {
+      self->ptr->count -= 1;
+    }
+
+    /// Clone the Rc into a new Rc.
+    pub func clone(self: *Self) Self {
+      self->increase_count();
+      return Self {
+        ptr: self->ptr
+      }
+    }
+  }
+}
+
+/// Implementation of the trait 'Drop' for every Rc, because T is a generic expression.
+impl(T) Drop for Rc(T) {
+  func drop(self: Self) void {
+    (&self).decrease_count();
+    if self.ptr->count == 0 {
+      self.ptr->data.drop();
+    }
+  }
+}
+```
+-->
 ## Usage
 
-After [build](#build-zom) Zom, just run it and you will see that :
-```
-Usage: zom <COMMAND>
-
-Commands:
-  bobj        Builds a given file into an object file
-  version     Get the current version of Zom
-  get-target  Get the current target detected by LLVM
-  help        Print this message or the help of the given subcommand(s)
-
-Options:
-  -h, --help  Print help
-```
-
-There are
-
-- `bobj`, it's the contraction of `build an object`, this will transform the file passed in arguments and compiles it to an object file.
-- `version`, that output the current version of Zom
-- `get-target`, return the target found by LLVM.
+Not yet done, see [#42](https://github.com/zom-lang/zom/issues/42)
 
 ## Build Zom
 
-To build the source code of Zom, there are three steps :
-1. Clone the repository / download the source code
-2. Build with Cargo, in the root of the repository, `cargo build --all-targets --release`
-3. The binary, now is in `./target/release/zom`, you can put it in your binary folder, use it like that etc...
+**TODO, make a simple bash script**
+
 ## Source layout:
 ```
-Cargo.toml               - Manifest for Cargo workspace
+Cargo.toml               - Cargo Workspace Manifest
 
 NOTICE                   - NOTICE file for the Apache-2.0 license for Zom
 LICENSE                  - The Apache-2.0 license of Zom with LLVM-Exception.
 
+stage1/                  - Stage 1 of the compiler.
+       zomc/             - Zom Compiler Binary
+       zom_lexer/        - Lexer, transform the text input into a vector of Tokens.
+       zom_parser/       - Parser, transform a vector of Tokens into HLIR.
+       zom_common/       - Common, contains shared behavior between zom compiler packages.
+                          some content of this package may move to its own package
+       zom_errors/       - Errors, contains the error system, used to show pretty error messages.
+       zom_codegen/      - (DEPRECATED -> #44) Crate responsible for the generation of the LLVM IR.
+       zom_compiler/     - (DEPRECATED -> #44) Where the transformation of the LLVM IR to object files and then binary / lib.
 
-zom/                     - Binary for the Zom Compiler.
-zom_fe/                  - Crate where the lexer, parser, token list and AST are.
-zom_common/              - Common crate for Zom like, errors etc..
-zom_codegen/             - Crate responsible for the generation of the LLVM IR.
-zom_compiler/            - Where the transformation of the LLVM IR to object files and then binary / lib.
-
-docs/                    - The documentation of how Zom works
-docs/lang/               - The documentation of the Zom programming language
-docs/lang/000-readme.md  - Readme of the Zom Lang's doc
+docs/                    - Documentation of the Zom Project.
+docs/zomlang/            - Documentation of the Zom programming language.
+docs/compiler/           - Documentation of the Zom Compiler.
 ```
 
 ## License
@@ -77,7 +139,7 @@ This files may not be copied, modified, or distributed except according to those
 
 ## Contribution
 
-Feel free to contribute. For the moment there is a documentation but it needs to be improved.
+Feel free to contribute. For the moment there is a documentation but it needs to be improved #22.
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you shall be licensed as above, without any

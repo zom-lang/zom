@@ -1,306 +1,121 @@
-/* 
-This is an example code of Zom Code It is not very 
-usefull but that shows how it WILL probably work
- */
-//! test
-////////////////////////////////
-//       Import System        //
-////////////////////////////////
+//! A proof of concept of a Reference Counted smart pointer in Zom,
+//! it doesn't actually compiles but it shows which way the Zom Lang
+//! evolve. The standard library as showed in this file may not be
+//! like that in the future.
 
-const Error = @import("std")::error::Error;
-const sin = @import("std")::math::sin;
+// Imports, they are 'Import Item'
+import std.mem;
+import std.prelude.*;
 
-const _ = @import("std")::cffi::*; // This import all symbols of `std::c_ffi` with the original symbols names.
+// A struct with a generic 'T' that may not implement 'Sized'
+struct RcInner[T: ?Sized] {
+    count: usize,
+    value: T,
+}
 
-////////////////////////////////
-//    Function Declaration    //
-////////////////////////////////
-
-// Extern function with `C` calling convention
-extern "C" func power(num: c_int, pow: c_int) c_int;
-
-// Extern function with `winapi` calling convention
-extern "winapi" func foo(bar: u8) u8;
-
-////////////////////////////////
-//        Error System        //
-////////////////////////////////
-
-//
-// TODO: rethink the error handling system, for now it's confusing. The EH system, should be a zero cost abstraction.
-//
-
-/* A function that return a result, if there is no error, f64 is returned but if there is an error, Error is return. */
-func foo(bar: i32) f64 ?! Error {
-    /* `var` are variables, mutables. non mutable variables are `const` */
-    var x: i32 = (10 + 9) * bar;
-
-    if x >= 5 && is_greater_than(1, 2) {
-        printf("x is greater than 5");
-        return 1.3;
+// Implementation with generic 'T'
+impl[T: ?Sized] RcInner[T] {
+    func inc_count(*self) void {
+        self->count += 1;
     }
 
-    return Error::new("Error occurs", 1)!;
-}
-
-func main() void {
-    /* functions that returns Error with the `?!` operator can be call with the `try`
-       keyword, if there is no error, the expression is return but if there is an error,
-       the error is propagate. So the calling function needs also to have a return error, 
-       with the same type. In this case `func main() void ?! Error`.*/
-    var test: f64 = try foo(9);
-
-    const foo: bool = is_greater_than(1, 9);
-}
-
-////////////////////////////////
-//         Attributes         //
-////////////////////////////////
-
-// You can use attributes to tell the compiler how you want your code to behave.
-// Attributes can also be defined by programmers,
-@[inline]
-@[noMangle]
-func is_greater_than(a: i32, b: i32) bool {
-    /* It's a really dumb function but it's for demonstration of constant.language.values.zom */
-    if a > b {
-        return true;
-    } else {
-        return false;
+    func dec_count(*self) void {
+        self->count -= 1;
     }
 }
 
-////////////////////////////////
-//          Structs           //
-////////////////////////////////
+// Another struct with generic 'T' that may not implement 'Sized'.
+// This struct is publicly avalaible, you just need to import it.
+pub struct Rc[T: ?Sized] {
+    inner: *RcInner[T],
+}
 
-/* Structs are declared like that. And this function as a visibility of public, because there is `pub:`
-   before the declaration of the struct.  */
-pub: const Error = struct {
-    name: str,
-    code: u32,
-
-    func new(name: str, err_code: u32) Error {
-        Error {
-            name,
-            code = err_code,
+impl[T: ?Sized] Rc[T] {
+    pub func new(value: T) Self {
+        Self {
+            inner: &RcInner {
+                count: 1,
+                value: mem.alloc[T](),
+            },
+            alloc,
         }
     }
-};
 
-/* You can append structs, but you can only add child or functions,
-   It can be used to inheritance, add function to a type in a library.
-   You can only append structs that can be in your scope. 
-   Because there is `pub:` before you append it. */
-pub: Error += struct {
-    @child::Display: struct {
-        func fmt(&self) str {
-            /*                  |  here, the as() fuction takes a type in parameter and try to cast the type,
-                                |  from u32 to str, because it's at compile-time, you will have a compile 
-                                V  error, if that doesn't work. (NOT ACTUALLY SURE ABOUT THAT)*/
-            self.name + self.code.as(str)
+    // a public function that takes an argument named 'self' that is a pointer.
+    // '*self' is equivalent to 'self: *Self'.
+    pub func count(*self) usize {
+        return self->inner()->count
+    }
+}
+
+// Implementation of the trait 'Deref' for every Rc[T]
+impl[T: ?Sized] Deref for Rc[T] {
+    type Target = T;
+
+    func deref(*self) *Target {
+        &self->inner()->value
+    }
+}
+
+impl[T: ?Sized] Clone for Rc[T] {
+    func clone(*self) Self {
+        self->inner()->inc_count();
+        return Self {
+            inner: self->inner
         }
     }
-};
+}
 
-////////////////////////////////
-//           Enums            //
-////////////////////////////////
-
-/* this the declaration of an enum, you can add a public visibility with `pub:`,
-   you can specify the type of the ordinal value, it can only be an integer litteral (i8, i16, i32, i64, i128, u8, u16, u32, u64, u128)
-   you can override the ordinal value for an enum (like Success, Failure or FileNotFound)
-   or you can let the compiler choose for you (like UnknownFile) */
-@[repr(u8)]
-pub: const ExitStatus = enum {
-    Success = 0,
-    Failure = 1,
-    FileNotFound = 100,
-    UnknownFile,
-};
-
-////////////////////////////////
-//  Union-enum (NEED REMAKE)  //
-////////////////////////////////
-
-/* You can declare unions. It's kinda like enums but it can store memory. 
-   The size of an union is the size of the largest thing it stores. */
-pub: const Token = enum {
-    /* Union can have zero type stores, like that, */
-    RParen,
-    /* You can also override the ordinal value */
-    LParen = 9,
-    /* Or a single type */
-    Op: str,
-    /* Or a struct. */
-    BinaryOp: struct {
-        left: u8,
-        op: str,
-        right: u8,
-    },
-    /* Or an enum */
-    Status: enum {
-        Ok,
-        Warning,
-        Bad,
-        Failure,
-        Critical,
-    }
-};
-
-////////////////////////////////
-//   Modules (NEED REMAKE)    //
-////////////////////////////////
-
-/* A sub module from a file, in this case `sub_module` */
-pub: const mod_from_file = module "sub_module";
-
-pub: const mod_in_same_file = module {
-    func foo_bar() str {
-        "foo bar"
-    }
-};
-
-////////////////////////////////
-//       Schemes (idk)        //
-////////////////////////////////
-
-/* The same thing as `@comptimeFuncAddition` but a better way I think, because, see the next example. */
-pub: scheme @addition {
-    ($a:expr, $b:expr): {
-        $a + $b
-    },
-    /* It's possible to have multiple implementation of the same scheme. */
-    ($a:expr, $b:expr, $c:expr): {
-        $a + $b + $c
+// This trait is kinda special, it's called when a variable doesn't live anymore
+// inspired by C++ RAII and Rust OBRM.
+impl[T: ?Sized] Drop for Rc[T] {
+    func drop(*self) void {
+        self->inner->dec_count();
+        if self->count() == 0 {
+            // No more references, free the object
+            mem.free[T](self->deref());
+        }
     }
 }
 
-/* In this example, a vector is created an is filled with args passed, like so :
-   `@vec[1, 2, 3, 4, 5, 6, 7]` */
-pub: scheme @vec {
-    [ $($a:expr),* ]: {
-        var vec = Vec::new();
-        $(
-            vec.push($a);
-        )
-        vec
-    }
-}
-
-/* Or in this one, a function to directly add assembly in the 
-   scope that this schematic is called. like so :
-   ```zom
-   @asm{ 
-    lea 0x7b(%rdi),%eax
-    ret
-   }
-   ``` */
-pub: scheme @asm {
-    { $($operand)* $( $($option),* )? } : {
-        /* compiler built-in */
-    }
-}
-
-/* Pros of this system are :
-    - non depandant on std or core libraries
-    - more flexible
-    - allow variadic number of args
-    - allow optional fields.
-    - allow multiple brackets : () [] {}
-    - allow many separators, like  . , - : ; / |
-  Cons of this system :
-    - complex */
-
-////////////////////////////////
-//  Comptime consts & block   //
-////////////////////////////////
-
-// A `comptime` constant is a constant replaced in the code at compile time,
-// it can be used to add a name to a magic value.
-comptime OFFSET_FOO_BAR: u32 = 10;
-
-comptime {
-    // A block of code executed at compile time.
-    // with the same target as the code gets compiled to.
-}
-
-////////////////////////////////
-//       Packed structs       //
-////////////////////////////////
-
-const testPacked = packed struct {
+// this is a test, it's like a function, it's called when it's build in test mode.
+test "Rc creation" {
     // ...
 }
 
-// A `packed` struct is like the keyword `packed` in LLVM, it's a struct where the size is the size of all fields without any padding / offset. (I think ..)
-
-////////////////////////////////
-//        Doc-comments        //
-////////////////////////////////
-
-
-/// Simple doc comment
-/// :)
-func foo(bar: i32) void { /* ... */ }
-
-////////////////////////////////
-//     Undefined & arrays     //
-////////////////////////////////
-
-func foo() void {
-    var test: u32 = undefined; // test is undefined you can use it because the compiler will throw a compile-time error. 
-    // If you define a var / const with `undefined`, you must annotate the type.
-
-    const array: u32[5] = [0, 1, 2, 3, 4]; // A known-size array of type `u32`
-    // access of an element :
-    @println("zero : {}", array[0]);
-
-    const arr2: u32[_] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; // The compiler will find out at compile time the length of the known-size array.
-
-    const nested_array: u32[2][2] = [[1, 2], [3, 4]]; // A two-dimensional known-size array.
-    // access of an element in two dimensional array :
-    @println("three : {}", array[1][0]);
-
-    var slice: &u32[] = &[1, 2, 3, 4, 5]; // because a slice doesn't have a compile-time known size, You must borrow it or store it into the heap. size of 5 * u32 (some padding maybe added by LLVM but the principle is here)
-    // to access an element, it's the same as for arrays:
-    @println("one : {}", array[0]);
-
-    // because it's length is known at runtime you can change (if it's in a var) the content and the size :
-    slice = &[6, 5, 4, 3, 2, 1]; // -> size of 6 * u32
+// example of a function taking a function pointer.
+pub func map[T](list: []T, f: func (T) T) void {
+    //                        ^^^^^^^^^^ function pointer type
+    //                        takes an argument of type 'T' and returns of type 'T'
+    for e in &list {
+        *e = f();
+    }
 }
 
-////////////////////////////////
-//  Comptime type in struct   //
-////////////////////////////////
+test "map function" {
+    var list = {1, 2, 3, 4, 5};
+    //         ---------------
+    //         array / slice expression
 
-/// Struct with a generic-like type, T. A comptime type.
-const FooBarBaz = struct {
-    comptime T: type,
-    where
-        T: 'static // We can constrain what T can be
-    foo: T,
-    bar: T,
-    baz: T,
+    map(list, [e] e * 2);
+    //        ^^^^^^^^^
+    //        closure expression,
+    //        arguments are in brackets, without types annoted, because types are in the type of the function pointer.
+    //        after the args, their is an expression, it can just be a simple expression or an block expression if more logic is needed.
+
+    // list = {2, 4, 6, 8, 10}
+
+    const hw: func(*const str, u32) = [name, fav_number] {
+        println("Hello {}! Your favorite number is {}  ", _{name, fav_number});
+        //                                                ^^^^^^^^^^^^^^^^^^^ anonymous struct => tuple
+    };
+
+    hb()
 }
 
-////////////////////////////////
-//Explicit lifetime in structs//
-////////////////////////////////
-
-
-/// Struct with explicit life time when the borrow checker can't figure out the lifetimes :
-const List = struct {
-    lifetime a: Self, // where after the colon is the scope of the lifetime, you can use the `Self`
-                      // type (current type in a struct definition) to tell the borrow checker the
-                      // `child`'s reference will live like the List struct.
-
-    value: u32,
-    child: &'a List,
-}
-
-/// Struct with explicit life time when the borrow checker can't figure out the lifetimes :
-const List = 'a: struct {
-    value: u32,
-    child: &'a List,
+func println(comptime fmt: *const str, args: anytype = _{}) void {
+    //                                 --------------^^^^^ argument defaulted to a zero-sized, annonymous type.
+    //                                 Like that you can just call this function with `println("Hello world!")`
+    //                                 instead of `println("Hello world!", _{})`
+    // some compile-time logic, TODO: explain / write this function
 }
