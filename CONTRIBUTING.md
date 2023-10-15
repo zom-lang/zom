@@ -151,9 +151,9 @@ Then you would probably want to contribute to the Zom Codebase.
 
 **Before a code contribution**
 * Have you ever program with the Zom Programming Language?
-  It is recommanded to before contributing to the compiler.
+  It is recommanded to before contributing to the toolchain.
 * Do you have the skills necessary to contribute?
-* Do you know Rust, C++ and LLVM? It is mendatory to contribute to make a code contribution.
+* Do you know Rust, C++ or LLVM? It is mandatory to know at least one for a code contribution.
 * Have you read all [the documentation of the compiler](compiler/)?
 
 **First code contribution**
@@ -164,7 +164,7 @@ Then you would probably want to contribute to the Zom Codebase.
          `fix/ice-1234` -> Internal Compiler Error, issue no. 1234
          `fix/out-of-bounds-1234` -> Out of bounds etc etc..
 * Make good commits<br/>
-  *e.g:* - `update stage1/zom_parser/src/lib.rs`, ❌ -> not enough details<br/>
+  *e.g:* - `update stage1/zom_parser/src/lib.rs`, ❌ -> not enough details and path is useless<br/>
          - `fix error #NNN + cleanup some code in the parser + fix ICE #NNN + update the email in the README`,
             ❌ -> don't make thousand **different** changes in one commit, make multiples commits.
          - don't make little commits / too many commits, it's useless and more practical to have one commit of
@@ -182,7 +182,6 @@ Then you would probably want to contribute to the Zom Codebase.
 **During the [PR]**
 * Your PR will then receive some labels and one or more reviewer(s) (or it will be asked for someone to review your code)
 * Your PR will be [reviewed][Review Code]
-* Make changes asked by the reviewers and the community
 * Then it could be merged:
   - If your PR is a bug fix, the code is well written, your PR would probably quickly be merged
   - If your PR is related to a feature request,
@@ -195,7 +194,34 @@ Then you would probably want to contribute to the Zom Codebase.
 You've seen some part of the documentation that are marked as 'TODO' and probably know what would be here? Or
 you've seen an [issue] or [PR] asking for the documentation to be ajusted accordingly?
 
-> **TODO** Wrote this part of the contribution guidelines.
+**Before a doc contribution**
+* Have you ever program with the Zom Programming Language?
+  It is recommanded to before contributing to the documentation.
+* Do you have the skills necessary to contribute?
+* Do you know Rust, C++ or LLVM? It is mandatory to know at least one for a code contribution.
+* Have you read all [the documentation of the compiler](compiler/)?
+
+**First doc contribution**
+* Fork the [Zom Repository]
+* Make sur you have the necessary dependencies, package and tools, then clone your fork to your computer.
+* Create a branch, that shortly describe what you're documenting,
+  *e.g:* `docs/goto-statement` -> Documenting the goto statement
+         `docs/zom_lexer-make_tokens` -> Documenting the `make_tokens` function of `zom_lexer`
+         `docs/zom_parser-expr` -> Documenting some parts of the code inside the `zom_parser` crate and `expr` module.
+* While writing the docs, doesn't use too much or no, word contractions.
+* Make good commits<br/>
+  *e.g:* - `documenting`, ❌ -> not enough details<br/>
+         - don't make little commits / too many commits, it's use more practical to have one commit ofless and
+           the same changes instead of multiple little commits.
+         - `documenting the goto statement parsing function`, ✅ -> good<br/>
+         - `documenting variadic arguments of Zom Lang.`, ✅ -> good<br/>
+* Push to your fork
+* Open a [pull request][pr]
+
+**During the [PR]**
+* Your PR will then receive some labels, at least the `documentation` label, and one or more reviewer(s)
+* Your PR will be [reviewed][Review Code], check if their are no spelling mistake(s) or typo issues.
+* Then when your [PR] will be reviewed and approved, it will be merged.
 
 ### Review code
 [Review code]: #review-code
