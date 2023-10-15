@@ -1,0 +1,23 @@
+[package]
+name = "zom_parser"
+description = "Zom crate, where the lexer, parser, token list and AST are."
+repository = "https://github.com/zom-lang/zom/tree/main/zom_fe"
+
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+zom_common.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+zom_lexer.workspace = true
+
+[[bench]]
+name = "lexer_bench"
+harness = false
+
