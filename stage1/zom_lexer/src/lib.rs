@@ -189,13 +189,13 @@ impl<'a> Lexer<'a> {
     /// And if the TokenType is a EOF it returns true, either false.
     fn push_token(&self, tokens: &mut Vec<Token>, tt: TokenType, start: usize) -> bool {
         if tt == EOF {
-            let text_len = self.file_text().len();
+            let text_len = self.file_text().len() - 1;
             // the length of the buffer is used for the span of the EOF, because
             // the EOF is the last char and its 'text_len..text_len' because if for
             // some reason we want to show the EOF in an error we can.
             tokens.push(Token {
                 tt,
-                span: text_len..text_len,
+                span: text_len - 1..text_len,
             });
             return true;
         }
@@ -221,6 +221,7 @@ impl<'a> Lexer<'a> {
             Some(':') => Colon,
             Some(',') => Comma,
             Some('@') => At,
+            Some('.') => Dot,
             Some('/') => {
                 self.pop();
                 match self.peek() {
@@ -509,8 +510,8 @@ impl<'a> Lexer<'a> {
                     ('>', '=') => (CompGTE, 2),
                     ('=', '=') => (CompEq, 2),
                     ('!', '=') => (CompNe, 2),
-                    ('&', '&') => (LogicAnd, 2),
-                    ('|', '|') => (LogicOr, 2),
+                    ('&', '&') => (And, 2),
+                    ('|', '|') => (Or, 2),
                     ('*', ..) => (Mul, 1),
                     ('/', ..) => (Div, 1),
                     ('%', ..) => (Rem, 1),
@@ -518,11 +519,9 @@ impl<'a> Lexer<'a> {
                     ('-', ..) => (Sub, 1),
                     ('<', ..) => (CompLT, 1),
                     ('>', ..) => (CompGT, 1),
-                    ('&', ..) => (BitAnd, 1),
-                    ('^', ..) => (BitXor, 1),
-                    ('|', ..) => (BitOr, 1),
-                    ('~', ..) => (BitNot, 1),
-                    ('!', ..) => (LogicNot, 1),
+                    ('^', ..) => (Xor, 1),
+                    ('!', ..) => (Not, 1),
+                    ('&', ..) => (AddrOf, 1),
                     ('=', ..) => (Equal, 1),
                     _ => return None,
                 };

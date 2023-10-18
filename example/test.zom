@@ -2,13 +2,8 @@ const test2 = 123;
 
 func fourteen() u8 {
     const test1 = undefined;
-    var test2: usize = 2;
+    var test2: usize = !&2;
 
-    if (test1 == 1) return 12 else return 13;
-
-    if a == b {} else if a <= b { } else { }
-
-    a = (9 >> 8 / 9 ) >= 2;
     return a;
 }
 

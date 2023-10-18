@@ -10,15 +10,15 @@ use std::{
 
 pub use TokenType::*;
 
-/// Mul, `*`
+/// Multiply, `*`
 pub const OP_MUL: &str = "*";
-/// Div, `/`
+/// Divide, `/`
 pub const OP_DIV: &str = "/";
 /// Remainder, `%`
 pub const OP_REM: &str = "%";
-/// Plus, `+`
+/// Addition, `+`
 pub const OP_ADD: &str = "+";
-/// Minus, `-`
+/// Subtraction, `-`
 pub const OP_SUB: &str = "-";
 /// Right shift, `>>`
 pub const OP_RSHIFT: &str = ">>";
@@ -38,40 +38,25 @@ pub const OP_COMP_EQ: &str = "==";
 /// Compare Non-Equality, `!=`
 pub const OP_COMP_NE: &str = "!=";
 
-/// Bitwise AND, `&`
-pub const OP_BIT_AND: &str = "&";
-/// Bitwise XOR, `&`
-pub const OP_BIT_XOR: &str = "^";
-/// Bitwise OR, `|`
-pub const OP_BIT_OR: &str = "|";
-/// Bitwise NOT, `~`
-pub const OP_BIT_NOT: &str = "~";
+/// XOR, `^`
+pub const OP_XOR: &str = "^";
+/// AND, `&&`
+pub const OP_AND: &str = "&&";
+/// OR, `||`
+pub const OP_OR: &str = "||";
+/// NOT, `!`
+pub const OP_NOT: &str = "!";
 
-/// Logical AND, `&&`
-pub const OP_LOGIC_AND: &str = "&&";
-/// Logical OR, `||`
-pub const OP_LOGIC_OR: &str = "||";
-/// Logical NOT, `!`
-pub const OP_LOGIC_NOT: &str = "!";
+/// Address Of, `&`
+pub const OP_ADDR_OF: &str = "&";
 
 /// Simple assignement, `=`,
 pub const OP_EQ: &str = "=";
 
-/// Borrow, `&` can be followed by the keyword `var`
-/// for var borrow, (alias for OP_BIT_AND)
-pub const OP_BORROW: &str = OP_BIT_AND;
-/// Dereferencing, `*`, (alias of OP_MUL)
-pub const OP_DEREF: &str = OP_MUL;
-
-/// Minus, `-` (unary), (alias of OP_SUB)
-pub const OP_MINUS: &str = OP_SUB;
-/// Plus, `+` (unary), (alias of OP_ADD)
-pub const OP_PLUS: &str = OP_ADD;
-
 pub const OP_MAX_LENGHT: usize = 2;
 
 /// List of unique operators (contains no aliases)
-pub const OPERATORS: [&str; 21] = [
+pub const OPERATORS: [&str; 19] = [
     OP_MUL,
     OP_DIV,
     OP_REM,
@@ -85,13 +70,11 @@ pub const OPERATORS: [&str; 21] = [
     OP_COMP_GTE,
     OP_COMP_EQ,
     OP_COMP_NE,
-    OP_BIT_AND,
-    OP_BIT_XOR,
-    OP_BIT_OR,
-    OP_BIT_NOT,
-    OP_LOGIC_AND,
-    OP_LOGIC_OR,
-    OP_LOGIC_NOT,
+    OP_AND,
+    OP_OR,
+    OP_XOR,
+    OP_NOT,
+    OP_ADDR_OF,
     OP_EQ,
 ];
 
@@ -110,13 +93,11 @@ pub enum Operator {
     CompGTE,
     CompEq,
     CompNe,
-    BitAnd,
-    BitXor,
-    BitOr,
-    BitNot,
-    LogicAnd,
-    LogicOr,
-    LogicNot,
+    And,
+    Or,
+    Xor,
+    Not,
+    AddrOf,
     Equal,
 }
 
@@ -139,14 +120,12 @@ impl Display for Operator {
             CompEq => OP_COMP_EQ,
             CompNe => OP_COMP_NE,
 
-            BitAnd => OP_BIT_AND,
-            BitXor => OP_BIT_XOR,
-            BitOr => OP_BIT_OR,
-            BitNot => OP_BIT_NOT,
+            And => OP_AND,
+            Or => OP_OR,
+            Xor => OP_XOR,
+            Not => OP_NOT,
 
-            LogicAnd => OP_LOGIC_AND,
-            LogicOr => OP_LOGIC_OR,
-            LogicNot => OP_LOGIC_NOT,
+            AddrOf => OP_ADDR_OF,
 
             Equal => OP_EQ,
         };
@@ -175,14 +154,10 @@ impl FromStr for Operator {
             OP_COMP_EQ => Ok(CompEq),
             OP_COMP_NE => Ok(CompNe),
 
-            OP_BIT_AND => Ok(BitAnd),
-            OP_BIT_XOR => Ok(BitXor),
-            OP_BIT_OR => Ok(BitOr),
-            OP_BIT_NOT => Ok(BitNot),
-
-            OP_LOGIC_AND => Ok(LogicAnd),
-            OP_LOGIC_OR => Ok(LogicOr),
-            OP_LOGIC_NOT => Ok(LogicNot),
+            OP_AND => Ok(And),
+            OP_OR => Ok(Or),
+            OP_XOR => Ok(Xor),
+            OP_NOT => Ok(Not),
 
             OP_EQ => Ok(Equal),
             op => Err(format!("unknown binary operator `{}`", op)),
@@ -202,18 +177,16 @@ pub const PR_SHIFT: i32 = 9;
 pub const PR_COMP: i32 = 8;
 /// Operator Precedence Value for Eq Ne
 pub const PR_COMP_EQ_NE: i32 = 7;
-/// Operator Precedence Value for Bit And
-pub const PR_BIT_AND: i32 = 6;
-/// Operator Precedence Value for Bit Xor
-pub const PR_BIT_XOR: i32 = 5;
-/// Operator Precedence Value for Bit Or
-pub const PR_BIT_OR: i32 = 4;
-/// Operator Precedence Value for Logic And
-pub const PR_LOGIC_AND: i32 = 3;
-/// Operator Precedence Value for Logic Or
-pub const PR_LOGIC_OR: i32 = 2;
+/// Operator Precedence Value for Xor
+pub const PR_XOR: i32 = 5;
+/// Operator Precedence Value for And
+pub const PR_AND: i32 = 3;
+/// Operator Precedence Value for Or
+pub const PR_OR: i32 = 2;
 /// Operator Precedence Value for Equal
 pub const PR_EQ: i32 = 1;
+
+// KEYWORDS
 
 /// const for the keyword `func`
 pub const KW_FUNC: &str = "func";
@@ -307,6 +280,7 @@ pub enum TokenType {
     SemiColon, // ` ; `
     Comma,     // ` , `
     At,        // ` @ `
+    Dot,       // ` . `
 
     // Literals
     Int(i32),
@@ -373,6 +347,7 @@ impl Display for TokenType {
             SemiColon => write!(f, "`;`"),
             Comma => write!(f, "`,`"),
             At => write!(f, "`@`"),
+            Dot => write!(f, "`.`"),
 
             Int(_) => write!(f, "integer literral"),
             Float(_) => write!(f, "float literral"),

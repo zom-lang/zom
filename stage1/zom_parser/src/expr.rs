@@ -38,6 +38,10 @@ pub enum Expr {
         sc_need: bool,
     },
     ReturnExpr(Option<Box<Expression>>),
+    PreUnary {
+        unary_op: UnaryOperator,
+        expr: Box<Expression>,
+    },
 }
 
 impl Expression {
@@ -71,6 +75,9 @@ pub fn parse_primary_expr(
         Some(Token { tt: Undefined, .. }) => parse_undefined_expr(tokens, settings, context),
         Some(Token { tt: If, .. }) => parse_conditional_expr(tokens, settings, context),
         Some(Token { tt: Return, .. }) => parse_return(tokens, settings, context),
+        Some(Token {
+            tt: Operator(_), ..
+        }) => parse_unary_expr(tokens, settings, context),
         None => NotComplete,
         _ => err_et!(
             context,
@@ -243,8 +250,9 @@ pub enum BinOperator {
     CompGTE,
     CompEq,
     CompNe,
-    LogicAnd,
-    LogicOr,
+    And,
+    Or,
+    Xor,
     Equal,
 }
 
@@ -266,10 +274,11 @@ impl TryFrom<Operator> for BinOperator {
             Operator::CompGTE => BinOperator::CompGTE,
             Operator::CompEq => BinOperator::CompEq,
             Operator::CompNe => BinOperator::CompNe,
-            Operator::LogicAnd => BinOperator::LogicAnd,
-            Operator::LogicOr => BinOperator::LogicOr,
+            Operator::And => BinOperator::And,
+            Operator::Or => BinOperator::Or,
+            Operator::Xor => BinOperator::Xor,
             Operator::Equal => BinOperator::Equal,
-            _ => panic!("This is not a binary operator")
+            _ => panic!("This is not a binary operator"),
         })
     }
 }
@@ -294,12 +303,14 @@ pub fn parse_binary_expr(
     {
         let bin_op = match BinOperator::try_from(op.clone()) {
             Ok(v) => v,
-            Err(_) => return err_et!(
-                context,
-                tokens.last().unwrap(),
-                Vec::<TokenType>::new(),
-                tokens.last().unwrap().tt
-            )
+            Err(_) => {
+                return err_et!(
+                    context,
+                    tokens.last().unwrap(),
+                    Vec::<TokenType>::new(),
+                    tokens.last().unwrap().tt
+                )
+            }
         };
         let (operator, precedence) = match settings.bin_op_pr.get(&bin_op) {
             Some(pr) if *pr >= expr_precedence => (bin_op.clone(), *pr),
@@ -328,12 +339,14 @@ pub fn parse_binary_expr(
         {
             let bin_op = match BinOperator::try_from(op) {
                 Ok(v) => v,
-                Err(_) => return err_et!(
-                    context,
-                    tokens.last().unwrap(),
-                    Vec::<TokenType>::new(),
-                    tokens.last().unwrap().tt
-                )
+                Err(_) => {
+                    return err_et!(
+                        context,
+                        tokens.last().unwrap(),
+                        Vec::<TokenType>::new(),
+                        tokens.last().unwrap().tt
+                    )
+                }
             };
             let binary_rhs = match settings.bin_op_pr.get(&bin_op).copied() {
                 Some(pr) if pr > precedence => {
@@ -567,6 +580,72 @@ pub fn parse_return(
     Good(
         Expression {
             expr: ReturnExpr(expr),
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+/// Pre-Unary-Operator enum.
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+pub enum UnaryOperator {
+    AddrOf,
+    Not,
+}
+
+pub fn parse_unary_expr(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Expression> {
+    let mut parsed_tokens = vec![];
+
+    let op = expect_token!(
+        context,
+        [Operator(op), Operator(op.clone()), op] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![Operator(Operator::Add)],
+            tokens.last().unwrap().tt
+        )
+    );
+
+    let start = parsed_tokens.last().unwrap().span.start;
+
+    let unary_op = match op {
+        Operator::Not => UnaryOperator::Not,
+        Operator::AddrOf => UnaryOperator::AddrOf,
+        op => {
+            return Bad(ZomError::new(
+                Position::try_from_range(
+                    context.pos,
+                    parsed_tokens.last().unwrap().span.clone(),
+                    context.source_file.clone(),
+                    context.filename.clone().into(),
+                ),
+                format!("not a post unary operator, {}", op),
+                false,
+                None,
+                vec![],
+            ))
+        }
+    };
+
+    let expr = Box::new(parse_try!(
+        parse_expr,
+        tokens,
+        settings,
+        context,
+        parsed_tokens
+    ));
+
+    let end = parsed_tokens.last().unwrap().span.end;
+
+    Good(
+        Expression {
+            expr: PreUnary { unary_op, expr },
             span: start..end,
         },
         parsed_tokens,

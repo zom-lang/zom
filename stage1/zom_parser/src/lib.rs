@@ -123,7 +123,7 @@ pub struct ParserSettings {
 
 impl Default for ParserSettings {
     fn default() -> Self {
-        use crate::expr::{BinOperator::*};
+        use crate::expr::BinOperator::*;
         let mut bin_op_pr = HashMap::with_capacity(16);
 
         bin_op_pr.insert(Mul, PR_MUL_DIV_REM);
@@ -144,8 +144,9 @@ impl Default for ParserSettings {
         bin_op_pr.insert(CompEq, PR_COMP_EQ_NE);
         bin_op_pr.insert(CompNe, PR_COMP_EQ_NE);
 
-        bin_op_pr.insert(LogicAnd, PR_LOGIC_AND);
-        bin_op_pr.insert(LogicOr, PR_LOGIC_OR);
+        bin_op_pr.insert(And, PR_AND);
+        bin_op_pr.insert(Or, PR_OR);
+        bin_op_pr.insert(Xor, PR_XOR);
 
         bin_op_pr.insert(Equal, PR_EQ);
 
