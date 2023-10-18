@@ -4,7 +4,7 @@ use crate::prelude::*;
 
 use self::Expr::*;
 
-use super::block::{parse_block_expr, Block};
+use crate::block::{parse_block_expr, Block};
 
 // it's imported to disambiguate global imports of the prelude
 use zom_common::token::Operator;
@@ -22,7 +22,7 @@ pub enum Expr {
     LiteralExpr(i32),
     VariableExpr(String),
     BinaryExpr {
-        op: Operator,
+        op: BinOperator,
         lhs: Box<Expression>,
         rhs: Box<Expression>,
     },
@@ -228,6 +228,52 @@ pub fn parse_expr(
     Good(expr, parsed_tokens)
 }
 
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+pub enum BinOperator {
+    Mul,
+    Div,
+    Rem,
+    Add,
+    Sub,
+    RShift,
+    LShift,
+    CompLT,
+    CompGT,
+    CompLTE,
+    CompGTE,
+    CompEq,
+    CompNe,
+    LogicAnd,
+    LogicOr,
+    Equal,
+}
+
+impl TryFrom<Operator> for BinOperator {
+    type Error = ();
+
+    fn try_from(op: Operator) -> Result<Self, Self::Error> {
+        Ok(match op {
+            Operator::Mul => BinOperator::Mul,
+            Operator::Div => BinOperator::Div,
+            Operator::Rem => BinOperator::Rem,
+            Operator::Add => BinOperator::Add,
+            Operator::Sub => BinOperator::Sub,
+            Operator::RShift => BinOperator::RShift,
+            Operator::LShift => BinOperator::LShift,
+            Operator::CompLT => BinOperator::CompLT,
+            Operator::CompGT => BinOperator::CompGT,
+            Operator::CompLTE => BinOperator::CompLTE,
+            Operator::CompGTE => BinOperator::CompGTE,
+            Operator::CompEq => BinOperator::CompEq,
+            Operator::CompNe => BinOperator::CompNe,
+            Operator::LogicAnd => BinOperator::LogicAnd,
+            Operator::LogicOr => BinOperator::LogicOr,
+            Operator::Equal => BinOperator::Equal,
+            _ => panic!("This is not a binary operator")
+        })
+    }
+}
+
 pub fn parse_binary_expr(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
@@ -246,8 +292,17 @@ pub fn parse_binary_expr(
         span: _,
     }) = tokens.last()
     {
-        let (operator, precedence) = match settings.operator_precedence.get(op) {
-            Some(pr) if *pr >= expr_precedence => (op.clone(), *pr),
+        let bin_op = match BinOperator::try_from(op.clone()) {
+            Ok(v) => v,
+            Err(_) => return err_et!(
+                context,
+                tokens.last().unwrap(),
+                Vec::<TokenType>::new(),
+                tokens.last().unwrap().tt
+            )
+        };
+        let (operator, precedence) = match settings.bin_op_pr.get(&bin_op) {
+            Some(pr) if *pr >= expr_precedence => (bin_op.clone(), *pr),
             None => {
                 return err_et!(
                     context,
@@ -267,11 +322,20 @@ pub fn parse_binary_expr(
         // parse all the RHS operators until their precedence is
         // bigger than the current one
         while let Some(Token {
-            tt: Operator(ref op),
+            tt: Operator(op),
             span: _,
         }) = tokens.last().cloned()
         {
-            let binary_rhs = match settings.operator_precedence.get(op).copied() {
+            let bin_op = match BinOperator::try_from(op) {
+                Ok(v) => v,
+                Err(_) => return err_et!(
+                    context,
+                    tokens.last().unwrap(),
+                    Vec::<TokenType>::new(),
+                    tokens.last().unwrap().tt
+                )
+            };
+            let binary_rhs = match settings.bin_op_pr.get(&bin_op).copied() {
                 Some(pr) if pr > precedence => {
                     parse_try!(
                         parse_binary_expr,

@@ -3,14 +3,11 @@
 //! It is entirely made for Zom, without using dependencies.
 
 use std::collections::HashMap;
-use std::ops::Range;
 
-use zom_common::error::ZomError;
-use zom_common::token::Token;
-use zom_common::token::*;
+use crate::expr::BinOperator;
+use crate::prelude::*;
 
 use self::item::{parse_item, Item};
-use PartParsingResult::*;
 
 pub mod block;
 pub mod expr;
@@ -121,46 +118,38 @@ macro_rules! err_et(
 #[derive(Debug)]
 pub struct ParserSettings {
     /// Binary operator precedence
-    operator_precedence: HashMap<Operator, i32>,
+    bin_op_pr: HashMap<BinOperator, i32>,
 }
 
 impl Default for ParserSettings {
     fn default() -> Self {
-        use zom_common::token::{Operator::*, *};
-        let mut operator_precedence = HashMap::with_capacity(19);
+        use crate::expr::{BinOperator::*};
+        let mut bin_op_pr = HashMap::with_capacity(16);
 
-        // Setup Operator Precedence according to the documentation
+        bin_op_pr.insert(Mul, PR_MUL_DIV_REM);
+        bin_op_pr.insert(Div, PR_MUL_DIV_REM);
+        bin_op_pr.insert(Rem, PR_MUL_DIV_REM);
 
-        operator_precedence.insert(Mul, PR_MUL_DIV_REM);
-        operator_precedence.insert(Div, PR_MUL_DIV_REM);
-        operator_precedence.insert(Rem, PR_MUL_DIV_REM);
+        bin_op_pr.insert(Add, PR_ADD_SUB);
+        bin_op_pr.insert(Sub, PR_ADD_SUB);
 
-        operator_precedence.insert(Add, PR_ADD_SUB);
-        operator_precedence.insert(Sub, PR_ADD_SUB);
+        bin_op_pr.insert(RShift, PR_SHIFT);
+        bin_op_pr.insert(LShift, PR_SHIFT);
 
-        operator_precedence.insert(RShift, PR_SHIFT);
-        operator_precedence.insert(LShift, PR_SHIFT);
+        bin_op_pr.insert(CompLT, PR_COMP);
+        bin_op_pr.insert(CompGT, PR_COMP);
+        bin_op_pr.insert(CompLTE, PR_COMP);
+        bin_op_pr.insert(CompGTE, PR_COMP);
 
-        operator_precedence.insert(CompLT, PR_COMP);
-        operator_precedence.insert(CompGT, PR_COMP);
-        operator_precedence.insert(CompLTE, PR_COMP);
-        operator_precedence.insert(CompGTE, PR_COMP);
+        bin_op_pr.insert(CompEq, PR_COMP_EQ_NE);
+        bin_op_pr.insert(CompNe, PR_COMP_EQ_NE);
 
-        operator_precedence.insert(CompEq, PR_COMP_EQ_NE);
-        operator_precedence.insert(CompNe, PR_COMP_EQ_NE);
+        bin_op_pr.insert(LogicAnd, PR_LOGIC_AND);
+        bin_op_pr.insert(LogicOr, PR_LOGIC_OR);
 
-        operator_precedence.insert(BitAnd, PR_BIT_AND);
-        operator_precedence.insert(BitXor, PR_BIT_XOR);
-        operator_precedence.insert(BitOr, PR_BIT_OR);
+        bin_op_pr.insert(Equal, PR_EQ);
 
-        operator_precedence.insert(LogicAnd, PR_LOGIC_AND);
-        operator_precedence.insert(LogicOr, PR_LOGIC_OR);
-
-        operator_precedence.insert(Equal, PR_EQ);
-
-        ParserSettings {
-            operator_precedence,
-        }
+        ParserSettings { bin_op_pr }
     }
 }
 
