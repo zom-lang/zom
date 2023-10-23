@@ -11,7 +11,6 @@ use self::item::{parse_item, Item};
 
 pub mod block;
 pub mod expr;
-pub mod function;
 pub mod item;
 pub(crate) mod prelude;
 pub mod statement;

@@ -1,4 +1,4 @@
-const test2 = 123;
+pub const test2 = 123;
 
 fn fourteen() u8 {
     const test1 = undefined;
@@ -7,10 +7,10 @@ fn fourteen() u8 {
     return a;
 }
 
-extern "C" c_function() void;
+extern "c" fn c_function() void;
 
 
-extern "C" c_function2() void {
+extern "c" fn c_function2() void {
 
 }
 
