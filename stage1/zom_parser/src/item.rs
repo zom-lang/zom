@@ -2,13 +2,12 @@
 
 use crate::prelude::*;
 
+use crate::function::Function;
 use crate::symbol::Symbol;
 use crate::CodeLocation;
-use crate::function::Function;
 
-
-use crate::symbol::parse_global_symbol;
 use crate::function::{parse_extern, parse_function};
+use crate::symbol::parse_global_symbol;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum Item {
@@ -35,8 +34,8 @@ pub fn parse_item(
 ) -> Option<PartParsingResult<Item>> {
     Some(match tokens.last() {
         Some(Token {
-            tt: Func | Extern, ..
-        }) => parse_func_item(tokens, settings, context),
+            tt: Fn | Extern, ..
+        }) => parse_fn_item(tokens, settings, context),
         Some(Token {
             tt: Var | Const, ..
         }) => parse_global_symbol_item(tokens, settings, context),
@@ -49,7 +48,7 @@ pub fn parse_item(
             err_et!(
                 context,
                 tokens.last().unwrap(),
-                vec![Func, Extern, Var, Const],
+                vec![Fn, Extern, Var, Const],
                 tokens.last().unwrap().tt
             )
         }
@@ -57,7 +56,7 @@ pub fn parse_item(
 }
 
 /// Private function used by 'parse_item' function, to wrap a function declaration or definition inside an Item
-fn parse_func_item(
+fn parse_fn_item(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -66,7 +65,7 @@ fn parse_func_item(
 
     Good(
         Function(match tokens.last().map(|t| t.tt.clone()) {
-            Some(Func) => parse_try!(parse_function, tokens, settings, context, parsed_tokens),
+            Some(Fn) => parse_try!(parse_function, tokens, settings, context, parsed_tokens),
             Some(Extern) => parse_try!(parse_extern, tokens, settings, context, parsed_tokens),
             _ => unreachable!(),
         }),

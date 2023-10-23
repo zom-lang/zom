@@ -1,6 +1,6 @@
 const test2 = 123;
 
-func fourteen() u8 {
+fn fourteen() u8 {
     const test1 = undefined;
     var test2: usize = !&2;
 

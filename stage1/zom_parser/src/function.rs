@@ -159,7 +159,7 @@ pub fn parse_function(
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<Function> {
-    // eat Func keyword
+    // eat Fn keyword
     let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
     tokens.pop();
 

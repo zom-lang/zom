@@ -302,7 +302,7 @@ impl<'a> Lexer<'a> {
     /// a keyword. And then return it.
     pub fn lex_keyword(&self, kw: String) -> TokenType {
         match kw.as_str() {
-            KW_FUNC => Func,
+            KW_FN => Fn,
             KW_EXTERN => Extern,
             KW_VAR => Var,
             KW_CONST => Const,

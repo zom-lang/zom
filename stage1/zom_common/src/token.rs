@@ -188,8 +188,8 @@ pub const PR_EQ: i32 = 1;
 
 // KEYWORDS
 
-/// const for the keyword `func`
-pub const KW_FUNC: &str = "func";
+/// const for the keyword `fn`
+pub const KW_FN: &str = "fn";
 
 /// const for the keyword `extern`
 pub const KW_EXTERN: &str = "extern";
@@ -289,7 +289,7 @@ pub enum TokenType {
     Char(char),
 
     // Keywords
-    Func,
+    Fn,
     Extern,
     Var,
     Const,
@@ -353,7 +353,7 @@ impl Display for TokenType {
             Str(_) => write!(f, "string literral"),
             Char(_) => write!(f, "char literral"),
 
-            Func => write!(f, "keyword `func`"),
+            Fn => write!(f, "keyword `fn`"),
             Extern => write!(f, "keyword `extern`"),
             Var => write!(f, "keyword `var`"),
             Const => write!(f, "keyword `const`"),
