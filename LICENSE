@@ -1,5 +1,5 @@
 ==============================================================================
-The Zom Language is under the Apache License v2.0 with LLVM Exceptions:
+The Zom Project is under the Apache License v2.0 with LLVM Exceptions:
 ==============================================================================
 
                                  Apache License
@@ -222,9 +222,9 @@ the License, but only in their entirety and only with respect to the Combined
 Software.
 
 ==============================================================================
-Software from third parties included in the Zom Language:
+Software from third parties included in the Zom Project:
 ==============================================================================
-The Zom Language contains third party software which is under different license
+The Zom Project contains third party software which is under different license
 terms. All such code will be identified clearly using at least one of two
 mechanisms:
 1) It will be in a separate directory tree with its own `LICENSE.txt` or
