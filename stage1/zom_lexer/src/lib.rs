@@ -67,6 +67,8 @@ pub enum PartTokenResult {
 /// Used when we expect to not have a None when we generate the position with the range.
 const POSITION_GEN_ERROR: &str = "Unable to generate the position from the range";
 
+const UNTERMINATED_CHAR_ERROR: &str = "unterminated single quote char literal";
+
 /// This macro pop a character using the function 'pop()'
 /// and assert when the compiler is compiled is debug mode, that
 /// the thing poped is what is expected.
@@ -84,7 +86,7 @@ macro_rules! pop_expect {
     );
 }
 
-/// Used to lexe the content of a file into tokens thatthe parser can understand.
+/// Used to lexe the content of a file into tokens that the parser can understand.
 pub struct Lexer<'a> {
     file: ZomFile<'a>,
     index: usize,
@@ -234,7 +236,7 @@ impl<'a> Lexer<'a> {
                 }
             }
             Some('"') => return self.lex_string_literal(),
-            Some('\'') => return self.lex_single_quote(),
+            Some('\'') => return self.lex_char_literal(),
             Some('A'..='Z' | 'a'..='z' | '_' | '0'..='9') => return self.lex_word(),
             Some(w) if w.is_whitespace() => {
                 self.index += 1;
@@ -439,22 +441,7 @@ impl<'a> Lexer<'a> {
         Tok(tt)
     }
 
-    /// Lexes either a char literal or a lifetime and returns it.
-    pub fn lex_single_quote(&mut self) -> PartTokenResult {
-        match (self.peek_nth(1), self.peek_nth(2), self.peek_nth(3)) {
-            (Some(_), Some('\''), _) | (Some('\\'), Some(_), Some('\'')) => self.lex_char_literal(),
-            (Some(c), _, _) if c != '\\' => self.lex_lifetime(),
-            _ => Error(ZomError::new(
-                None,
-                "unterminated single quote char or lifetime".to_string(),
-                false,
-                None,
-                vec![],
-            )),
-        }
-    }
-
-    /// Lexes a char literal and return it.
+    /// Lexe a char literal, and return it.
     pub fn lex_char_literal(&mut self) -> PartTokenResult {
         pop_expect!(self => Some('\''));
         let content: char;
@@ -474,27 +461,68 @@ impl<'a> Lexer<'a> {
                             Err(e) => return Error(*e),
                         }
                     }
-                    None => unreachable!(),
+                    None => {
+                        return Error(ZomError::new(
+                            None,
+                            "unexpected end of file".to_string(),
+                            false,
+                            None,
+                            vec![],
+                        ))
+                    }
                 };
-                pop_expect!(self => Some('\''); unreachable!());
+                pop_expect!(self => Some('\''); return Error(ZomError::new(
+                    None,
+                    UNTERMINATED_CHAR_ERROR.to_string(),
+                    false,
+                    None,
+                    vec![]
+                )));
+            }
+            Some('\'') => {
+                pop_expect!(self => Some('\''));
+                if let Some('\'') = self.peek() {
+                    pop_expect!(self => Some('\''));
+                    return Error(ZomError::new(
+                        None,
+                        "char literal  must be escaped: `'`".to_string(),
+                        false,
+                        Some(r"replace with: '\''".to_string()),
+                        vec![],
+                    ));
+                }
+                return Error(ZomError::new(
+                    None,
+                    "empty char literal".to_string(),
+                    false,
+                    None,
+                    vec![],
+                ));
             }
             Some(c) => {
                 pop_expect!(self => Some(c));
 
                 content = c;
-                pop_expect!(self => Some('\''); unreachable!());
+                pop_expect!(self => Some('\''); return Error(ZomError::new(
+                    None,
+                    UNTERMINATED_CHAR_ERROR.to_string(),
+                    false,
+                    None,
+                    vec![]
+                )));
             }
-            None => unreachable!(),
+            None => {
+                return Error(ZomError::new(
+                    None,
+                    "unexpected end of file".to_string(),
+                    false,
+                    None,
+                    vec![],
+                ))
+            }
         }
 
         Tok(Char(content))
-    }
-
-    /// Lexes a lifetime and returns it.
-    pub fn lex_lifetime(&mut self) -> PartTokenResult {
-        pop_expect!(self => Some('\''));
-        let (res, _) = self.make_word();
-        Tok(Lifetime(res))
     }
 
     /// Lexes an operator if it matches an operators and return which operator was been lexed

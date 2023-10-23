@@ -311,7 +311,6 @@ pub enum TokenType {
 
     // Identifier
     Ident(String), // Identifier is a alphanumeric with `_` string
-    Lifetime(String),
 
     EOF,
 }
@@ -375,7 +374,6 @@ impl Display for TokenType {
             Undefined => write!(f, "keyword `undefined`"),
 
             Ident(_) => write!(f, "identifier"),
-            Lifetime(_) => write!(f, "lifetime"),
 
             EOF => write!(f, "End of File"),
         }
