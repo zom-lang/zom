@@ -399,7 +399,7 @@ impl<'a> Lexer<'a> {
 
         loop {
             match self.peek() {
-                Some(c) if c == '"' => {
+                Some('"') => {
                     pop_expect!(self => Some('"'));
                     break;
                 }

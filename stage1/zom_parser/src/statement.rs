@@ -2,7 +2,10 @@
 
 use crate::prelude::*;
 
-use crate::{expr::{parse_expr, Expression}, symbol::{parse_symbol, Symbol}};
+use crate::{
+    expr::{parse_expr, Expression},
+    symbol::{parse_symbol, Symbol},
+};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Statement {

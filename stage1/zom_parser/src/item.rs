@@ -179,7 +179,7 @@ pub fn parse_prototype(
 
     let return_type = parse_try!(parse_type, tokens, settings, context, parsed_tokens);
 
-    let end = parsed_tokens.last().unwrap().span.start;
+    let end = parsed_tokens.last().unwrap().span.end;
 
     Good(
         Prototype {
@@ -203,7 +203,7 @@ pub fn parse_extern_pitem(
         Some(Token {
             tt: Var | Const, ..
         }) => parse_global_symbol_pitem(tokens, settings, context),
-        Some(t @ Token { tt, .. }) => return err_et!(context, t, vec![Fn, Var, Const], tt),
+        Some(t @ Token { tt, .. }) => err_et!(context, t, vec![Fn, Var, Const], tt),
         None => NotComplete,
     }
 }

@@ -2,9 +2,7 @@
 
 use crate::prelude::*;
 
-use crate::{
-    statement::{parse_statement, Stmt},
-};
+use crate::statement::{parse_statement, Stmt};
 
 use super::{
     expr::{Expr, Expression},

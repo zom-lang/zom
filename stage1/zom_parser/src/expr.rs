@@ -468,7 +468,6 @@ pub fn parse_conditional_expr(
     let start = parsed_tokens.last().unwrap().span.start;
 
     let starts_paren = token_parteq!(tokens.last().cloned(), OpenParen);
-    dbg!(&starts_paren);
 
     let cond = Box::new(parse_try!(
         parse_expr,
@@ -477,7 +476,6 @@ pub fn parse_conditional_expr(
         context,
         parsed_tokens
     ));
-    dbg!(&cond);
 
     let then_expr = Box::new(parse_try!(
         parse_expr,
@@ -486,7 +484,6 @@ pub fn parse_conditional_expr(
         context,
         parsed_tokens
     ));
-    dbg!(&then_expr);
 
     if let Expression {
         expr: BlockExpr(..),
@@ -530,12 +527,9 @@ pub fn parse_conditional_expr(
     } else {
         None
     });
-    dbg!(&else_expr);
     let lpt = parsed_tokens.last().unwrap();
-    dbg!(&lpt);
 
     let sc_need = !token_parteq!(no_opt lpt, CloseBrace);
-    dbg!(&sc_need);
 
     let end = lpt.span.end;
 
