@@ -38,7 +38,7 @@ pub enum Expr {
         sc_need: bool,
     },
     ReturnExpr(Option<Box<Expression>>),
-    PreUnary {
+    LeftUnaryExpr {
         unary_op: UnaryOperator,
         expr: Box<Expression>,
     },
@@ -645,7 +645,7 @@ pub fn parse_unary_expr(
 
     Good(
         Expression {
-            expr: PreUnary { unary_op, expr },
+            expr: LeftUnaryExpr { unary_op, expr },
             span: start..end,
         },
         parsed_tokens,
