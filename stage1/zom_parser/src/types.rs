@@ -1,18 +1,20 @@
 //! This module is responsible for the parsing of types.
 
 use crate::prelude::*;
+use zom_common::token::Operator;
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Type {
-    pub type_variant: TypeVariant,
+    pub type_kind: TypeKind,
     pub span: Range<usize>,
 }
 
 impl_span!(Type);
 
 #[derive(PartialEq, Clone, Debug)]
-pub enum TypeVariant {
+pub enum TypeKind {
     PrimitiveType(PrimitiveType),
+    Pointer { is_const: bool, pointed: Box<Type> },
 }
 
 /// A macro to facilitate the match in the `parse_primitive_type` function.
@@ -22,7 +24,7 @@ macro_rules! match_primitype {
             $(
                 $typename => Good(
                     Type {
-                        type_variant: TypeVariant::PrimitiveType($primitive_type),
+                        type_kind: TypeKind::PrimitiveType($primitive_type),
                         span: $ptoken.last().unwrap().span.clone()
                     },
                     $ptoken
@@ -100,6 +102,10 @@ pub fn parse_type(
 ) -> PartParsingResult<Type> {
     match tokens.last() {
         Some(Token { tt: Ident(_), .. }) => parse_primitive_type(tokens, settings, context),
+        Some(Token {
+            tt: Operator(Operator::Mul),
+            ..
+        }) => parse_ptr_type(tokens, settings, context),
         None => NotComplete,
         _ => err_et!(
             context,
@@ -154,5 +160,59 @@ fn parse_primitive_type(
 
         [CHAR_TYPE_NAME => Char],
         [STR_TYPE_NAME => Str]
+    )
+}
+
+pub fn parse_ptr_type(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Type> {
+    let mut parsed_tokens = Vec::new();
+    expect_token!(
+        context,
+        [Operator(Operator::Mul), Operator(Operator::Mul), ()] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![Operator(Operator::Mul)],
+            tokens.last().unwrap().tt
+        )
+    );
+
+    let start = parsed_tokens.last().unwrap().span.start;
+
+    let mut is_const = false;
+    if let Some(Token { tt: Const, .. }) = tokens.last() {
+        is_const = expect_token!(
+            context,
+            [Const, Const, true] <= tokens,
+            parsed_tokens,
+            err_et!(
+                context,
+                tokens.last().unwrap(),
+                vec![Const],
+                tokens.last().unwrap().tt
+            )
+        );
+    }
+
+    let pointed = Box::new(parse_try!(
+        parse_type,
+        tokens,
+        settings,
+        context,
+        parsed_tokens
+    ));
+
+    let end = parsed_tokens.last().unwrap().span.end;
+
+    Good(
+        Type {
+            type_kind: TypeKind::Pointer { is_const, pointed },
+            span: start..end,
+        },
+        parsed_tokens,
     )
 }

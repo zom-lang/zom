@@ -1,6 +1,6 @@
 pub const test2 = 123;
 
-fn fourteen() u8 {
+fn fourteen(ptr: *const u8) u8 {
     const test1 = undefined;
     var test2: usize = !&2;
 
