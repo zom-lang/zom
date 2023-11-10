@@ -81,12 +81,12 @@ pub fn parse_symbol(
 
     expect_token!(
         context,
-        [Operator(Operator::Equal), Operator(Operator::Equal), ()] <= tokens,
+        [Oper(Operator::Equal), Oper(Operator::Equal), ()] <= tokens,
         parsed_tokens,
         err_et!(
             context,
             tokens.last().unwrap(),
-            vec![Operator(Operator::Equal)],
+            vec![Oper(Operator::Equal)],
             tokens.last().unwrap().tt
         )
     );

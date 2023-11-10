@@ -10,126 +10,117 @@ use std::{
 
 pub use TokenType::*;
 
-/// Multiply, `*`
-pub const OP_MUL: &str = "*";
-/// Divide, `/`
-pub const OP_DIV: &str = "/";
-/// Remainder, `%`
-pub const OP_REM: &str = "%";
-/// Addition, `+`
-pub const OP_ADD: &str = "+";
-/// Subtraction, `-`
-pub const OP_SUB: &str = "-";
-/// Right shift, `>>`
-pub const OP_RSHIFT: &str = ">>";
-/// Left shift, `<<`
-pub const OP_LSHIFT: &str = "<<";
+/// Star, `*`
+pub const OP_STAR: &str = "*";
+/// Slash, `/`
+pub const OP_SLASH: &str = "/";
+/// Percent, `%`
+pub const OP_PERCENT: &str = "%";
+/// Plus, `+`
+pub const OP_PLUS: &str = "+";
+/// Minus, `-`
+pub const OP_MINUS: &str = "-";
+/// RArrow2, `>>`
+pub const OP_RARROW2: &str = ">>";
+/// LArrow2, `<<`
+pub const OP_LARROW2: &str = "<<";
 
-/// Compare Less than, `<`
-pub const OP_COMP_LT: &str = "<";
-/// Compare Greater than, `>`
-pub const OP_COMP_GT: &str = ">";
-/// Compare Less than or Equal to, `<=`
-pub const OP_COMP_LTE: &str = "<=";
-/// Compare Greater Than or Equal to, `>=`
-pub const OP_COMP_GTE: &str = ">=";
-/// Compare Equality, `==`
-pub const OP_COMP_EQ: &str = "==";
-/// Compare Non-Equality, `!=`
-pub const OP_COMP_NE: &str = "!=";
+/// LArrow, `<`
+pub const OP_LARROW: &str = "<";
+/// RArrow, `>`
+pub const OP_RARROW: &str = ">";
+/// LArrowEqual, `<=`
+pub const OP_LARROWEQUAL: &str = "<=";
+/// RArrowEqual, `>=`
+pub const OP_RARROWEQUAL: &str = ">=";
+/// Equal2, `==`
+pub const OP_EQUAL2: &str = "==";
+/// ExclamationmarkEqual, `!=`
+pub const OP_EXCLAMATIONMARKEQUAL: &str = "!=";
 
-/// XOR, `^`
-pub const OP_XOR: &str = "^";
-/// AND, `&&`
-pub const OP_AND: &str = "&&";
-/// OR, `||`
-pub const OP_OR: &str = "||";
-/// NOT, `!`
-pub const OP_NOT: &str = "!";
+/// Caret, `^`
+pub const OP_CARET: &str = "^";
+/// Ampersand, `&`
+pub const OP_AMPERSAND: &str = "&";
+/// Pipe2, `||`
+pub const OP_PIPE2: &str = "||";
+/// Exclamationmark, `!`
+pub const OP_EXCLAMATIONMARK: &str = "!";
 
-/// Address Of, `&`
-pub const OP_ADDR_OF: &str = "&";
+/// Equal, `=`,
+pub const OP_EQUAL: &str = "=";
 
-/// Simple assignement, `=`,
-pub const OP_EQ: &str = "=";
-
-pub const OP_MAX_LENGHT: usize = 2;
+/// Maximum operator lenght
+pub const OPERATOR_LENGHT: usize = 2;
 
 /// List of unique operators (contains no aliases)
-pub const OPERATORS: [&str; 19] = [
-    OP_MUL,
-    OP_DIV,
-    OP_REM,
-    OP_ADD,
-    OP_SUB,
-    OP_RSHIFT,
-    OP_LSHIFT,
-    OP_COMP_LT,
-    OP_COMP_GT,
-    OP_COMP_LTE,
-    OP_COMP_GTE,
-    OP_COMP_EQ,
-    OP_COMP_NE,
-    OP_AND,
-    OP_OR,
-    OP_XOR,
-    OP_NOT,
-    OP_ADDR_OF,
-    OP_EQ,
+pub const OPERATORS: [&str; 18] = [
+    OP_AMPERSAND,
+    OP_CARET,
+    OP_EQUAL,
+    OP_EQUAL2,
+    OP_EXCLAMATIONMARK,
+    OP_EXCLAMATIONMARKEQUAL,
+    OP_LARROW,
+    OP_LARROW2,
+    OP_LARROWEQUAL,
+    OP_MINUS,
+    OP_PERCENT,
+    OP_PIPE2,
+    OP_PLUS,
+    OP_RARROW,
+    OP_RARROW2,
+    OP_RARROWEQUAL,
+    OP_SLASH,
+    OP_STAR,
 ];
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub enum Operator {
-    Mul,
-    Div,
-    Rem,
-    Add,
-    Sub,
-    RShift,
-    LShift,
-    CompLT,
-    CompGT,
-    CompLTE,
-    CompGTE,
-    CompEq,
-    CompNe,
-    And,
-    Or,
-    Xor,
-    Not,
-    AddrOf,
+    Ampersand,
+    Caret,
     Equal,
+    Equal2,
+    Exclamationmark,
+    ExclamationmarkEqual,
+    LArrow,
+    LArrow2,
+    LArrowEqual,
+    Minus,
+    Percent,
+    Pipe2,
+    Plus,
+    RArrow,
+    RArrow2,
+    RArrowEqual,
+    Slash,
+    Star,
 }
 
 impl Display for Operator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use self::Operator::*;
         let op = match *self {
-            Mul => OP_MUL,
-            Div => OP_DIV,
-            Rem => OP_REM,
-            Add => OP_ADD,
-            Sub => OP_SUB,
-            RShift => OP_RSHIFT,
-            LShift => OP_LSHIFT,
-
-            CompLT => OP_COMP_LT,
-            CompGT => OP_COMP_GT,
-            CompLTE => OP_COMP_LTE,
-            CompGTE => OP_COMP_GTE,
-            CompEq => OP_COMP_EQ,
-            CompNe => OP_COMP_NE,
-
-            And => OP_AND,
-            Or => OP_OR,
-            Xor => OP_XOR,
-            Not => OP_NOT,
-
-            AddrOf => OP_ADDR_OF,
-
-            Equal => OP_EQ,
+            Ampersand => OP_AMPERSAND,
+            Caret => OP_CARET,
+            Equal => OP_EQUAL,
+            Equal2 => OP_EQUAL2,
+            Exclamationmark => OP_EXCLAMATIONMARK,
+            ExclamationmarkEqual => OP_EXCLAMATIONMARKEQUAL,
+            LArrow => OP_LARROW,
+            LArrow2 => OP_LARROW2,
+            LArrowEqual => OP_LARROWEQUAL,
+            Minus => OP_MINUS,
+            Percent => OP_PERCENT,
+            Pipe2 => OP_PIPE2,
+            Plus => OP_PLUS,
+            RArrow => OP_RARROW,
+            RArrow2 => OP_RARROW2,
+            RArrowEqual => OP_RARROWEQUAL,
+            Slash => OP_SLASH,
+            Star => OP_STAR,
         };
-        write!(f, "{}", op)
+        write!(f, "{op}")
     }
 }
 
@@ -138,30 +129,27 @@ impl FromStr for Operator {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use self::Operator::*;
-        match s {
-            OP_MUL => Ok(Mul),
-            OP_DIV => Ok(Div),
-            OP_REM => Ok(Rem),
-            OP_ADD => Ok(Add),
-            OP_SUB => Ok(Sub),
-            OP_RSHIFT => Ok(RShift),
-            OP_LSHIFT => Ok(LShift),
-
-            OP_COMP_LT => Ok(CompLT),
-            OP_COMP_GT => Ok(CompGT),
-            OP_COMP_LTE => Ok(CompLTE),
-            OP_COMP_GTE => Ok(CompGTE),
-            OP_COMP_EQ => Ok(CompEq),
-            OP_COMP_NE => Ok(CompNe),
-
-            OP_AND => Ok(And),
-            OP_OR => Ok(Or),
-            OP_XOR => Ok(Xor),
-            OP_NOT => Ok(Not),
-
-            OP_EQ => Ok(Equal),
-            op => Err(format!("unknown binary operator `{}`", op)),
-        }
+        Ok(match s {
+            OP_AMPERSAND => Ampersand,
+            OP_CARET => Caret,
+            OP_EQUAL => Equal,
+            OP_EQUAL2 => Equal2,
+            OP_EXCLAMATIONMARK => Exclamationmark,
+            OP_EXCLAMATIONMARKEQUAL => ExclamationmarkEqual,
+            OP_LARROW => LArrow,
+            OP_LARROW2 => LArrow2,
+            OP_LARROWEQUAL => LArrowEqual,
+            OP_MINUS => Minus,
+            OP_PERCENT => Percent,
+            OP_PIPE2 => Pipe2,
+            OP_PLUS => Plus,
+            OP_RARROW => RArrow,
+            OP_RARROW2 => RArrow2,
+            OP_RARROWEQUAL => RArrowEqual,
+            OP_SLASH => Slash,
+            OP_STAR => Star,
+            op => return Err(format!("unknown binary operator `{}`", op)),
+        })
     }
 }
 
@@ -262,7 +250,7 @@ impl Token {
 pub enum TokenType {
     // Operators
     /// Operators, should only be an OP_** constant.
-    Operator(Operator),
+    Oper(Operator),
 
     // Structural symbols
 
@@ -334,7 +322,7 @@ impl TokenType {
 impl Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Operator(op) => write!(f, "`{}`", op),
+            Oper(op) => write!(f, "`{}`", op),
             OpenParen => write!(f, "`(`"),
             CloseParen => write!(f, "`)`"),
             OpenBracket => write!(f, "`[`"),

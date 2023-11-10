@@ -4,7 +4,7 @@
 
 use std::collections::HashMap;
 
-use crate::expr::BinOperator;
+use crate::expr::BinOperation;
 use crate::prelude::*;
 
 use self::item::{parse_item, Item};
@@ -117,12 +117,12 @@ macro_rules! err_et(
 #[derive(Debug)]
 pub struct ParserSettings {
     /// Binary operator precedence
-    bin_op_pr: HashMap<BinOperator, i32>,
+    bin_op_pr: HashMap<BinOperation, i32>,
 }
 
 impl Default for ParserSettings {
     fn default() -> Self {
-        use crate::expr::BinOperator::*;
+        use crate::expr::BinOperation::*;
         let mut bin_op_pr = HashMap::with_capacity(16);
 
         bin_op_pr.insert(Mul, PR_MUL_DIV_REM);

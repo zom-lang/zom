@@ -22,7 +22,7 @@ pub enum Expr {
     LiteralExpr(i32),
     VariableExpr(String),
     BinaryExpr {
-        op: BinOperator,
+        op: BinOperation,
         lhs: Box<Expression>,
         rhs: Box<Expression>,
     },
@@ -38,8 +38,8 @@ pub enum Expr {
         sc_need: bool,
     },
     ReturnExpr(Option<Box<Expression>>),
-    LeftUnaryExpr {
-        unary_op: UnaryOperator,
+    UnaryExpr {
+        unary_op: UnaryOperation,
         expr: Box<Expression>,
     },
 }
@@ -75,9 +75,7 @@ pub fn parse_primary_expr(
         Some(Token { tt: Undefined, .. }) => parse_undefined_expr(tokens, settings, context),
         Some(Token { tt: If, .. }) => parse_conditional_expr(tokens, settings, context),
         Some(Token { tt: Return, .. }) => parse_return(tokens, settings, context),
-        Some(Token {
-            tt: Operator(_), ..
-        }) => parse_unary_expr(tokens, settings, context),
+        Some(Token { tt: Oper(_), .. }) => parse_unary_expr(tokens, settings, context),
         None => NotComplete,
         _ => err_et!(
             context,
@@ -222,21 +220,27 @@ pub fn parse_expr(
 ) -> PartParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
     let lhs = parse_try!(parse_primary_expr, tokens, settings, context, parsed_tokens);
-    let expr = parse_try!(
-        parse_binary_expr,
-        tokens,
-        settings,
-        context,
+    Good(
+        match tokens.last() {
+            Some(Token { tt: Oper(op), .. }) if BinOperation::try_from(op.clone()).is_ok() => {
+                parse_try!(
+                    parse_binary_expr,
+                    tokens,
+                    settings,
+                    context,
+                    parsed_tokens,
+                    0,
+                    &lhs
+                )
+            }
+            _ => lhs,
+        },
         parsed_tokens,
-        0,
-        &lhs
-    );
-    // idk if the span is correct.
-    Good(expr, parsed_tokens)
+    )
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub enum BinOperator {
+pub enum BinOperation {
     Mul,
     Div,
     Rem,
@@ -256,29 +260,31 @@ pub enum BinOperator {
     Equal,
 }
 
-impl TryFrom<Operator> for BinOperator {
+impl TryFrom<Operator> for BinOperation {
     type Error = ();
 
     fn try_from(op: Operator) -> Result<Self, Self::Error> {
+        use self::BinOperation as BOp;
+        use zom_common::token::Operator::*;
         Ok(match op {
-            Operator::Mul => BinOperator::Mul,
-            Operator::Div => BinOperator::Div,
-            Operator::Rem => BinOperator::Rem,
-            Operator::Add => BinOperator::Add,
-            Operator::Sub => BinOperator::Sub,
-            Operator::RShift => BinOperator::RShift,
-            Operator::LShift => BinOperator::LShift,
-            Operator::CompLT => BinOperator::CompLT,
-            Operator::CompGT => BinOperator::CompGT,
-            Operator::CompLTE => BinOperator::CompLTE,
-            Operator::CompGTE => BinOperator::CompGTE,
-            Operator::CompEq => BinOperator::CompEq,
-            Operator::CompNe => BinOperator::CompNe,
-            Operator::And => BinOperator::And,
-            Operator::Or => BinOperator::Or,
-            Operator::Xor => BinOperator::Xor,
-            Operator::Equal => BinOperator::Equal,
-            _ => panic!("This is not a binary operator"),
+            Ampersand => BOp::And,
+            Caret => BOp::Xor,
+            Equal => BOp::Equal,
+            Equal2 => BOp::CompEq,
+            ExclamationmarkEqual => BOp::CompNe,
+            LArrow => BOp::CompLT,
+            LArrow2 => BOp::LShift,
+            LArrowEqual => BOp::CompLTE,
+            Minus => BOp::Sub,
+            Percent => BOp::Rem,
+            Pipe2 => BOp::Or,
+            Plus => BOp::Add,
+            RArrow => BOp::CompGT,
+            RArrow2 => BOp::RShift,
+            RArrowEqual => BOp::CompGTE,
+            Slash => BOp::Div,
+            Star => BOp::Mul,
+            _ => return Err(()),
         })
     }
 }
@@ -297,11 +303,11 @@ pub fn parse_binary_expr(
     // continue until the current token is not an operator
     // or it is an operator with precedence lesser than expr_precedence
     while let Some(Token {
-        tt: Operator(op),
+        tt: Oper(op),
         span: _,
     }) = tokens.last()
     {
-        let bin_op = match BinOperator::try_from(op.clone()) {
+        let bin_op = match BinOperation::try_from(op.clone()) {
             Ok(v) => v,
             Err(_) => {
                 return err_et!(
@@ -333,11 +339,14 @@ pub fn parse_binary_expr(
         // parse all the RHS operators until their precedence is
         // bigger than the current one
         while let Some(Token {
-            tt: Operator(op),
+            tt: Oper(op),
             span: _,
         }) = tokens.last().cloned()
         {
-            let bin_op = match BinOperator::try_from(op) {
+            if BinOperation::try_from(op.clone()).is_err() {
+                continue;
+            }
+            let bin_op = match BinOperation::try_from(op) {
                 Ok(v) => v,
                 Err(_) => {
                     return err_et!(
@@ -582,8 +591,9 @@ pub fn parse_return(
 
 /// Pre-Unary-Operator enum.
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
-pub enum UnaryOperator {
+pub enum UnaryOperation {
     AddrOf,
+    Minus,
     Not,
 }
 
@@ -596,12 +606,16 @@ pub fn parse_unary_expr(
 
     let op = expect_token!(
         context,
-        [Operator(op), Operator(op.clone()), op] <= tokens,
+        [Oper(op), Oper(op.clone()), op] <= tokens,
         parsed_tokens,
         err_et!(
             context,
             tokens.last().unwrap(),
-            vec![Operator(Operator::Add)],
+            vec![
+                Oper(Operator::Ampersand),
+                Oper(Operator::Minus),
+                Oper(Operator::Exclamationmark)
+            ],
             tokens.last().unwrap().tt
         )
     );
@@ -609,8 +623,9 @@ pub fn parse_unary_expr(
     let start = parsed_tokens.last().unwrap().span.start;
 
     let unary_op = match op {
-        Operator::Not => UnaryOperator::Not,
-        Operator::AddrOf => UnaryOperator::AddrOf,
+        Operator::Ampersand => UnaryOperation::AddrOf,
+        Operator::Minus => UnaryOperation::Minus,
+        Operator::Exclamationmark => UnaryOperation::Not,
         op => {
             return Bad(ZomError::new(
                 Position::try_from_range(
@@ -639,7 +654,7 @@ pub fn parse_unary_expr(
 
     Good(
         Expression {
-            expr: LeftUnaryExpr { unary_op, expr },
+            expr: UnaryExpr { unary_op, expr },
             span: start..end,
         },
         parsed_tokens,

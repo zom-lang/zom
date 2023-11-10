@@ -232,7 +232,7 @@ impl<'a> Lexer<'a> {
                         self.lex_until('\n');
                         return Comment;
                     }
-                    _ => return Tok(Operator(Operator::Div)),
+                    _ => return Tok(Oper(Operator::Slash)),
                 }
             }
             Some('"') => return self.lex_string_literal(),
@@ -244,7 +244,7 @@ impl<'a> Lexer<'a> {
             }
             Some(c) => {
                 if let Some(op) = self.lex_operator() {
-                    return Tok(Operator(op));
+                    return Tok(Oper(op));
                 }
                 self.pop();
                 return Error(ZomError::new(
@@ -532,25 +532,24 @@ impl<'a> Lexer<'a> {
             (Some(o1), wo2) => {
                 let o2 = wo2.unwrap_or(' ');
                 let (op, len) = match (o1, o2) {
-                    ('>', '>') => (RShift, 2),
-                    ('<', '<') => (LShift, 2),
-                    ('<', '=') => (CompLTE, 2),
-                    ('>', '=') => (CompGTE, 2),
-                    ('=', '=') => (CompEq, 2),
-                    ('!', '=') => (CompNe, 2),
-                    ('&', '&') => (And, 2),
-                    ('|', '|') => (Or, 2),
-                    ('*', ..) => (Mul, 1),
-                    ('/', ..) => (Div, 1),
-                    ('%', ..) => (Rem, 1),
-                    ('+', ..) => (Add, 1),
-                    ('-', ..) => (Sub, 1),
-                    ('<', ..) => (CompLT, 1),
-                    ('>', ..) => (CompGT, 1),
-                    ('^', ..) => (Xor, 1),
-                    ('!', ..) => (Not, 1),
-                    ('&', ..) => (AddrOf, 1),
+                    ('>', '>') => (RArrow2, 2),
+                    ('>', '=') => (RArrowEqual, 2),
+                    ('<', '<') => (LArrow2, 2),
+                    ('<', '=') => (LArrowEqual, 2),
+                    ('=', '=') => (Equal2, 2),
+                    ('!', '=') => (ExclamationmarkEqual, 2),
+                    ('|', '|') => (Pipe2, 2),
+                    ('&', ..) => (Ampersand, 1),
+                    ('^', ..) => (Caret, 1),
                     ('=', ..) => (Equal, 1),
+                    ('!', ..) => (Exclamationmark, 1),
+                    ('<', ..) => (LArrow, 1),
+                    ('-', ..) => (Minus, 1),
+                    ('%', ..) => (Percent, 1),
+                    ('+', ..) => (Plus, 1),
+                    ('>', ..) => (RArrow, 1),
+                    ('/', ..) => (Slash, 1),
+                    ('*', ..) => (Star, 1),
                     _ => return None,
                 };
                 self.index += len;
