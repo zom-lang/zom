@@ -6,9 +6,6 @@ use self::Expr::*;
 
 use crate::block::{parse_block_expr, Block};
 
-// it's imported to disambiguate global imports of the prelude
-use zom_common::token::Operator;
-
 #[derive(PartialEq, Clone, Debug)]
 pub struct Expression {
     pub expr: Expr,
@@ -268,6 +265,7 @@ impl TryFrom<Operator> for BinOperation {
         use zom_common::token::Operator::*;
         Ok(match op {
             Ampersand => BOp::And,
+            Asterisk => BOp::Mul,
             Caret => BOp::Xor,
             Equal => BOp::Equal,
             Equal2 => BOp::CompEq,
@@ -283,7 +281,6 @@ impl TryFrom<Operator> for BinOperation {
             RArrow2 => BOp::RShift,
             RArrowEqual => BOp::CompGTE,
             Slash => BOp::Div,
-            Star => BOp::Mul,
             _ => return Err(()),
         })
     }

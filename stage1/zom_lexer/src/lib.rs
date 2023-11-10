@@ -540,6 +540,7 @@ impl<'a> Lexer<'a> {
                     ('!', '=') => (ExclamationmarkEqual, 2),
                     ('|', '|') => (Pipe2, 2),
                     ('&', ..) => (Ampersand, 1),
+                    ('*', ..) => (Asterisk, 1),
                     ('^', ..) => (Caret, 1),
                     ('=', ..) => (Equal, 1),
                     ('!', ..) => (Exclamationmark, 1),
@@ -549,7 +550,6 @@ impl<'a> Lexer<'a> {
                     ('+', ..) => (Plus, 1),
                     ('>', ..) => (RArrow, 1),
                     ('/', ..) => (Slash, 1),
-                    ('*', ..) => (Star, 1),
                     _ => return None,
                 };
                 self.index += len;

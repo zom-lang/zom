@@ -10,8 +10,8 @@ use std::{
 
 pub use TokenType::*;
 
-/// Star, `*`
-pub const OP_STAR: &str = "*";
+/// Asterisk, `*`
+pub const OP_ASTERISK: &str = "*";
 /// Slash, `/`
 pub const OP_SLASH: &str = "/";
 /// Percent, `%`
@@ -56,6 +56,7 @@ pub const OPERATOR_LENGHT: usize = 2;
 /// List of unique operators (contains no aliases)
 pub const OPERATORS: [&str; 18] = [
     OP_AMPERSAND,
+    OP_ASTERISK,
     OP_CARET,
     OP_EQUAL,
     OP_EQUAL2,
@@ -72,12 +73,12 @@ pub const OPERATORS: [&str; 18] = [
     OP_RARROW2,
     OP_RARROWEQUAL,
     OP_SLASH,
-    OP_STAR,
 ];
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub enum Operator {
     Ampersand,
+    Asterisk,
     Caret,
     Equal,
     Equal2,
@@ -94,7 +95,6 @@ pub enum Operator {
     RArrow2,
     RArrowEqual,
     Slash,
-    Star,
 }
 
 impl Display for Operator {
@@ -102,6 +102,7 @@ impl Display for Operator {
         use self::Operator::*;
         let op = match *self {
             Ampersand => OP_AMPERSAND,
+            Asterisk => OP_ASTERISK,
             Caret => OP_CARET,
             Equal => OP_EQUAL,
             Equal2 => OP_EQUAL2,
@@ -118,7 +119,6 @@ impl Display for Operator {
             RArrow2 => OP_RARROW2,
             RArrowEqual => OP_RARROWEQUAL,
             Slash => OP_SLASH,
-            Star => OP_STAR,
         };
         write!(f, "{op}")
     }
@@ -131,6 +131,7 @@ impl FromStr for Operator {
         use self::Operator::*;
         Ok(match s {
             OP_AMPERSAND => Ampersand,
+            OP_ASTERISK => Asterisk,
             OP_CARET => Caret,
             OP_EQUAL => Equal,
             OP_EQUAL2 => Equal2,
@@ -147,7 +148,6 @@ impl FromStr for Operator {
             OP_RARROW2 => RArrow2,
             OP_RARROWEQUAL => RArrowEqual,
             OP_SLASH => Slash,
-            OP_STAR => Star,
             op => return Err(format!("unknown binary operator `{}`", op)),
         })
     }

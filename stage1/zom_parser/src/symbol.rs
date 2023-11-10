@@ -5,9 +5,6 @@ use crate::prelude::*;
 use crate::expr::{parse_expr, Expr, Expression};
 use crate::types::{parse_type, Type};
 
-// it's imported to disambiguate global imports of the prelude
-use zom_common::token::Operator;
-
 #[derive(PartialEq, Clone, Debug)]
 pub struct Symbol {
     /// true if it's `var ...` and false if not

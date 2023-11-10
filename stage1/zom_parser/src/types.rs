@@ -103,7 +103,7 @@ pub fn parse_type(
     match tokens.last() {
         Some(Token { tt: Ident(_), .. }) => parse_primitive_type(tokens, settings, context),
         Some(Token {
-            tt: Oper(Operator::Star),
+            tt: Oper(Operator::Asterisk),
             ..
         }) => parse_ptr_type(tokens, settings, context),
         None => NotComplete,
@@ -171,12 +171,12 @@ pub fn parse_ptr_type(
     let mut parsed_tokens = Vec::new();
     expect_token!(
         context,
-        [Oper(Operator::Star), Oper(Operator::Star), ()] <= tokens,
+        [Oper(Operator::Asterisk), Oper(Operator::Asterisk), ()] <= tokens,
         parsed_tokens,
         err_et!(
             context,
             tokens.last().unwrap(),
-            vec![Oper(Operator::Star)],
+            vec![Oper(Operator::Asterisk)],
             tokens.last().unwrap().tt
         )
     );
