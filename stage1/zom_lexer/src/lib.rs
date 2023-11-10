@@ -223,7 +223,6 @@ impl<'a> Lexer<'a> {
             Some(':') => Colon,
             Some(',') => Comma,
             Some('@') => At,
-            Some('.') => Dot,
             Some('/') => {
                 self.pop();
                 match self.peek() {
@@ -542,6 +541,7 @@ impl<'a> Lexer<'a> {
                     ('&', ..) => (Ampersand, 1),
                     ('*', ..) => (Asterisk, 1),
                     ('^', ..) => (Caret, 1),
+                    ('.', ..) => (Dot, 1),
                     ('=', ..) => (Equal, 1),
                     ('!', ..) => (Exclamationmark, 1),
                     ('<', ..) => (LArrow, 1),

@@ -10,54 +10,54 @@ use std::{
 
 pub use TokenType::*;
 
-/// Asterisk, `*`
-pub const OP_ASTERISK: &str = "*";
-/// Slash, `/`
-pub const OP_SLASH: &str = "/";
-/// Percent, `%`
-pub const OP_PERCENT: &str = "%";
-/// Plus, `+`
-pub const OP_PLUS: &str = "+";
-/// Minus, `-`
-pub const OP_MINUS: &str = "-";
-/// RArrow2, `>>`
-pub const OP_RARROW2: &str = ">>";
-/// LArrow2, `<<`
-pub const OP_LARROW2: &str = "<<";
-
-/// LArrow, `<`
-pub const OP_LARROW: &str = "<";
-/// RArrow, `>`
-pub const OP_RARROW: &str = ">";
-/// LArrowEqual, `<=`
-pub const OP_LARROWEQUAL: &str = "<=";
-/// RArrowEqual, `>=`
-pub const OP_RARROWEQUAL: &str = ">=";
-/// Equal2, `==`
-pub const OP_EQUAL2: &str = "==";
-/// ExclamationmarkEqual, `!=`
-pub const OP_EXCLAMATIONMARKEQUAL: &str = "!=";
-
-/// Caret, `^`
-pub const OP_CARET: &str = "^";
 /// Ampersand, `&`
 pub const OP_AMPERSAND: &str = "&";
-/// Pipe2, `||`
-pub const OP_PIPE2: &str = "||";
-/// Exclamationmark, `!`
-pub const OP_EXCLAMATIONMARK: &str = "!";
-
+/// Asterisk, `*`
+pub const OP_ASTERISK: &str = "*";
+/// Caret, `^`
+pub const OP_CARET: &str = "^";
+/// Dot, `.`
+pub const OP_DOT: &str = ".";
 /// Equal, `=`,
 pub const OP_EQUAL: &str = "=";
+/// Equal2, `==`
+pub const OP_EQUAL2: &str = "==";
+/// Exclamationmark, `!`
+pub const OP_EXCLAMATIONMARK: &str = "!";
+/// ExclamationmarkEqual, `!=`
+pub const OP_EXCLAMATIONMARKEQUAL: &str = "!=";
+/// LArrow, `<`
+pub const OP_LARROW: &str = "<";
+/// LArrow2, `<<`
+pub const OP_LARROW2: &str = "<<";
+/// LArrowEqual, `<=`
+pub const OP_LARROWEQUAL: &str = "<=";
+/// Minus, `-`
+pub const OP_MINUS: &str = "-";
+/// Percent, `%`
+pub const OP_PERCENT: &str = "%";
+/// Pipe2, `||`
+pub const OP_PIPE2: &str = "||";
+/// Plus, `+`
+pub const OP_PLUS: &str = "+";
+/// RArrow, `>`
+pub const OP_RARROW: &str = ">";
+/// RArrow2, `>>`
+pub const OP_RARROW2: &str = ">>";
+/// RArrowEqual, `>=`
+pub const OP_RARROWEQUAL: &str = ">=";
+/// Slash, `/`
+pub const OP_SLASH: &str = "/";
 
 /// Maximum operator lenght
 pub const OPERATOR_LENGHT: usize = 2;
 
 /// List of unique operators (contains no aliases)
-pub const OPERATORS: [&str; 18] = [
+pub const OPERATORS: [&str; 19] = [
     OP_AMPERSAND,
     OP_ASTERISK,
     OP_CARET,
+    OP_DOT,
     OP_EQUAL,
     OP_EQUAL2,
     OP_EXCLAMATIONMARK,
@@ -80,6 +80,7 @@ pub enum Operator {
     Ampersand,
     Asterisk,
     Caret,
+    Dot,
     Equal,
     Equal2,
     Exclamationmark,
@@ -104,6 +105,7 @@ impl Display for Operator {
             Ampersand => OP_AMPERSAND,
             Asterisk => OP_ASTERISK,
             Caret => OP_CARET,
+            Dot => OP_DOT,
             Equal => OP_EQUAL,
             Equal2 => OP_EQUAL2,
             Exclamationmark => OP_EXCLAMATIONMARK,
@@ -133,6 +135,7 @@ impl FromStr for Operator {
             OP_AMPERSAND => Ampersand,
             OP_ASTERISK => Asterisk,
             OP_CARET => Caret,
+            OP_DOT => Dot,
             OP_EQUAL => Equal,
             OP_EQUAL2 => Equal2,
             OP_EXCLAMATIONMARK => Exclamationmark,
@@ -268,7 +271,6 @@ pub enum TokenType {
     SemiColon, // ` ; `
     Comma,     // ` , `
     At,        // ` @ `
-    Dot,       // ` . `
 
     // Literals
     Int(i32),
@@ -334,7 +336,6 @@ impl Display for TokenType {
             SemiColon => write!(f, "`;`"),
             Comma => write!(f, "`,`"),
             At => write!(f, "`@`"),
-            Dot => write!(f, "`.`"),
 
             Int(_) => write!(f, "integer literral"),
             Float(_) => write!(f, "float literral"),
