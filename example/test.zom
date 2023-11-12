@@ -2,7 +2,13 @@ pub const test2 = 123 * 12 + 1;
 
 fn fourteen(ptr: *const u8) u8 {
     const test1 = undefined;
-    var test2: usize = !&2;
+    var test2: usize = 2;
+
+    if (test2 == 2) {
+        // ...
+    } else {
+        // ...
+    }
 
     return a;
 }

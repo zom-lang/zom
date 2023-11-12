@@ -29,8 +29,8 @@ pub enum Expr {
     UndefinedExpr,
     ConditionalExpr {
         cond: Box<Expression>,
-        then_expr: Box<Expression>,
-        else_expr: Box<Option<Expression>>,
+        branch_true: Box<Expression>,
+        branch_false: Box<Option<Expression>>,
         /// Semi colon needed ?
         sc_need: bool,
     },
@@ -180,9 +180,15 @@ pub fn parse_parenthesis_expr(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
     // eat the opening parenthesis
-    let mut parsed_tokens: Vec<Token> = vec![tokens.last().unwrap().clone()];
+    let mut parsed_tokens: Vec<Token> = vec![];
     let t = tokens.last().unwrap().clone();
-    tokens.pop();
+
+    expect_token!(
+        context,
+        [OpenParen, OpenParen, ()] <= tokens,
+        parsed_tokens,
+        err_et!(context, t, vec![OpenParen], t.tt)
+    );
 
     let expr = parse_try!(parse_expr, tokens, settings, context, parsed_tokens);
 
@@ -473,9 +479,15 @@ pub fn parse_conditional_expr(
 
     let start = parsed_tokens.last().unwrap().span.start;
 
-    let starts_paren = token_parteq!(tokens.last().cloned(), OpenParen);
-
     let cond = Box::new(parse_try!(
+        parse_parenthesis_expr,
+        tokens,
+        settings,
+        context,
+        parsed_tokens
+    ));
+
+    let branch_true = Box::new(parse_try!(
         parse_expr,
         tokens,
         settings,
@@ -483,35 +495,7 @@ pub fn parse_conditional_expr(
         parsed_tokens
     ));
 
-    let then_expr = Box::new(parse_try!(
-        parse_expr,
-        tokens,
-        settings,
-        context,
-        parsed_tokens
-    ));
-
-    if let Expression {
-        expr: BlockExpr(..),
-        ..
-    } = *then_expr
-    {
-    } else if !starts_paren {
-        context.push_err(ZomError::new(
-            Position::try_from_range(
-                context.pos,
-                cond.span.clone(),
-                context.source_file.clone(),
-                context.filename.clone().into(),
-            ),
-            "unparenthesized condition when their is no block".to_string(),
-            false,
-            Some("wrap the condition in parentheses".to_string()),
-            vec![],
-        ))
-    }
-
-    let else_expr = Box::new(if token_parteq!(tokens.last().cloned(), Else) {
+    let branch_false = Box::new(if token_parteq!(tokens.last().cloned(), Else) {
         expect_token!(
             context,
             [Else, Else, ()] <= tokens,
@@ -533,6 +517,7 @@ pub fn parse_conditional_expr(
     } else {
         None
     });
+    // lpt = last parsed token
     let lpt = parsed_tokens.last().unwrap();
 
     let sc_need = !token_parteq!(no_opt lpt, CloseBrace);
@@ -543,8 +528,8 @@ pub fn parse_conditional_expr(
         Expression {
             expr: Expr::ConditionalExpr {
                 cond,
-                then_expr,
-                else_expr,
+                branch_true,
+                branch_false,
                 sc_need,
             },
             span: start..end,
@@ -631,7 +616,7 @@ pub fn parse_unary_expr(
                     context.source_file.clone(),
                     context.filename.clone().into(),
                 ),
-                format!("not a post unary operator, {}", op),
+                format!("not a left unary operator, {}", op),
                 false,
                 None,
                 vec![],
