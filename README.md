@@ -98,6 +98,17 @@ impl(T) Drop for Rc(T) {
 }
 ```
 -->
+## Project status
+
+I'm a student, and so developing the Zom compiler isn't my priority, this is why you can see some
+inactiveness in my commits and even if I don't actually write code, I think alot what features I
+could implement, how, and what the language will look.
+
+So if you're asking, no the project isn't dead, it's the opposit, but I don't have the time to make
+my ideas real.
+
+And for know it's not production-ready if you're asking  ¯\_(ツ)_/¯
+
 ## Usage
 
 Not yet done, see [#42](https://github.com/zom-lang/zom/issues/42)
