@@ -236,6 +236,12 @@ pub const KW_FALSE: &str = "false";
 /// const for the keyword `undefined`
 pub const KW_UNDEFINED: &str = "undefined";
 
+/// const for the keyword `break`
+pub const KW_BREAK: &str = "break";
+
+/// const for the keyword `continue`
+pub const KW_CONTINUE: &str = "continue";
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     /// `tt` means token type.
@@ -298,6 +304,8 @@ pub enum TokenType {
     True,
     False,
     Undefined,
+    Break,
+    Continue,
 
     // Identifier
     Ident(String), // Identifier is a alphanumeric with `_` string
@@ -361,6 +369,8 @@ impl Display for TokenType {
             True => write!(f, "keyword `true`"),
             False => write!(f, "keyword `false`"),
             Undefined => write!(f, "keyword `undefined`"),
+            Break => write!(f, "keyword `break`"),
+            Continue => write!(f, "keyword `continue`"),
 
             Ident(_) => write!(f, "identifier"),
 

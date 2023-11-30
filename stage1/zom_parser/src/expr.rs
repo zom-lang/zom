@@ -4,7 +4,7 @@ use crate::prelude::*;
 
 use self::Expr::*;
 
-use crate::block::{parse_block_expr, Block};
+use crate::block::{parse_block, parse_block_expr, Block};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Expression {
@@ -39,13 +39,19 @@ pub enum Expr {
         unary_op: UnaryOperation,
         expr: Box<Expression>,
     },
+    WhileExpr {
+        label: Option<String>,
+        controlling_expr: Box<Expression>,
+        loop_body: Box<Block>,
+    },
 }
 
 impl Expression {
     pub fn is_semicolon_needed(&self) -> bool {
         match *self {
             Expression {
-                expr: BlockExpr(_), ..
+                expr: BlockExpr(_) | WhileExpr { .. },
+                ..
             } => false,
             Expression {
                 expr: ConditionalExpr { sc_need, .. },
@@ -61,7 +67,10 @@ pub fn parse_primary_expr(
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
-    match tokens.last() {
+    match tokens.last().cloned() {
+        Some(Token { tt: Ident(_), .. }) if is_labeled_expr(tokens) => {
+            parse_labeled_expr(tokens, settings, context)
+        }
         Some(Token { tt: Ident(_), .. }) => parse_ident_expr(tokens, settings, context),
         Some(Token { tt: Int(_), .. }) => parse_literal_expr(tokens, settings, context),
         Some(Token { tt: OpenParen, .. }) => parse_parenthesis_expr(tokens, settings, context),
@@ -73,6 +82,7 @@ pub fn parse_primary_expr(
         Some(Token { tt: If, .. }) => parse_conditional_expr(tokens, settings, context),
         Some(Token { tt: Return, .. }) => parse_return(tokens, settings, context),
         Some(Token { tt: Oper(_), .. }) => parse_unary_expr(tokens, settings, context),
+        Some(Token { tt: While, .. }) => parse_while_expr(tokens, settings, context, None),
         None => NotComplete,
         _ => err_et!(
             context,
@@ -182,7 +192,6 @@ pub fn parse_parenthesis_expr(
     // eat the opening parenthesis
     let mut parsed_tokens: Vec<Token> = vec![];
     let t = tokens.last().unwrap().clone();
-
     expect_token!(
         context,
         [OpenParen, OpenParen, ()] <= tokens,
@@ -637,6 +646,115 @@ pub fn parse_unary_expr(
     Good(
         Expression {
             expr: UnaryExpr { unary_op, expr },
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn is_labeled_expr(tokens: &mut Vec<Token>) -> bool {
+    match tokens.last() {
+        Some(Token { tt: Ident(_), .. }) if token_parteq!(tokens.get(tokens.len() - 2), &Colon) => {
+            true
+        }
+        _ => false,
+    }
+}
+
+pub fn parse_labeled_expr(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Expression> {
+    let mut parsed_tokens = vec![];
+
+    let label = expect_token!(
+        context,
+        [Ident(label), Ident(label.clone()), label] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![Ident(String::new())],
+            tokens.last().unwrap().tt
+        )
+    );
+
+    let start = parsed_tokens.last().unwrap().span.start;
+
+    expect_token!(
+        context,
+        [Colon, Colon, ()] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![Colon],
+            tokens.last().unwrap().tt
+        )
+    );
+
+    let expr = match tokens.last() {
+        Some(Token { tt: While, .. }) => parse_try!(parse_while_expr, tokens, settings, context, parsed_tokens, Some(label)),
+        e => todo!("this expr cannot be  labeled, parse the expr but throw an error with the range of that parsed expr {:?}", e)
+    };
+
+    Good(
+        Expression {
+            expr: expr.expr,
+            span: start..expr.span.end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_while_expr(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+    label: Option<String>,
+) -> PartParsingResult<Expression> {
+    let mut parsed_tokens: Vec<Token> = vec![];
+
+    expect_token!(
+        context,
+        [While, While, ()] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![While],
+            tokens.last().unwrap().tt
+        )
+    );
+
+    let start = parsed_tokens.last().unwrap().span.start;
+
+    let controlling_expr = Box::new(parse_try!(
+        parse_parenthesis_expr,
+        tokens,
+        settings,
+        context,
+        parsed_tokens
+    ));
+
+    let loop_body = Box::new(parse_try!(
+        parse_block,
+        tokens,
+        settings,
+        context,
+        parsed_tokens
+    ));
+
+    let end = parsed_tokens.last().unwrap().span.end;
+
+    Good(
+        Expression {
+            expr: WhileExpr {
+                label,
+                controlling_expr,
+                loop_body,
+            },
             span: start..end,
         },
         parsed_tokens,

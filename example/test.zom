@@ -10,6 +10,13 @@ fn fourteen(ptr: *const u8) u8 {
         // ...
     }
 
+    outer: while (2 == 2) {
+        if (2 >= 200)
+            //break :test;
+            test();
+        6 = 2 - 1;
+    }
+
     return a;
 }
 

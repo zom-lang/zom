@@ -320,6 +320,8 @@ impl<'a> Lexer<'a> {
             KW_TRUE => True,
             KW_FALSE => False,
             KW_UNDEFINED => Undefined,
+            KW_BREAK => Break,
+            KW_CONTINUE => Continue,
             _ => Ident(kw),
         }
     }
