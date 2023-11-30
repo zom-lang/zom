@@ -107,7 +107,7 @@ could implement, how, and what the language will look.
 So if you're asking, no the project isn't dead, it's the opposit, but I don't have the time to make
 my ideas real.
 
-And for know it's not production-ready if you're asking  ¯\_(ツ)_/¯
+And for know it's not production-ready if you're asking  ¯\\_(ツ)_/¯
 
 ## Usage
 
