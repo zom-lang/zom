@@ -44,6 +44,10 @@ pub enum Expr {
         controlling_expr: Box<Expression>,
         loop_body: Box<Block>,
     },
+    BreakExpr {
+        label: Option<String>,
+        value: Option<Box<Expression>>,
+    },
 }
 
 impl Expression {
@@ -83,6 +87,7 @@ pub fn parse_primary_expr(
         Some(Token { tt: Return, .. }) => parse_return(tokens, settings, context),
         Some(Token { tt: Oper(_), .. }) => parse_unary_expr(tokens, settings, context),
         Some(Token { tt: While, .. }) => parse_while_expr(tokens, settings, context, None),
+        Some(Token { tt: Break, .. }) => parse_break_expr(tokens, settings, context),
         None => NotComplete,
         _ => err_et!(
             context,
@@ -758,5 +763,84 @@ pub fn parse_while_expr(
             span: start..end,
         },
         parsed_tokens,
+    )
+}
+
+pub fn parse_break_expr(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Expression> {
+    let mut parsed_tokens = vec![];
+
+    expect_token!(
+        context,
+        [Break, Break, ()] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![Break],
+            tokens.last().unwrap().tt
+        )
+    );
+
+    let start = parsed_tokens.last().unwrap().span.start;
+
+    let label = if let Some(Token { tt: Colon, .. }) = tokens.last() {
+        expect_token!(
+            context,
+            [Colon, Colon, ()] <= tokens,
+            parsed_tokens,
+            err_et!(
+                context,
+                tokens.last().unwrap(),
+                vec![Colon],
+                tokens.last().unwrap().tt
+            )
+        );
+
+        expect_token!(
+            context,
+            [Ident(label), Ident(label.clone()), Some(label)] <= tokens,
+            parsed_tokens,
+            err_et!(
+                context,
+                tokens.last().unwrap(),
+                vec![Ident(String::new())],
+                tokens.last().unwrap().tt
+            )
+        )
+    } else {
+        None
+    };
+
+    let value = if !is_expr_end(tokens) {
+        Some(Box::new(parse_try!(
+            parse_expr,
+            tokens,
+            settings,
+            context,
+            parsed_tokens
+        )))
+    } else {
+        None
+    };
+
+    let end = parsed_tokens.last().unwrap().span.end;
+
+    Good(
+        Expression {
+            expr: BreakExpr { label, value },
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn is_expr_end(tokens: &mut Vec<Token>) -> bool {
+    matches!(
+        tokens.last().unwrap().tt,
+        SemiColon | Comma | CloseParen | CloseBracket | CloseBrace
     )
 }
