@@ -539,6 +539,7 @@ impl<'a> Lexer<'a> {
                     ('<', '=') => (LArrowEqual, 2),
                     ('=', '=') => (Equal2, 2),
                     ('!', '=') => (ExclamationmarkEqual, 2),
+                    ('.', '*') => (DotAsterisk, 2),
                     ('|', '|') => (Pipe2, 2),
                     ('&', ..) => (Ampersand, 1),
                     ('*', ..) => (Asterisk, 1),

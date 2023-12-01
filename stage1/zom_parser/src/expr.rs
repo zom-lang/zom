@@ -255,6 +255,14 @@ pub fn parse_expr(
                     &lhs
                 )
             }
+            Some(Token { tt: Oper(op), .. }) if is_right_unary_op(op.clone()) => parse_try!(
+                parse_right_unary_expr,
+                tokens,
+                settings,
+                context,
+                parsed_tokens,
+                &lhs
+            ),
             _ => lhs,
         },
         parsed_tokens,
@@ -590,12 +598,33 @@ pub fn parse_return_expr(
     )
 }
 
-/// Pre-Unary-Operator enum.
+/// Unary-Operations enum.
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub enum UnaryOperation {
     AddrOf,
     Minus,
     Not,
+    Deref,
+}
+
+impl TryFrom<Operator> for UnaryOperation {
+    type Error = ();
+
+    fn try_from(op: Operator) -> Result<Self, Self::Error> {
+        use self::UnaryOperation as UOp;
+        use zom_common::token::Operator::*;
+        Ok(match op {
+            Ampersand => UOp::AddrOf,
+            Exclamationmark => UOp::Not,
+            DotAsterisk => UOp::Deref,
+            Minus => UOp::Minus,
+            _ => return Err(()),
+        })
+    }
+}
+
+pub fn is_right_unary_op(op: Operator) -> bool {
+    matches!(op, zom_common::token::Operator::DotAsterisk)
 }
 
 pub fn parse_unary_expr(
@@ -623,11 +652,9 @@ pub fn parse_unary_expr(
 
     let start = parsed_tokens.last().unwrap().span.start;
 
-    let unary_op = match op {
-        Operator::Ampersand => UnaryOperation::AddrOf,
-        Operator::Minus => UnaryOperation::Minus,
-        Operator::Exclamationmark => UnaryOperation::Not,
-        op => {
+    let unary_op = match UnaryOperation::try_from(op.clone()) {
+        Ok(v) => v,
+        Err(_) => {
             return Bad(ZomError::new(
                 Position::try_from_range(
                     context.pos,
@@ -657,6 +684,54 @@ pub fn parse_unary_expr(
         Expression {
             expr: UnaryExpr { unary_op, expr },
             span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_right_unary_expr(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+    lhs: &Expression,
+) -> PartParsingResult<Expression> {
+    let mut parsed_tokens = vec![];
+    let expr = Box::new(lhs.clone());
+    dbg!(tokens.last());
+    let unary_op = match UnaryOperation::try_from(expect_token!(
+        context,
+        [Oper(op), Oper(op.clone()), op] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![Oper(Operator::DotAsterisk)],
+            tokens.last().unwrap().tt
+        )
+    )) {
+        Ok(v) => v,
+        Err(_) => {
+            return Bad(ZomError::new(
+                Position::try_from_range(
+                    context.pos,
+                    parsed_tokens.last().unwrap().span.clone(),
+                    context.source_file.clone(),
+                    context.filename.clone().into(),
+                ),
+                format!("not a right unary operator"),
+                false,
+                None,
+                vec![],
+            ))
+        }
+    };
+
+    let span = parsed_tokens.last().unwrap().span.clone();
+
+    Good(
+        Expression {
+            expr: UnaryExpr { unary_op, expr },
+            span,
         },
         parsed_tokens,
     )

@@ -18,6 +18,8 @@ pub const OP_ASTERISK: &str = "*";
 pub const OP_CARET: &str = "^";
 /// Dot, `.`
 pub const OP_DOT: &str = ".";
+/// DotAsterisk, `.*`
+pub const OP_DOTASTERISK: &str = ".*";
 /// Equal, `=`,
 pub const OP_EQUAL: &str = "=";
 /// Equal2, `==`
@@ -53,11 +55,12 @@ pub const OP_SLASH: &str = "/";
 pub const OPERATOR_LENGHT: usize = 2;
 
 /// List of unique operators (contains no aliases)
-pub const OPERATORS: [&str; 19] = [
+pub const OPERATORS: [&str; 20] = [
     OP_AMPERSAND,
     OP_ASTERISK,
     OP_CARET,
     OP_DOT,
+    OP_DOTASTERISK,
     OP_EQUAL,
     OP_EQUAL2,
     OP_EXCLAMATIONMARK,
@@ -81,6 +84,7 @@ pub enum Operator {
     Asterisk,
     Caret,
     Dot,
+    DotAsterisk,
     Equal,
     Equal2,
     Exclamationmark,
@@ -106,6 +110,7 @@ impl Display for Operator {
             Asterisk => OP_ASTERISK,
             Caret => OP_CARET,
             Dot => OP_DOT,
+            DotAsterisk => OP_DOTASTERISK,
             Equal => OP_EQUAL,
             Equal2 => OP_EQUAL2,
             Exclamationmark => OP_EXCLAMATIONMARK,
