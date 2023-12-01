@@ -84,7 +84,7 @@ pub fn parse_primary_expr(
         }) => parse_boolean_expr(tokens, settings, context),
         Some(Token { tt: Undefined, .. }) => parse_undefined_expr(tokens, settings, context),
         Some(Token { tt: If, .. }) => parse_conditional_expr(tokens, settings, context),
-        Some(Token { tt: Return, .. }) => parse_return(tokens, settings, context),
+        Some(Token { tt: Return, .. }) => parse_return_expr(tokens, settings, context),
         Some(Token { tt: Oper(_), .. }) => parse_unary_expr(tokens, settings, context),
         Some(Token { tt: While, .. }) => parse_while_expr(tokens, settings, context, None),
         Some(Token { tt: Break, .. }) => parse_break_expr(tokens, settings, context),
@@ -552,7 +552,7 @@ pub fn parse_conditional_expr(
     )
 }
 
-pub fn parse_return(
+pub fn parse_return_expr(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -563,9 +563,7 @@ pub fn parse_return(
 
     let start = parsed_tokens.last().unwrap().span.start;
 
-    let expr = if token_parteq!(no_opt tokens.last().unwrap(), SemiColon) {
-        None
-    } else {
+    let expr = if !is_expr_end(tokens) {
         Some(Box::new(parse_try!(
             parse_expr,
             tokens,
@@ -573,6 +571,8 @@ pub fn parse_return(
             context,
             parsed_tokens
         )))
+    } else {
+        None
     };
 
     let end = parsed_tokens.last().unwrap().span.end;
