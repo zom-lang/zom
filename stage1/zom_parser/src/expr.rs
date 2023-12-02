@@ -243,7 +243,7 @@ pub fn parse_expr(
         _ => lhs,
     };
 
-    if !is_expr_end(tokens) && is_right_unary_start(tokens.last().unwrap().tt.clone()) {
+    while !is_expr_end(tokens) && is_right_unary_start(tokens.last().unwrap().tt.clone()) {
         result = parse_try!(
             parse_unary_expr,
             tokens,
@@ -1052,8 +1052,6 @@ pub fn parse_call_expr(
             )
         )
     }
-    dbg!(&fn_operand);
-    dbg!(&args);
     let end = parsed_tokens.last().unwrap().span.end;
     Good(
         Expression {
