@@ -284,7 +284,7 @@ pub enum TokenType {
     At,        // ` @ `
 
     // Literals
-    Int(i32),
+    Int(u64),
     Float(f32),
     Str(String),
     Char(char),

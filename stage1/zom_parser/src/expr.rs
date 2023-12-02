@@ -16,7 +16,7 @@ impl_span!(Expression);
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum Expr {
-    LiteralExpr(i32),
+    IntLiteralExpr(u64),
     VariableExpr(String),
     BinaryExpr {
         op: BinOperation,
@@ -80,7 +80,7 @@ pub fn parse_primary_expr(
             parse_labeled_expr(tokens, settings, context)
         }
         Some(Token { tt: Ident(_), .. }) => parse_ident_expr(tokens, settings, context),
-        Some(Token { tt: Int(_), .. }) => parse_literal_expr(tokens, settings, context),
+        Some(Token { tt: Int(_), .. }) => parse_int_literal_expr(tokens, settings, context),
         Some(Token { tt: OpenParen, .. }) => parse_parenthesis_expr(tokens, settings, context),
         Some(Token { tt: OpenBrace, .. }) => parse_block_expr(tokens, settings, context),
         Some(Token {
@@ -167,7 +167,7 @@ pub fn parse_ident_expr(
     )
 }
 
-pub fn parse_literal_expr(
+pub fn parse_int_literal_expr(
     tokens: &mut Vec<Token>,
     _settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -181,14 +181,13 @@ pub fn parse_literal_expr(
         parsed_tokens,
         err_et!(context, t, vec![Int(0), Float(0.0)], t.tt)
     );
-    let start = parsed_tokens.last().unwrap().span.start;
 
-    let end = parsed_tokens.last().unwrap().span.end;
+    let span = parsed_tokens.last().unwrap().span.clone();
 
     Good(
         Expression {
-            expr: LiteralExpr(value),
-            span: start..end,
+            expr: IntLiteralExpr(value),
+            span,
         },
         parsed_tokens,
     )
