@@ -18,7 +18,7 @@ fn fourteen(ptr: *const u8) u8 {
         6 = 2 - 1;
     }
 
-    return a.*;
+    return a.*(12, 144);
 }
 
 extern "c" fn c_function() void;

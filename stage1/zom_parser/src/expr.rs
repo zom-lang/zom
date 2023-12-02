@@ -23,7 +23,10 @@ pub enum Expr {
         lhs: Box<Expression>,
         rhs: Box<Expression>,
     },
-    CallExpr(String, Vec<Expression>),
+    CallExpr {
+        fn_operand: Box<Expression>,
+        args: Vec<Expression>,
+    },
     BlockExpr(Block),
     BooleanExpr(bool),
     UndefinedExpr,
@@ -79,7 +82,7 @@ pub fn parse_primary_expr(
         Some(Token { tt: Ident(_), .. }) if is_labeled_expr(tokens) => {
             parse_labeled_expr(tokens, settings, context)
         }
-        Some(Token { tt: Ident(_), .. }) => parse_ident_expr(tokens, settings, context),
+        Some(Token { tt: Ident(_), .. }) => parse_symbol_expr(tokens, settings, context),
         Some(Token { tt: Int(_), .. }) => parse_int_literal_expr(tokens, settings, context),
         Some(Token { tt: OpenParen, .. }) => parse_parenthesis_expr(tokens, settings, context),
         Some(Token { tt: OpenBrace, .. }) => parse_block_expr(tokens, settings, context),
@@ -89,7 +92,7 @@ pub fn parse_primary_expr(
         Some(Token { tt: Undefined, .. }) => parse_undefined_expr(tokens, settings, context),
         Some(Token { tt: If, .. }) => parse_conditional_expr(tokens, settings, context),
         Some(Token { tt: Return, .. }) => parse_return_expr(tokens, settings, context),
-        Some(Token { tt: Oper(_), .. }) => parse_unary_expr(tokens, settings, context),
+        Some(Token { tt: Oper(_), .. }) => parse_left_unary_expr(tokens, settings, context),
         Some(Token { tt: While, .. }) => parse_while_expr(tokens, settings, context, None),
         Some(Token { tt: Break, .. }) => parse_break_expr(tokens, settings, context),
         Some(Token { tt: Continue, .. }) => parse_continue_expr(tokens, settings, context),
@@ -103,7 +106,7 @@ pub fn parse_primary_expr(
     }
 }
 
-pub fn parse_ident_expr(
+pub fn parse_symbol_expr(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -122,46 +125,12 @@ pub fn parse_ident_expr(
         )
     );
 
-    let start = parsed_tokens.last().unwrap().clone().span.start;
-
-    let end = parsed_tokens.last().unwrap().clone().span.end;
-
-    expect_token!(
-        context,
-        [OpenParen, OpenParen, ()]
-        else {return Good(
-            Expression { expr: SymbolExpr(name), span: start..end },
-            parsed_tokens)}
-        <= tokens, parsed_tokens);
-
-    let mut args = Vec::new();
-    loop {
-        expect_token!(
-            context,
-            [CloseParen, CloseParen, break]
-            else {
-                args.push(parse_try!(parse_expr, tokens, settings, context, parsed_tokens));
-            }
-            <= tokens, parsed_tokens
-        );
-
-        let t = tokens.last().unwrap().clone();
-        expect_token!(
-            context, [
-            Comma, Comma, {};
-            CloseParen, CloseParen, break
-        ] <= tokens,
-             parsed_tokens,
-            err_et!(context, t, vec![Comma, CloseParen], t.tt)
-        );
-    }
-
-    let end = parsed_tokens.last().unwrap().span.end;
+    let span = parsed_tokens.last().unwrap().clone().span.clone();
 
     Good(
         Expression {
-            expr: CallExpr(name, args),
-            span: start..end,
+            expr: SymbolExpr(name),
+            span,
         },
         parsed_tokens,
     )
@@ -240,32 +209,75 @@ pub fn parse_expr(
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
+
     let lhs = parse_try!(parse_primary_expr, tokens, settings, context, parsed_tokens);
-    Good(
-        match tokens.last() {
-            Some(Token { tt: Oper(op), .. }) if BinOperation::try_from(op.clone()).is_ok() => {
-                parse_try!(
-                    parse_binary_expr,
-                    tokens,
-                    settings,
-                    context,
-                    parsed_tokens,
-                    0,
-                    &lhs
-                )
-            }
-            Some(Token { tt: Oper(op), .. }) if is_right_unary_op(op.clone()) => parse_try!(
-                parse_right_unary_expr,
+
+    let mut result = match tokens.last() {
+        Some(Token { tt: Oper(op), .. }) if BinOperation::try_from(op.clone()).is_ok() => {
+            parse_try!(
+                parse_binary_expr,
                 tokens,
                 settings,
                 context,
                 parsed_tokens,
+                0,
                 &lhs
-            ),
-            _ => lhs,
-        },
-        parsed_tokens,
-    )
+            )
+        }
+        Some(Token { tt: Oper(op), .. }) if is_right_unary_op(op.clone()) => parse_try!(
+            parse_right_unary_expr,
+            tokens,
+            settings,
+            context,
+            parsed_tokens,
+            &lhs
+        ),
+        Some(Token { tt: OpenParen, .. }) => parse_try!(
+            parse_call_expr,
+            tokens,
+            settings,
+            context,
+            parsed_tokens,
+            &lhs
+        ),
+        _ => lhs,
+    };
+
+    if !is_expr_end(tokens) && is_right_unary_start(tokens.last().unwrap().tt.clone()) {
+        result = parse_try!(
+            parse_unary_expr,
+            tokens,
+            settings,
+            context,
+            parsed_tokens,
+            &result
+        );
+    }
+    Good(result, parsed_tokens)
+}
+
+pub fn is_right_unary_start(token: TokenType) -> bool {
+    match token {
+        Oper(op) if is_right_unary_op(op.clone()) => true,
+        OpenParen => true,
+        _ => false,
+    }
+}
+
+/// When calling this function you should assert that the next token is a right unary expr because it panics if it's not.
+fn parse_unary_expr(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+    lhs: &Expression,
+) -> PartParsingResult<Expression> {
+    match tokens.last() {
+        Some(Token { tt: Oper(op), .. }) if is_right_unary_op(op.clone()) => {
+            parse_right_unary_expr(tokens, settings, context, lhs)
+        }
+        Some(Token { tt: OpenParen, .. }) => parse_call_expr(tokens, settings, context, lhs),
+        _ => panic!("doesn't start with a right unary token."),
+    }
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -626,7 +638,7 @@ pub fn is_right_unary_op(op: Operator) -> bool {
     matches!(op, zom_common::token::Operator::DotAsterisk)
 }
 
-pub fn parse_unary_expr(
+pub fn parse_left_unary_expr(
     tokens: &mut Vec<Token>,
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
@@ -696,7 +708,7 @@ pub fn parse_right_unary_expr(
 ) -> PartParsingResult<Expression> {
     let mut parsed_tokens = vec![];
     let expr = Box::new(lhs.clone());
-    dbg!(tokens.last());
+
     let unary_op = match UnaryOperation::try_from(expect_token!(
         context,
         [Oper(op), Oper(op.clone()), op] <= tokens,
@@ -990,6 +1002,62 @@ pub fn parse_continue_expr(
     Good(
         Expression {
             expr: ContinueExpr { label, value },
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_call_expr(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+    lhs: &Expression,
+) -> PartParsingResult<Expression> {
+    let mut parsed_tokens = vec![];
+    let fn_operand = Box::new(lhs.clone());
+
+    expect_token!(
+        context,
+        [OpenParen, OpenParen, ()] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![OpenParen],
+            tokens.last().unwrap().tt
+        )
+    );
+    let start = parsed_tokens.last().unwrap().span.start;
+    let mut args = Vec::new();
+
+    loop {
+        expect_token!(
+            context,
+            [CloseParen, CloseParen, break] else {
+                args.push(parse_try!(parse_expr, tokens, settings, context, parsed_tokens));
+            } <= tokens, parsed_tokens
+        );
+
+        let t = tokens.last().unwrap().clone();
+        expect_token!(
+            context,
+            [Comma, Comma, ();
+             CloseParen, CloseParen, break] <= tokens,
+            parsed_tokens,
+            err_et!(
+                context,
+                t,
+                vec![Comma, CloseParen], t.tt
+            )
+        )
+    }
+    dbg!(&fn_operand);
+    dbg!(&args);
+    let end = parsed_tokens.last().unwrap().span.end;
+    Good(
+        Expression {
+            expr: CallExpr { fn_operand, args },
             span: start..end,
         },
         parsed_tokens,
