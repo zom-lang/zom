@@ -17,7 +17,7 @@ impl_span!(Expression);
 #[derive(PartialEq, Clone, Debug)]
 pub enum Expr {
     IntLiteralExpr(u64),
-    VariableExpr(String),
+    SymbolExpr(String),
     BinaryExpr {
         op: BinOperation,
         lhs: Box<Expression>,
@@ -130,7 +130,7 @@ pub fn parse_ident_expr(
         context,
         [OpenParen, OpenParen, ()]
         else {return Good(
-            Expression { expr: VariableExpr(name), span: start..end },
+            Expression { expr: SymbolExpr(name), span: start..end },
             parsed_tokens)}
         <= tokens, parsed_tokens);
 
