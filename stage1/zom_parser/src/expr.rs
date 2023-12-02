@@ -17,6 +17,8 @@ impl_span!(Expression);
 #[derive(PartialEq, Clone, Debug)]
 pub enum Expr {
     IntLiteralExpr(u64),
+    CharLiteralExpr(char),
+    StrLiteralExpr(String),
     SymbolExpr(String),
     BinaryExpr {
         op: BinOperation,
@@ -96,6 +98,8 @@ pub fn parse_primary_expr(
         Some(Token { tt: While, .. }) => parse_while_expr(tokens, settings, context, None),
         Some(Token { tt: Break, .. }) => parse_break_expr(tokens, settings, context),
         Some(Token { tt: Continue, .. }) => parse_continue_expr(tokens, settings, context),
+        Some(Token { tt: Char(..), .. }) => parse_char_literal_expr(tokens, settings, context),
+        Some(Token { tt: Str(..), .. }) => parse_str_literal_expr(tokens, settings, context),
         None => NotComplete,
         _ => err_et!(
             context,
@@ -1052,6 +1056,54 @@ pub fn parse_call_expr(
         Expression {
             expr: CallExpr { fn_operand, args },
             span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_char_literal_expr(
+    tokens: &mut Vec<Token>,
+    _: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Expression> {
+    let mut parsed_tokens = vec![];
+
+    let t = tokens.last().unwrap().clone();
+    let char = expect_token!(
+        context,
+        [Char(c), Char(c), c] <= tokens,
+        parsed_tokens,
+        err_et!(context, t, vec![Char(' ')], t.tt)
+    );
+
+    Good(
+        Expression {
+            expr: CharLiteralExpr(char),
+            span: t.span,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_str_literal_expr(
+    tokens: &mut Vec<Token>,
+    _: &mut ParserSettings,
+    context: &mut ParsingContext,
+) -> PartParsingResult<Expression> {
+    let mut parsed_tokens = vec![];
+
+    let t = tokens.last().unwrap().clone();
+    let str = expect_token!(
+        context,
+        [Str(s), Str(s.clone()), s] <= tokens,
+        parsed_tokens,
+        err_et!(context, t, vec![Str(String::new())], t.tt)
+    );
+
+    Good(
+        Expression {
+            expr: StrLiteralExpr(str),
+            span: t.span,
         },
         parsed_tokens,
     )
