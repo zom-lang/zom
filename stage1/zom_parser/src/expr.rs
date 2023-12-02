@@ -108,7 +108,7 @@ pub fn parse_primary_expr(
 
 pub fn parse_symbol_expr(
     tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
+    _: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
@@ -702,7 +702,7 @@ pub fn parse_left_unary_expr(
 
 pub fn parse_right_unary_expr(
     tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
+    _: &mut ParserSettings,
     context: &mut ParsingContext,
     lhs: &Expression,
 ) -> PartParsingResult<Expression> {
@@ -729,7 +729,7 @@ pub fn parse_right_unary_expr(
                     context.source_file.clone(),
                     context.filename.clone().into(),
                 ),
-                format!("not a right unary operator"),
+                "not a right unary operator".to_string(),
                 false,
                 None,
                 vec![],
@@ -749,12 +749,7 @@ pub fn parse_right_unary_expr(
 }
 
 pub fn is_labeled_expr(tokens: &mut Vec<Token>) -> bool {
-    match tokens.last() {
-        Some(Token { tt: Ident(_), .. }) if token_parteq!(tokens.get(tokens.len() - 2), &Colon) => {
-            true
-        }
-        _ => false,
-    }
+    matches!(tokens.last(), Some(Token { tt: Ident(_), .. }) if token_parteq!(tokens.get(tokens.len() - 2), &Colon))
 }
 
 pub fn parse_labeled_expr(
@@ -929,7 +924,7 @@ pub fn parse_break_expr(
     )
 }
 
-pub fn is_expr_end(tokens: &mut Vec<Token>) -> bool {
+pub fn is_expr_end(tokens: &mut [Token]) -> bool {
     matches!(
         tokens.last().unwrap().tt,
         SemiColon | Comma | CloseParen | CloseBracket | CloseBrace | Else
