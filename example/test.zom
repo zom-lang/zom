@@ -3,7 +3,7 @@ pub const test2 = 123 * 12 + 1;
 fn fourteen(ptr: *const u8) u8 {
     const test1 = undefined;
     const test2 = 't';
-    var hello_world = "Hello world!";
+    var hello_world = "Hello world!".len;
     return a.*(12, 144);
 }
 

@@ -57,6 +57,10 @@ pub enum Expr {
         label: Option<String>,
         value: Option<Box<Expression>>,
     },
+    MemberAccessExpr {
+        expr: Box<Expression>,
+        qualified_name: String,
+    },
 }
 
 impl Expression {
@@ -80,7 +84,7 @@ pub fn parse_primary_expr(
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<Expression> {
-    match tokens.last().cloned() {
+    match tokens.last() {
         Some(Token { tt: Ident(_), .. }) if is_labeled_expr(tokens) => {
             parse_labeled_expr(tokens, settings, context)
         }
@@ -244,11 +248,20 @@ pub fn parse_expr(
             parsed_tokens,
             &lhs
         ),
+        Some(Token { tt: Oper(_), .. }) if is_member_access_expr(tokens) => parse_try!(
+            parse_member_access_expr,
+            tokens,
+            settings,
+            context,
+            parsed_tokens,
+            &lhs
+        ),
         _ => lhs,
     };
 
     while !is_expr_end(tokens) && is_right_unary_start(tokens.last().unwrap().tt.clone()) {
         result = parse_try!(
+            // try to call parse_expr instead of calling a separate fn
             parse_unary_expr,
             tokens,
             settings,
@@ -280,6 +293,9 @@ fn parse_unary_expr(
             parse_right_unary_expr(tokens, settings, context, lhs)
         }
         Some(Token { tt: OpenParen, .. }) => parse_call_expr(tokens, settings, context, lhs),
+        Some(Token { tt: Oper(_), .. }) if is_member_access_expr(tokens) => {
+            parse_member_access_expr(tokens, settings, context, lhs)
+        }
         _ => panic!("doesn't start with a right unary token."),
     }
 }
@@ -752,7 +768,7 @@ pub fn parse_right_unary_expr(
     )
 }
 
-pub fn is_labeled_expr(tokens: &mut Vec<Token>) -> bool {
+pub fn is_labeled_expr(tokens: &[Token]) -> bool {
     matches!(tokens.last(), Some(Token { tt: Ident(_), .. }) if token_parteq!(tokens.get(tokens.len() - 2), &Colon))
 }
 
@@ -928,7 +944,7 @@ pub fn parse_break_expr(
     )
 }
 
-pub fn is_expr_end(tokens: &mut [Token]) -> bool {
+pub fn is_expr_end(tokens: &[Token]) -> bool {
     matches!(
         tokens.last().unwrap().tt,
         SemiColon | Comma | CloseParen | CloseBracket | CloseBrace | Else
@@ -1104,6 +1120,62 @@ pub fn parse_str_literal_expr(
         Expression {
             expr: StrLiteralExpr(str),
             span: t.span,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn is_member_access_expr(tokens: &[Token]) -> bool {
+    matches!(
+        tokens.get(tokens.len() - 2),
+        Some(Token { tt: Ident(_), .. })
+        if token_parteq!(tokens.last(), &Oper(Operator::Dot))
+    )
+}
+
+pub fn parse_member_access_expr(
+    tokens: &mut Vec<Token>,
+    settings: &mut ParserSettings,
+    context: &mut ParsingContext,
+    lhs: &Expression,
+) -> PartParsingResult<Expression> {
+    let mut parsed_tokens = vec![];
+    let expr = Box::new(lhs.clone());
+    expect_token!(
+        context,
+        [Oper(Operator::Dot), Oper(Operator::Dot), ()] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![Oper(Operator::Dot)],
+            tokens.last().unwrap().tt
+        )
+    );
+
+    let start = parsed_tokens.last().unwrap().span.start;
+
+    let qualified_name = expect_token!(
+        context,
+        [Ident(qn), Ident(qn.clone()), qn] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![Ident(String::new())],
+            tokens.last().unwrap().tt
+        )
+    );
+
+    let end = parsed_tokens.last().unwrap().span.end;
+
+    Good(
+        Expression {
+            expr: MemberAccessExpr {
+                expr,
+                qualified_name,
+            },
+            span: start..end,
         },
         parsed_tokens,
     )
