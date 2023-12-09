@@ -1135,7 +1135,7 @@ pub fn is_member_access_expr(tokens: &[Token]) -> bool {
 
 pub fn parse_member_access_expr(
     tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
+    _: &mut ParserSettings,
     context: &mut ParsingContext,
     lhs: &Expression,
 ) -> PartParsingResult<Expression> {
