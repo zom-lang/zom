@@ -2,7 +2,7 @@
 
 use crate::prelude::*;
 
-use crate::statement::{parse_statement, Stmt};
+use crate::statement::parse_statement;
 
 use super::{
     expr::{Expr, Expression},
@@ -11,8 +11,7 @@ use super::{
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Block {
-    pub code: Vec<Statement>,
-    pub returned_expr: Option<Box<Expression>>,
+    pub stmts: Vec<Statement>,
     pub span: Range<usize>,
 }
 
@@ -23,48 +22,31 @@ pub fn parse_block(
     settings: &mut ParserSettings,
     context: &mut ParsingContext,
 ) -> PartParsingResult<Block> {
-    // eat the opening brace
-    let mut parsed_tokens = vec![tokens.last().unwrap().clone()];
+    let mut parsed_tokens = vec![];
     let t = tokens.last().unwrap().clone();
-    tokens.pop();
+    expect_token!(
+        context,
+        [OpenBrace, OpenBrace, ()] <= tokens,
+        parsed_tokens,
+        err_et!(
+            context,
+            tokens.last().unwrap(),
+            vec![OpenBrace],
+            tokens.last().unwrap().tt
+        )
+    );
 
     let start = parsed_tokens.last().unwrap().span.start;
 
-    let mut code = vec![];
-    let mut returned_expr: Option<Box<Expression>> = None;
+    let mut stmts = vec![];
 
     loop {
-        if token_parteq!(tokens.last(), &CloseBrace) {
+        if token_parteq!(tokens.last(), CloseBrace | EOF) {
             break;
         }
 
         let stmt = parse_try!(parse_statement, tokens, settings, context, parsed_tokens);
-        let is_eof = token_parteq!(tokens.last(), &EOF);
-        let semi = stmt.is_semi_need() && !is_eof;
-
-        if (!token_parteq!(tokens.last(), &SemiColon))
-            && token_parteq!(tokens.last(), &CloseBrace)
-            && matches!(stmt.stmt, Stmt::Expr(_))
-        {
-            if let Stmt::Expr(ref e) = stmt.stmt {
-                returned_expr = Some(Box::new(e.clone()))
-            }
-            break;
-        }
-
-        code.push(stmt);
-
-        let t = tokens.last().unwrap().clone();
-        if semi {
-            expect_token!(
-                context,
-                [SemiColon, SemiColon, ()] <= tokens,
-                parsed_tokens,
-                err_et!(context, t, vec![SemiColon], t.tt)
-            );
-        } else if is_eof {
-            break;
-        }
+        stmts.push(stmt);
     }
 
     expect_token!(
@@ -92,8 +74,7 @@ pub fn parse_block(
 
     Good(
         Block {
-            code,
-            returned_expr,
+            stmts,
             span: start..end,
         },
         parsed_tokens,

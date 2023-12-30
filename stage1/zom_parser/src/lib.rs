@@ -249,9 +249,9 @@ macro_rules! expect_token (
 /// return true if it's equal or false if it's not.
 #[macro_export]
 macro_rules! token_parteq(
-    ($left:expr, $right:expr) => (
+    ($left:expr, $right:pat) => (
         match $left {
-            Some(Token { tt, span: _}) if tt == $right => true,
+            Some(Token { tt: $right, span: _}) => true,
             _ => false
         }
     );

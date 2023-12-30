@@ -64,7 +64,8 @@ pub enum Expr {
 }
 
 impl Expression {
-    pub fn is_semicolon_needed(&self) -> bool {
+    /// Is the semicolon mandatory when parsing the expression statement
+    pub fn semicolon(&self) -> bool {
         match *self {
             Expression {
                 expr: BlockExpr(_) | WhileExpr { .. },
@@ -769,7 +770,7 @@ pub fn parse_right_unary_expr(
 }
 
 pub fn is_labeled_expr(tokens: &[Token]) -> bool {
-    matches!(tokens.last(), Some(Token { tt: Ident(_), .. }) if token_parteq!(tokens.get(tokens.len() - 2), &Colon))
+    matches!(tokens.last(), Some(Token { tt: Ident(_), .. }) if token_parteq!(tokens.get(tokens.len() - 2), Colon))
 }
 
 pub fn parse_labeled_expr(
@@ -1129,7 +1130,7 @@ pub fn is_member_access_expr(tokens: &[Token]) -> bool {
     matches!(
         tokens.get(tokens.len() - 2),
         Some(Token { tt: Ident(_), .. })
-        if token_parteq!(tokens.last(), &Oper(Operator::Dot))
+        if token_parteq!(tokens.last(), Oper(Operator::Dot))
     )
 }
 
