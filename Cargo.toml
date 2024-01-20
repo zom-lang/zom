@@ -23,3 +23,4 @@ zom_parser = { path = "stage1/zom_parser" }
 zom_common = { path = "stage1/zom_common" }
 zom_compiler = { path = "stage1/zom_compiler" }
 zom_codegen = { path = "stage1/zom_codegen" }
+zom_errors = { path = "stage1/zom_errors" }

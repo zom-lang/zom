@@ -944,6 +944,7 @@ dependencies = [
  "zom_codegen",
  "zom_common",
  "zom_compiler",
+ "zom_errors",
  "zom_lexer",
  "zom_parser",
 ]
@@ -975,6 +976,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "zom_errors"
+version = "0.0.0"
+dependencies = [
+ "zom_common",
+]
+
+[[package]]
 name = "zom_lexer"
 version = "0.0.0"
 dependencies = [
@@ -987,5 +995,6 @@ version = "0.0.0"
 dependencies = [
  "criterion",
  "zom_common",
+ "zom_errors",
  "zom_lexer",
 ]
