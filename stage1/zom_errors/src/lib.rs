@@ -1,6 +1,27 @@
 use std::fmt;
 use std::{ops::Range, path::PathBuf};
 
+use std::io::{self, Write};
+use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+
+use lazy_static::lazy_static;
+
+lazy_static! {
+    static ref BOLD_STYLE: ColorSpec = ColorSpec::new().set_bold(true).clone();
+    static ref RED_STYLE: ColorSpec = ColorSpec::new()
+        .set_bold(true)
+        .set_fg(Some(Color::Red))
+        .clone();
+    static ref MAGENTA_STYLE: ColorSpec = ColorSpec::new()
+        .set_bold(true)
+        .set_fg(Some(Color::Magenta))
+        .clone();
+    static ref BLUE_STYLE: ColorSpec = ColorSpec::new()
+        .set_bold(true)
+        .set_fg(Some(Color::Blue))
+        .clone();
+}
+
 pub enum FmtToken {
     Operator,
 
@@ -110,14 +131,16 @@ pub struct LogContext {
     file: String,
     file_path: PathBuf,
     logs: Vec<BuiltLog>,
+    color: ColorChoice,
 }
 
 impl LogContext {
-    pub fn new(file: String, file_path: PathBuf) -> LogContext {
+    pub fn new(file: String, file_path: PathBuf, color: ColorChoice) -> LogContext {
         LogContext {
             file,
             file_path,
             logs: Vec::new(),
+            color,
         }
     }
 
@@ -175,16 +198,31 @@ impl LogContext {
                 location,
             } => {
                 let loc = self.location(location.clone());
+                let loc_end = self.location(location.end..location.end + 1);
                 BuiltLog {
                     file_path: self.file_path.clone(),
                     loc: loc.clone(),
                     lvl: LogLevel::Error,
                     msg: format!("expected {}, found {}", format_tokens(&expected), found),
-                    code: self.get_line(loc),
-                    span: location,
+                    code: self.get_line(loc.clone()),
+                    span: loc.col..loc_end.col,
                 }
             }
-            _ => todo!("Not implemented"),
+            Log::UnclosedDelimiter {
+                delimiter,
+                location,
+            } => {
+                let loc = self.location(location.clone());
+                let loc_end = self.location(location.end..location.end + 1);
+                BuiltLog {
+                    file_path: self.file_path.clone(),
+                    loc: loc.clone(),
+                    lvl: LogLevel::Error,
+                    msg: format!("unclosed delimiter `{}`", delimiter),
+                    code: self.get_line(loc.clone()),
+                    span: loc.col..loc_end.col,
+                }
+            }
         }
     }
 
@@ -193,10 +231,20 @@ impl LogContext {
     }
 
     pub fn print(&self) {
-        // Modify this function to take a writer or smth like that
-        for log in &self.logs {
-            println!("{log}")
+        let mut stdout = StandardStream::stdout(self.color);
+        self.format(&mut stdout).expect("error formating failed.");
+    }
+
+    pub fn format(&self, s: &mut StandardStream) -> Result<(), io::Error> {
+        let len = self.logs.len();
+        for (i, log) in self.logs.iter().enumerate() {
+            log.format(s)?;
+
+            if i != len - 1 {
+                writeln!(s)?;
+            }
         }
+        Ok(())
     }
 }
 
@@ -219,7 +267,7 @@ fn format_tokens(tokens: &Vec<FmtToken>) -> String {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct CodeLocation {
     pub col: usize,
     pub line: usize,
@@ -242,12 +290,18 @@ pub enum Log {
     },
 }
 
-pub fn spaces(n: usize) -> String {
+/// Repeats a char (c), n times and returns it.
+fn repeat(c: char, n: usize) -> String {
     let mut s = String::with_capacity(n);
     for _ in 0..n {
-        s.push(' ');
+        s.push(c);
     }
     s
+}
+
+/// Repeats spaces n times and returns a string containing it.
+fn spaces(n: usize) -> String {
+    repeat(' ', n)
 }
 
 pub struct BuiltLog {
@@ -259,20 +313,30 @@ pub struct BuiltLog {
     span: CodeSpan,
 }
 
-impl fmt::Display for BuiltLog {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl BuiltLog {
+    pub fn format(&self, s: &mut StandardStream) -> Result<(), io::Error> {
+        s.set_color(&BOLD_STYLE)?;
         write!(
-            f,
-            "{}:{}:{}: {}: {}\n",
+            s,
+            "{}:{}:{}: ",
             self.file_path.clone().into_os_string().to_str().unwrap(),
             self.loc.line,
             self.loc.col,
-            self.lvl,
-            self.msg
         )?;
-        write!(f, "{}\n", self.code)?;
-        write!(f, "{}^", spaces(self.loc.col - 1))?;
-        fmt::Result::Ok(())
+        self.lvl.format(s)?;
+        s.set_color(&BOLD_STYLE)?;
+        writeln!(s, ": {}", self.msg)?;
+        s.reset()?;
+        writeln!(s, "{}", self.code)?;
+        s.set_color(&BLUE_STYLE)?;
+        writeln!(
+            s,
+            "{}{}",
+            spaces(self.loc.col - 1),
+            repeat('^', self.span.end - self.span.start)
+        )?;
+        s.reset()?;
+        Ok(())
     }
 }
 
@@ -281,11 +345,17 @@ pub enum LogLevel {
     Error,
 }
 
-impl fmt::Display for LogLevel {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl LogLevel {
+    pub fn format(&self, s: &mut StandardStream) -> Result<(), io::Error> {
         match self {
-            Self::Warning => write!(f, "warning"),
-            Self::Error => write!(f, "error"),
+            Self::Warning => {
+                s.set_color(&MAGENTA_STYLE)?;
+                write!(s, "warning")
+            }
+            Self::Error => {
+                s.set_color(&RED_STYLE)?;
+                write!(s, "error")
+            }
         }
     }
 }

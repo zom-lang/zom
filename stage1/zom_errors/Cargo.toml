@@ -12,3 +12,5 @@ authors.workspace = true
 
 [dependencies]
 zom_common.workspace = true
+termcolor.workspace = true
+lazy_static.workspace = true
