@@ -6,6 +6,7 @@ use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 use lazy_static::lazy_static;
 
+pub mod err;
 pub mod prelude;
 
 lazy_static! {
@@ -202,43 +203,11 @@ impl LogContext {
     }
 
     /// Build a `Log` into a `BuiltLog`
-    pub fn build_log(&self, log: Log) -> BuiltLog {
-        match log {
-            Log::ExpectedToken {
-                expected,
-                found,
-                location,
-            } => {
-                let loc = self.location(location.clone());
-                let loc_end = self.location(location.end..location.end + 1);
-                BuiltLog {
-                    file_path: self.file_path.clone(),
-                    loc: loc.clone(),
-                    lvl: LogLevel::Error,
-                    msg: format!("expected {}, found {}", format_tokens(&expected), found),
-                    code: self.get_line(loc.clone()),
-                    span: loc.col..loc_end.col,
-                }
-            }
-            Log::UnclosedDelimiter {
-                delimiter,
-                location,
-            } => {
-                let loc = self.location(location.clone());
-                let loc_end = self.location(location.end..location.end + 1);
-                BuiltLog {
-                    file_path: self.file_path.clone(),
-                    loc: loc.clone(),
-                    lvl: LogLevel::Error,
-                    msg: format!("unclosed delimiter `{}`", delimiter),
-                    code: self.get_line(loc.clone()),
-                    span: loc.col..loc_end.col,
-                }
-            }
-        }
+    pub fn build_log<L: Log>(&self, log: L) -> BuiltLog {
+        log.build(self)
     }
 
-    pub fn add(&mut self, log: Log) {
+    pub fn add<L: Log>(&mut self, log: L) {
         self.logs.push(self.build_log(log))
     }
 
@@ -264,7 +233,7 @@ impl LogContext {
     }
 }
 
-fn format_tokens(tokens: &Vec<FmtToken>) -> String {
+pub fn format_tokens(tokens: &Vec<FmtToken>) -> String {
     if tokens.len() == 1 {
         format!("{}", tokens[0])
     } else {
@@ -289,21 +258,36 @@ pub struct CodeLocation {
     pub line: usize,
 }
 
-pub enum Log {
-    ExpectedToken {
-        /// list of expected tokens
-        expected: Vec<FmtToken>,
-        /// token found
-        found: FmtToken,
-        /// location of the found token
-        location: CodeSpan,
-    },
-    UnclosedDelimiter {
-        /// expected closing delimiter
-        delimiter: FmtToken,
-        /// location of the opening delimiter
-        location: CodeSpan,
-    },
+pub trait Log {
+    /// location of the found token on the line
+    fn location(&self) -> CodeSpan;
+
+    /// level of the log
+    fn level(&self) -> LogLevel;
+
+    /// message of the log
+    fn msg(&self) -> String;
+
+    /// note message
+    fn note(&self) -> Option<String> {
+        None
+    }
+
+    /// build the log using a LogContext.
+    /// It's prefered to call the `build_log` method on LogContext instead of calling this method.
+    fn build(&self, ctx: &LogContext) -> BuiltLog {
+        let loc = ctx.location(self.location().clone());
+        let loc_end = ctx.location(self.location().end..self.location().end + 1);
+        BuiltLog {
+            file_path: ctx.file_path.clone(),
+            loc: loc.clone(),
+            lvl: self.level(),
+            msg: self.msg(),
+            note: self.note(),
+            code: ctx.get_line(loc.clone()),
+            span: loc.col..loc_end.col,
+        }
+    }
 }
 
 /// Repeats a char (c), n times and returns it.
@@ -323,9 +307,14 @@ fn spaces(n: usize) -> String {
 #[derive(Debug)]
 pub struct BuiltLog {
     file_path: PathBuf,
+    /// location of the log inside the file
     loc: CodeLocation,
     lvl: LogLevel,
+    /// log message
     msg: String,
+    /// note message to specify the log message
+    note: Option<String>,
+    /// code at the line of the log
     code: String,
     span: CodeSpan,
 }
@@ -346,18 +335,22 @@ impl BuiltLog {
         s.reset()?;
         writeln!(s, "{}", self.code)?;
         s.set_color(&BLUE_STYLE)?;
-        writeln!(
+        write!(
             s,
             "{}{}",
             spaces(self.loc.col - 1),
-            repeat('^', self.span.end - self.span.start)
+            repeat('^', self.span.end - self.span.start),
         )?;
+        if let Some(note) = &self.note {
+            write!(s, " {note}")?;
+        }
+        writeln!(s, "")?;
         s.reset()?;
         Ok(())
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LogLevel {
     Warning,
     Error,
