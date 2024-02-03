@@ -6,6 +6,8 @@ use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 use lazy_static::lazy_static;
 
+pub mod prelude;
+
 lazy_static! {
     static ref BOLD_STYLE: ColorSpec = ColorSpec::new().set_bold(true).clone();
     static ref RED_STYLE: ColorSpec = ColorSpec::new()
@@ -127,6 +129,7 @@ impl fmt::Display for FmtToken {
 
 pub type CodeSpan = Range<usize>;
 
+#[derive(Debug)]
 pub struct LogContext {
     file: String,
     file_path: PathBuf,
@@ -136,10 +139,19 @@ pub struct LogContext {
 
 impl LogContext {
     pub fn new(file: String, file_path: PathBuf, color: ColorChoice) -> LogContext {
+        Self::with_logs(file, file_path, color, Vec::new())
+    }
+
+    pub fn with_logs(
+        file: String,
+        file_path: PathBuf,
+        color: ColorChoice,
+        logs: Vec<BuiltLog>,
+    ) -> LogContext {
         LogContext {
             file,
             file_path,
-            logs: Vec::new(),
+            logs,
             color,
         }
     }
@@ -246,6 +258,10 @@ impl LogContext {
         }
         Ok(())
     }
+
+    pub fn log_stream(&self) -> &Vec<BuiltLog> {
+        &self.logs
+    }
 }
 
 fn format_tokens(tokens: &Vec<FmtToken>) -> String {
@@ -304,6 +320,7 @@ fn spaces(n: usize) -> String {
     repeat(' ', n)
 }
 
+#[derive(Debug)]
 pub struct BuiltLog {
     file_path: PathBuf,
     loc: CodeLocation,
@@ -340,6 +357,7 @@ impl BuiltLog {
     }
 }
 
+#[derive(Debug)]
 pub enum LogLevel {
     Warning,
     Error,
