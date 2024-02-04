@@ -998,7 +998,9 @@ dependencies = [
 name = "zom_lexer"
 version = "0.0.0"
 dependencies = [
+ "termcolor",
  "zom_common",
+ "zom_errors",
 ]
 
 [[package]]

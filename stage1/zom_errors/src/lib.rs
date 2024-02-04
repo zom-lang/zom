@@ -228,8 +228,8 @@ impl LogContext {
         Ok(())
     }
 
-    pub fn log_stream(&self) -> &Vec<BuiltLog> {
-        &self.logs
+    pub fn stream(&self) -> Vec<BuiltLog> {
+        self.logs.clone()
     }
 }
 
@@ -304,7 +304,7 @@ fn spaces(n: usize) -> String {
     repeat(' ', n)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BuiltLog {
     file_path: PathBuf,
     /// location of the log inside the file
@@ -369,4 +369,9 @@ impl LogLevel {
             }
         }
     }
+}
+
+pub enum FinalRes<T> {
+    Ok(T, Vec<BuiltLog>),
+    Err(Vec<BuiltLog>),
 }

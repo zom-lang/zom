@@ -1,10 +1,14 @@
 //! The module containing the lexer.
+use std::ops::Range;
 use std::path::Path;
 
-use zom_common::error::{Position, ZomError};
+use zom_errors::prelude::*;
+
 use zom_common::token::{Operator, Token, TokenType, TokenType::*};
 
 use zom_common::token::*;
+
+pub mod err;
 
 /// This is a struct representing a Zom source file, it contains a ref to both the path and the text
 #[derive(Debug)]
@@ -46,16 +50,7 @@ pub enum PartTokenResult {
     /// used when the lexing failed and it cannot lex anymore the content
     ///
     /// In this case, we assume the error doesn't have a position
-    Error(ZomError),
-
-    /// used when the lexing failed but it can ignore the error and keep lexing
-    /// and make result to a TokenType but with multiple errors.
-    ///
-    /// In this case, we assume every error in the vector to have a Position
-    ///
-    /// (This is prefered to be used when it's possible so the development experience
-    /// is not altered)
-    PartSuccess(TokenType, Vec<ZomError>),
+    Error,
 
     /// used when the lexing result to a comment.
     Comment,
@@ -63,11 +58,6 @@ pub enum PartTokenResult {
     /// used when the lexing results to a whitespace.
     Whitespace,
 }
-
-/// Used when we expect to not have a None when we generate the position with the range.
-const POSITION_GEN_ERROR: &str = "Unable to generate the position from the range";
-
-const UNTERMINATED_CHAR_ERROR: &str = "unterminated single quote char literal";
 
 /// This macro pop a character using the function 'pop()'
 /// and assert when the compiler is compiled is debug mode, that
@@ -89,14 +79,18 @@ macro_rules! pop_expect {
 /// Used to lexe the content of a file into tokens that the parser can understand.
 pub struct Lexer<'a> {
     file: ZomFile<'a>,
+    prev_idx: usize,
     index: usize,
+    pub log: &'a mut LogContext,
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(text: &'a str, path: &'a Path) -> Lexer<'a> {
+    pub fn new(text: &'a str, path: &'a Path, log: &'a mut LogContext) -> Lexer<'a> {
         Lexer {
             file: ZomFile::new(text, path),
+            prev_idx: 0,
             index: 0,
+            log,
         }
     }
 
@@ -136,60 +130,37 @@ impl<'a> Lexer<'a> {
 
     /// Lex the whole file and returns either a vector of Tokens if it succeeds or,
     /// a list of errors if it doesn't.
-    pub fn lex(&mut self) -> Result<Vec<Token>, Vec<ZomError>> {
-        let mut errors = Vec::new();
+    pub fn lex(&mut self) -> FinalRes<Vec<Token>> {
         let mut tokens = Vec::new();
 
         loop {
-            let start = self.index;
+            self.prev_idx = self.index;
             match self.make_token() {
                 Tok(tt) => {
-                    if self.push_token(&mut tokens, tt, start) {
+                    if self.push_token(&mut tokens, tt) {
+                        // Reached EOF, breaking out of the loop
                         break;
                     }
                 }
-                Error(mut err) => {
-                    let pos = Position::try_from_range(
-                        self.index,
-                        start..self.index,
-                        self.file_text().to_string(),
-                        self.file_path().to_path_buf(),
-                    )
-                    .expect(POSITION_GEN_ERROR);
-                    err.add_position(pos);
-
-                    errors.push(err);
-                }
-                PartSuccess(tt, mut errs) => {
-                    debug_assert!(!errs.is_empty(), "the list of errors shouldn't be empty");
-
-                    #[cfg(debug_assertions)]
-                    {
-                        for error in &errs {
-                            assert!(error.has_pos(), "error should have position");
-                        }
-                    }
-
-                    errors.append(&mut errs);
-                    if self.push_token(&mut tokens, tt, start) {
-                        break;
-                    }
-                }
-                Comment | Whitespace => {}
+                Comment | Whitespace | Error => {}
             }
         }
 
-        if !errors.is_empty() {
-            return Err(errors);
+        if self.log.failed() {
+            return FinalRes::Err(self.log.stream());
         }
-        Ok(tokens)
+        FinalRes::Ok(tokens, self.log.stream())
+    }
+
+    fn get_pos(&self) -> Range<usize> {
+        self.prev_idx..self.index
     }
 
     /// This functions takes a vector of tokens, and push a Token containing the given TokenType
     /// with the start arg and the index at that moment.
     ///
     /// And if the TokenType is a EOF it returns true, either false.
-    fn push_token(&self, tokens: &mut Vec<Token>, tt: TokenType, start: usize) -> bool {
+    fn push_token(&self, tokens: &mut Vec<Token>, tt: TokenType) -> bool {
         if tt == EOF {
             let text_len = self.file_text().len() - 1;
             // the length of the buffer is used for the span of the EOF, because
@@ -201,10 +172,9 @@ impl<'a> Lexer<'a> {
             });
             return true;
         }
-        let end = self.index;
         tokens.push(Token {
             tt,
-            span: start..end,
+            span: self.prev_idx..self.index,
         });
 
         false
@@ -246,13 +216,11 @@ impl<'a> Lexer<'a> {
                     return Tok(Oper(op));
                 }
                 self.pop();
-                return Error(ZomError::new(
-                    None,
-                    format!("unknown start of token, '{}'", c),
-                    false,
-                    None,
-                    vec![],
-                ));
+                self.log.add(err::UnknownToken {
+                    found: c,
+                    location: self.get_pos(),
+                });
+                return Error;
             }
             None => EOF,
         };
@@ -290,7 +258,7 @@ impl<'a> Lexer<'a> {
         if is_numeric {
             match self.lex_int(word) {
                 Ok(tt) => Tok(tt),
-                Err(err) => Error(*err),
+                Err(_) => Error,
             }
         } else {
             Tok(self.lex_keyword(word))
@@ -328,16 +296,18 @@ impl<'a> Lexer<'a> {
 
     /// Take the string containing the integer (num argument), parses it,
     /// returns the corresponding TokenType or an error if the parsing failed.
-    pub fn lex_int(&self, num: String) -> Result<TokenType, Box<ZomError>> {
+    pub fn lex_int(&mut self, num: String) -> Result<TokenType, ()> {
         match num.parse() {
             Ok(i) => Ok(Int(i)),
-            Err(err) => Err(Box::new(ZomError::new(
-                None,
-                "failed to lex integer literal".to_owned(),
-                false,
-                None,
-                vec![err.to_string()],
-            ))),
+            Err(err) => {
+                self.log.add(SimpleLog {
+                    level: LogLevel::Error,
+                    msg: "failed to lex integer literal".to_string(),
+                    note: Some(err.to_string()),
+                    location: self.get_pos(),
+                });
+                Err(())
+            }
         }
     }
 
@@ -359,7 +329,7 @@ impl<'a> Lexer<'a> {
 
     /// Takes a char and maps it to the corresponding escape sequence
     /// The argument 'is_string' is used to generate the error message.
-    pub fn make_escape_sequence(&self, es: char, is_string: bool) -> Result<char, Box<ZomError>> {
+    pub fn make_escape_sequence(&mut self, es: char, is_string: bool) -> Result<char, ()> {
         Ok(match es {
             '0' => 0x00,
             'n' => 0x0A,
@@ -369,22 +339,14 @@ impl<'a> Lexer<'a> {
                 "this escape sequence will be supported but it's not actually implemented yet"
             ),
             '\\' => return Ok('\\'),
-            es => return Err(Box::new(ZomError::new(
-                    if is_string {
-                        Some(Position::try_from_range(
-                            self.index,
-                            self.index - 1..self.index,
-                            self.file_text().to_string(),
-                            self.file_path().to_path_buf()
-                        ).expect(POSITION_GEN_ERROR))
-                    }else {
-                        None
-                    },
-                    format!("unknown character escape: '{}'", es),
-                    false,
-                    Some(r"supported escapse sequence are, '\0', '\n', '\r', '\t', '\xNN' (not yet supported) ".to_string() + if is_string {r#"and '\"'."#} else {r"and '\''"}),
-                    vec![]
-                )))
+            es => {
+                self.log.add(err::UnknownEscape {
+                    escape: es,
+                    is_string,
+                    location: self.index - 2..self.index,
+                });
+                return Err(());
+            }
         } as u8 as char)
     }
 
@@ -396,7 +358,6 @@ impl<'a> Lexer<'a> {
     pub fn lex_string_literal(&mut self) -> PartTokenResult {
         pop_expect!(self => Some('"'));
         let mut str = String::new();
-        let mut errors = Vec::new();
 
         loop {
             match self.peek() {
@@ -416,7 +377,7 @@ impl<'a> Lexer<'a> {
                     }
                     match self.make_escape_sequence(es, true) {
                         Ok(res) => str.push(res),
-                        Err(err) => errors.push(*err),
+                        Err(()) => continue,
                     }
                 }
                 Some(c) => {
@@ -424,19 +385,17 @@ impl<'a> Lexer<'a> {
                     pop_expect!(self => Some(c));
                 }
                 None => {
-                    return Error(ZomError::new(
-                        None,
-                        "unterminated double quote string".to_string(),
-                        false,
-                        None,
-                        vec![],
-                    ));
+                    self.log.add(err::UnterminatedQuoteLit {
+                        is_char: false,
+                        location: self.get_pos(),
+                    });
+                    return Error;
                 }
             }
         }
         let tt = Str(str);
-        if !errors.is_empty() {
-            return PartSuccess(tt, errors);
+        if self.log.failed() {
+            return Tok(tt);
         }
 
         Tok(tt)
@@ -459,67 +418,60 @@ impl<'a> Lexer<'a> {
                         }
                         match self.make_escape_sequence(es, false) {
                             Ok(c) => c,
-                            Err(e) => return Error(*e),
+                            Err(e) => return Error,
                         }
                     }
                     None => {
-                        return Error(ZomError::new(
-                            None,
-                            "unexpected end of file".to_string(),
-                            false,
-                            None,
-                            vec![],
-                        ))
+                        self.log.add(err::UnterminatedQuoteLit {
+                            is_char: true,
+                            location: self.get_pos(),
+                        });
+                        return Error;
                     }
                 };
-                pop_expect!(self => Some('\''); return Error(ZomError::new(
-                    None,
-                    UNTERMINATED_CHAR_ERROR.to_string(),
-                    false,
-                    None,
-                    vec![]
-                )));
+                pop_expect!(self => Some('\''); {
+                    self.log.add(err::UnterminatedQuoteLit {
+                        is_char: true,
+                        location: self.get_pos()
+                    });
+                    return Error;
+                });
             }
             Some('\'') => {
                 pop_expect!(self => Some('\''));
                 if let Some('\'') = self.peek() {
                     pop_expect!(self => Some('\''));
-                    return Error(ZomError::new(
-                        None,
-                        "char literal  must be escaped: `'`".to_string(),
-                        false,
-                        Some(r"replace with: '\''".to_string()),
-                        vec![],
-                    ));
+                    self.log.add(SimpleLog {
+                        level: LogLevel::Error,
+                        msg: "char literal must be escaped `'`".to_string(),
+                        note: None,
+                        location: self.get_pos(),
+                    });
+                    return Error;
                 }
-                return Error(ZomError::new(
-                    None,
-                    "empty char literal".to_string(),
-                    false,
-                    None,
-                    vec![],
-                ));
+                self.log.add(SimpleLog {
+                    level: LogLevel::Error,
+                    msg: "empty char literal".to_string(),
+                    note: None,
+                    location: self.get_pos(),
+                });
+                return Error;
             }
             Some(c) => {
                 pop_expect!(self => Some(c));
 
                 content = c;
-                pop_expect!(self => Some('\''); return Error(ZomError::new(
-                    None,
-                    UNTERMINATED_CHAR_ERROR.to_string(),
-                    false,
-                    None,
-                    vec![]
-                )));
+                pop_expect!(self => Some('\''); {
+                    self.log.add(err::UnterminatedQuoteLit {
+                        is_char: true,
+                        location: self.get_pos()
+                    });
+                    return Error;
+                });
             }
             None => {
-                return Error(ZomError::new(
-                    None,
-                    "unexpected end of file".to_string(),
-                    false,
-                    None,
-                    vec![],
-                ))
+                self.log.add(UnexpectedEOF(self.get_pos()));
+                return Error;
             }
         }
 

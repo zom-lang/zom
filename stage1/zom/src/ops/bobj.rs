@@ -6,6 +6,7 @@ use std::{
 };
 
 use inkwell::{context::Context, passes::PassManager};
+use zom_errors::FinalRes;
 // use zom_codegen::gen::CodeGen;
 // use zom_compiler::compiler::Compiler;
 use zom_parser::{parse, ParserSettings, ParsingContext};
@@ -52,11 +53,11 @@ pub fn build(mut args: Args) -> Result<ExitStatus, Box<dyn Error>> {
         Err(_) => return err!("Error while trying to read the source file."),
     };
 
-    let mut lexer = Lexer::new(source.as_str(), &args.source_file);
+    let mut lexer = Lexer::new(source.as_str(), &args.source_file, todo!());
 
     let tokens = match lexer.lex() {
-        Ok(src) => src,
-        Err(err) => return err!(fmt "\n{:?}\n", err),
+        FinalRes::Ok(src, _) => src,
+        FinalRes::Err(err) => todo!(),
     };
 
     args.verbose.then(|| {

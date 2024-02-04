@@ -2,8 +2,11 @@ use std::error::Error;
 use std::fs;
 use std::io::{self, stdout, Write};
 use std::path::PathBuf;
+use termcolor::ColorChoice;
 use zom_lexer::Lexer;
 use zom_parser::{parse, ParserSettings, ParsingContext};
+
+use zom_errors::prelude::*;
 
 use crate::{err, ExitStatus};
 
@@ -32,16 +35,15 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     println!("file path = {}", path.display());
     println!("buffer = \\\n{}\n\\-> {}\n", buffer, buffer.len());
 
-    let mut lexer = Lexer::new(&buffer, &path);
+    let mut lctx = LogContext::new(buffer.clone(), path.clone(), ColorChoice::Always);
+
+    let mut lexer = Lexer::new(&buffer, &path, &mut lctx);
 
     let tokens = match lexer.lex() {
-        Ok(t) => t,
-        Err(errs) => {
-            let mut err = "".to_owned();
-            for error in errs {
-                err += format!("{}\n", error).as_str();
-            }
-            return err!(fmt "{}", err);
+        FinalRes::Ok(t, _) => t,
+        FinalRes::Err(_) => {
+            lctx.print();
+            return err!(fmt "");
         }
     };
 
@@ -75,5 +77,6 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
         }
     }
 
+    lctx.print();
     Ok(ExitStatus::Success)
 }

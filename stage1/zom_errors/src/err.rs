@@ -3,10 +3,10 @@ use crate::prelude::*;
 /// A simple error struct, please use it only when making a custom error
 /// structure is irrelevant. Use instead custom error structs.
 pub struct SimpleLog {
-    level: LogLevel,
-    msg: String,
-    note: Option<String>,
-    location: CodeSpan,
+    pub level: LogLevel,
+    pub msg: String,
+    pub note: Option<String>,
+    pub location: CodeSpan,
 }
 
 impl Log for SimpleLog {
@@ -24,5 +24,22 @@ impl Log for SimpleLog {
 
     fn msg(&self) -> String {
         self.msg.clone()
+    }
+}
+
+/// Unexpected End of file while parsing or lexing.
+pub struct UnexpectedEOF(pub CodeSpan);
+
+impl Log for UnexpectedEOF {
+    fn location(&self) -> CodeSpan {
+        self.0.clone()
+    }
+
+    fn level(&self) -> LogLevel {
+        LogLevel::Error
+    }
+
+    fn msg(&self) -> String {
+        "unexpected end of file".to_string()
     }
 }

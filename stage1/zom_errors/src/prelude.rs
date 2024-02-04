@@ -1,1 +1,1 @@
-pub use super::{BuiltLog, CodeSpan, FmtToken, Log, LogContext, LogLevel};
+pub use super::{err::*, BuiltLog, CodeSpan, FinalRes, FmtToken, Log, LogContext, LogLevel};
