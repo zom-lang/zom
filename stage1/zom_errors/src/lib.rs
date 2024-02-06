@@ -172,17 +172,13 @@ impl LogContext {
         return false;
     }
 
-    pub fn location(&self, span: CodeSpan) -> CodeLocation {
-        assert!(
-            span.start < span.end,
-            "The start of the range is greater than its end."
-        );
-
+    /// Gives the line and column in the file based on a given index.
+    pub fn line_col(&self, index: usize) -> CodeLocation {
         let mut line = 1;
         let mut col = 1;
 
         for (idx, ch) in self.file.char_indices() {
-            if span.start == idx {
+            if index == idx {
                 break;
             }
             match ch {
@@ -276,16 +272,21 @@ pub trait Log {
     /// build the log using a LogContext.
     /// It's prefered to call the `build_log` method on LogContext instead of calling this method.
     fn build(&self, ctx: &LogContext) -> BuiltLog {
-        let loc = ctx.location(self.location().clone());
-        let loc_end = ctx.location(self.location().end..self.location().end + 1);
+        let location = self.location();
+        let start = ctx.line_col(location.start);
+        let end = ctx.line_col(location.end);
+        assert_eq!(
+            start.line, end.line,
+            "Doesn't yet support multiple line errors"
+        );
         BuiltLog {
             file_path: ctx.file_path.clone(),
-            loc: loc.clone(),
+            loc: start.clone(),
             lvl: self.level(),
             msg: self.msg(),
             note: self.note(),
-            code: ctx.get_line(loc.clone()),
-            span: loc.col..loc_end.col,
+            code: ctx.get_line(start.clone()),
+            span: start.col..end.col,
         }
     }
 }
@@ -321,6 +322,7 @@ pub struct BuiltLog {
 
 impl BuiltLog {
     pub fn format(&self, s: &mut StandardStream) -> Result<(), io::Error> {
+        println!("{:?}\n", self);
         s.set_color(&BOLD_STYLE)?;
         write!(
             s,

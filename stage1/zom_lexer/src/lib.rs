@@ -387,7 +387,7 @@ impl<'a> Lexer<'a> {
                 None => {
                     self.log.add(err::UnterminatedQuoteLit {
                         is_char: false,
-                        location: self.get_pos(),
+                        location: self.prev_idx..self.index - 1,
                     });
                     return Error;
                 }
@@ -418,7 +418,7 @@ impl<'a> Lexer<'a> {
                         }
                         match self.make_escape_sequence(es, false) {
                             Ok(c) => c,
-                            Err(e) => return Error,
+                            Err(()) => return Error,
                         }
                     }
                     None => {
@@ -432,7 +432,7 @@ impl<'a> Lexer<'a> {
                 pop_expect!(self => Some('\''); {
                     self.log.add(err::UnterminatedQuoteLit {
                         is_char: true,
-                        location: self.get_pos()
+                        location: self.prev_idx..self.index - 1,
                     });
                     return Error;
                 });
@@ -464,7 +464,7 @@ impl<'a> Lexer<'a> {
                 pop_expect!(self => Some('\''); {
                     self.log.add(err::UnterminatedQuoteLit {
                         is_char: true,
-                        location: self.get_pos()
+                        location: self.prev_idx..self.index - 1,
                     });
                     return Error;
                 });
