@@ -13,12 +13,3 @@ authors.workspace = true
 [dependencies]
 zom_common.workspace = true
 zom_errors.workspace = true
-
-[dev-dependencies]
-criterion.workspace = true
-zom_lexer.workspace = true
-
-[[bench]]
-name = "lexer_bench"
-harness = false
-

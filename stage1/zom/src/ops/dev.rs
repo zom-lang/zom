@@ -4,7 +4,6 @@ use std::io::{self, stdout, Write};
 use std::path::PathBuf;
 use termcolor::ColorChoice;
 use zom_lexer::Lexer;
-use zom_parser::{parse, ParserSettings, ParsingContext};
 
 use zom_errors::prelude::*;
 
@@ -53,29 +52,6 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     }
 
     println!("\n~~~  SEPARTOR  ~~~");
-
-    let parse_context = ParsingContext::new("<dev_cmd>.zom".to_owned(), buffer);
-
-    let ast_result = parse(
-        tokens.as_slice(),
-        &[],
-        &mut ParserSettings::default(),
-        parse_context,
-    );
-
-    match ast_result {
-        Ok((ast, rest_toks)) => {
-            println!("ast = {:#?}", ast);
-            println!("toks_rest = {:?}", rest_toks);
-        }
-        Err(errs) => {
-            let mut err = "".to_owned();
-            for error in errs {
-                err += format!("{}\n", error).as_str();
-            }
-            return err!(fmt "{}", err);
-        }
-    }
 
     lctx.print();
     Ok(ExitStatus::Success)
