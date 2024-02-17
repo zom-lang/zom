@@ -6,6 +6,8 @@ use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 use lazy_static::lazy_static;
 
+use zom_common::token::Token;
+
 pub mod err;
 pub mod prelude;
 
@@ -76,6 +78,62 @@ pub enum FmtToken {
     Ident,
 
     EOF,
+}
+
+impl FmtToken {
+    pub fn from_token(token: &Token) -> Self {
+        use crate::FmtToken::*;
+        use zom_common::token::TokenType as TT;
+        match token {
+            Token { tt, .. } => match tt {
+                TT::Oper(_) => Operator,
+                TT::OpenParen => OpenParen,
+                TT::CloseParen => CloseParen,
+
+                TT::OpenBracket => OpenBracket,
+                TT::CloseBracket => CloseBracket,
+
+                TT::OpenBrace => OpenBrace,
+                TT::CloseBrace => CloseBrace,
+
+                TT::Colon => Colon,
+                TT::SemiColon => SemiColon,
+                TT::Comma => Comma,
+                TT::At => At,
+
+                TT::Int(_) => IntLit,
+                TT::Float(_) => FloatLit,
+                TT::Str(_) => StrLit,
+                TT::Char(_) => CharLit,
+
+                TT::Fn => Fn,
+                TT::Extern => Extern,
+                TT::Var => Var,
+                TT::Const => Const,
+                TT::Struct => Struct,
+                TT::Enum => Enum,
+                TT::Return => Return,
+                TT::If => If,
+                TT::Else => Else,
+                TT::While => While,
+                TT::For => For,
+                TT::Pub => Pub,
+                TT::Async => Async,
+                TT::Await => Await,
+                TT::Match => Match,
+                TT::Impl => Impl,
+                TT::True => True,
+                TT::False => False,
+                TT::Undefined => Undefined,
+                TT::Break => Break,
+                TT::Continue => Continue,
+
+                TT::Ident(_) => Ident,
+
+                TT::EOF => EOF,
+            },
+        }
+    }
 }
 
 impl fmt::Display for FmtToken {
