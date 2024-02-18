@@ -149,7 +149,7 @@ impl<'a> Lexer<'a> {
         if self.log.failed() {
             return FinalRes::Err(self.log.stream());
         }
-        FinalRes::Ok(tokens, self.log.stream())
+        FinalRes::Ok(tokens, self.log.clone())
     }
 
     fn get_pos(&self) -> Range<usize> {
@@ -216,7 +216,7 @@ impl<'a> Lexer<'a> {
                     return Tok(Oper(op));
                 }
                 self.pop();
-                self.log.add(err::UnknownToken {
+                self.log.push(err::UnknownToken {
                     found: c,
                     location: self.get_pos(),
                 });
@@ -257,8 +257,8 @@ impl<'a> Lexer<'a> {
 
         if is_numeric {
             match self.lex_int(word) {
-                Ok(tt) => Tok(tt),
-                Err(_) => Error,
+                Some(tt) => Tok(tt),
+                None => Error,
             }
         } else {
             Tok(self.lex_keyword(word))
@@ -296,17 +296,17 @@ impl<'a> Lexer<'a> {
 
     /// Take the string containing the integer (num argument), parses it,
     /// returns the corresponding TokenType or an error if the parsing failed.
-    pub fn lex_int(&mut self, num: String) -> Result<TokenType, ()> {
+    pub fn lex_int(&mut self, num: String) -> Option<TokenType> {
         match num.parse() {
-            Ok(i) => Ok(Int(i)),
+            Ok(i) => Some(Int(i)),
             Err(err) => {
-                self.log.add(SimpleLog {
+                self.log.push(SimpleLog {
                     level: LogLevel::Error,
                     msg: "failed to lex integer literal".to_string(),
                     note: Some(err.to_string()),
                     location: self.get_pos(),
                 });
-                Err(())
+                None
             }
         }
     }
@@ -329,8 +329,8 @@ impl<'a> Lexer<'a> {
 
     /// Takes a char and maps it to the corresponding escape sequence
     /// The argument 'is_string' is used to generate the error message.
-    pub fn make_escape_sequence(&mut self, es: char, is_string: bool) -> Result<char, ()> {
-        Ok(match es {
+    pub fn make_escape_sequence(&mut self, es: char, is_string: bool) -> Option<char> {
+        Some(match es {
             '0' => 0x00,
             'n' => 0x0A,
             'r' => 0x0D,
@@ -338,14 +338,14 @@ impl<'a> Lexer<'a> {
             'x' => todo!(
                 "this escape sequence will be supported but it's not actually implemented yet"
             ),
-            '\\' => return Ok('\\'),
+            '\\' => return Some('\\'),
             es => {
-                self.log.add(err::UnknownEscape {
+                self.log.push(err::UnknownEscape {
                     escape: es,
                     is_string,
                     location: self.index - 2..self.index,
                 });
-                return Err(());
+                return None;
             }
         } as u8 as char)
     }
@@ -376,8 +376,8 @@ impl<'a> Lexer<'a> {
                         continue;
                     }
                     match self.make_escape_sequence(es, true) {
-                        Ok(res) => str.push(res),
-                        Err(()) => continue,
+                        Some(res) => str.push(res),
+                        None => continue,
                     }
                 }
                 Some(c) => {
@@ -385,7 +385,7 @@ impl<'a> Lexer<'a> {
                     pop_expect!(self => Some(c));
                 }
                 None => {
-                    self.log.add(err::UnterminatedQuoteLit {
+                    self.log.push(err::UnterminatedQuoteLit {
                         is_char: false,
                         location: self.prev_idx..self.index - 1,
                     });
@@ -417,12 +417,12 @@ impl<'a> Lexer<'a> {
                             break 'a es;
                         }
                         match self.make_escape_sequence(es, false) {
-                            Ok(c) => c,
-                            Err(()) => return Error,
+                            Some(c) => c,
+                            None => return Error,
                         }
                     }
                     None => {
-                        self.log.add(err::UnterminatedQuoteLit {
+                        self.log.push(err::UnterminatedQuoteLit {
                             is_char: true,
                             location: self.get_pos(),
                         });
@@ -430,7 +430,7 @@ impl<'a> Lexer<'a> {
                     }
                 };
                 pop_expect!(self => Some('\''); {
-                    self.log.add(err::UnterminatedQuoteLit {
+                    self.log.push(err::UnterminatedQuoteLit {
                         is_char: true,
                         location: self.prev_idx..self.index - 1,
                     });
@@ -441,7 +441,7 @@ impl<'a> Lexer<'a> {
                 pop_expect!(self => Some('\''));
                 if let Some('\'') = self.peek() {
                     pop_expect!(self => Some('\''));
-                    self.log.add(SimpleLog {
+                    self.log.push(SimpleLog {
                         level: LogLevel::Error,
                         msg: "char literal must be escaped `'`".to_string(),
                         note: None,
@@ -449,7 +449,7 @@ impl<'a> Lexer<'a> {
                     });
                     return Error;
                 }
-                self.log.add(SimpleLog {
+                self.log.push(SimpleLog {
                     level: LogLevel::Error,
                     msg: "empty char literal".to_string(),
                     note: None,
@@ -462,7 +462,7 @@ impl<'a> Lexer<'a> {
 
                 content = c;
                 pop_expect!(self => Some('\''); {
-                    self.log.add(err::UnterminatedQuoteLit {
+                    self.log.push(err::UnterminatedQuoteLit {
                         is_char: true,
                         location: self.prev_idx..self.index - 1,
                     });
@@ -470,7 +470,7 @@ impl<'a> Lexer<'a> {
                 });
             }
             None => {
-                self.log.add(UnexpectedEOF(self.get_pos()));
+                self.log.push(UnexpectedEOF(self.get_pos()));
                 return Error;
             }
         }

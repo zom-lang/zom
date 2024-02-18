@@ -84,54 +84,54 @@ impl FmtToken {
     pub fn from_token(token: &Token) -> Self {
         use crate::FmtToken::*;
         use zom_common::token::TokenType as TT;
-        match token {
-            Token { tt, .. } => match tt {
-                TT::Oper(_) => Operator,
-                TT::OpenParen => OpenParen,
-                TT::CloseParen => CloseParen,
 
-                TT::OpenBracket => OpenBracket,
-                TT::CloseBracket => CloseBracket,
+        let tt = &token.tt;
+        match tt {
+            TT::Oper(_) => Operator,
+            TT::OpenParen => OpenParen,
+            TT::CloseParen => CloseParen,
 
-                TT::OpenBrace => OpenBrace,
-                TT::CloseBrace => CloseBrace,
+            TT::OpenBracket => OpenBracket,
+            TT::CloseBracket => CloseBracket,
 
-                TT::Colon => Colon,
-                TT::SemiColon => SemiColon,
-                TT::Comma => Comma,
-                TT::At => At,
+            TT::OpenBrace => OpenBrace,
+            TT::CloseBrace => CloseBrace,
 
-                TT::Int(_) => IntLit,
-                TT::Float(_) => FloatLit,
-                TT::Str(_) => StrLit,
-                TT::Char(_) => CharLit,
+            TT::Colon => Colon,
+            TT::SemiColon => SemiColon,
+            TT::Comma => Comma,
+            TT::At => At,
 
-                TT::Fn => Fn,
-                TT::Extern => Extern,
-                TT::Var => Var,
-                TT::Const => Const,
-                TT::Struct => Struct,
-                TT::Enum => Enum,
-                TT::Return => Return,
-                TT::If => If,
-                TT::Else => Else,
-                TT::While => While,
-                TT::For => For,
-                TT::Pub => Pub,
-                TT::Async => Async,
-                TT::Await => Await,
-                TT::Match => Match,
-                TT::Impl => Impl,
-                TT::True => True,
-                TT::False => False,
-                TT::Undefined => Undefined,
-                TT::Break => Break,
-                TT::Continue => Continue,
+            TT::Int(_) => IntLit,
+            TT::Float(_) => FloatLit,
+            TT::Str(_) => StrLit,
+            TT::Char(_) => CharLit,
 
-                TT::Ident(_) => Ident,
+            TT::Fn => Fn,
+            TT::Extern => Extern,
+            TT::Var => Var,
+            TT::Const => Const,
+            TT::Struct => Struct,
+            TT::Enum => Enum,
+            TT::Return => Return,
+            TT::If => If,
+            TT::Else => Else,
+            TT::While => While,
+            TT::For => For,
+            TT::Pub => Pub,
+            TT::Async => Async,
+            TT::Await => Await,
+            TT::Match => Match,
+            TT::Impl => Impl,
+            TT::True => True,
+            TT::False => False,
+            TT::Undefined => Undefined,
+            TT::Break => Break,
+            TT::Continue => Continue,
 
-                TT::EOF => EOF,
-            },
+            TT::Ident(_) => Ident,
+
+            TT::EOF => EOF,
         }
     }
 }
@@ -188,7 +188,7 @@ impl fmt::Display for FmtToken {
 
 pub type CodeSpan = Range<usize>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LogContext {
     file: String,
     file_path: PathBuf,
@@ -198,25 +198,30 @@ pub struct LogContext {
 
 impl LogContext {
     pub fn new(file: String, file_path: PathBuf, color: ColorChoice) -> LogContext {
-        Self::with_logs(file, file_path, color, Vec::new())
+        LogContext {
+            file,
+            file_path,
+            logs: Vec::new(),
+            color,
+        }
     }
 
-    pub fn with_logs(
+    pub fn with_stream(
         file: String,
         file_path: PathBuf,
         color: ColorChoice,
-        logs: Vec<BuiltLog>,
+        stream: LogStream,
     ) -> LogContext {
         LogContext {
             file,
             file_path,
-            logs,
+            logs: stream.logs,
             color,
         }
     }
 
     /// Add a BuildLog to the error stream
-    pub fn add_raw(&mut self, blog: BuiltLog) {
+    pub fn push_raw(&mut self, blog: BuiltLog) {
         self.logs.push(blog);
     }
 
@@ -227,7 +232,7 @@ impl LogContext {
                 return true;
             }
         }
-        return false;
+        false
     }
 
     /// Gives the line and column in the file based on a given index.
@@ -248,7 +253,7 @@ impl LogContext {
             }
         }
 
-        return CodeLocation { col, line };
+        CodeLocation { col, line }
     }
 
     /// Get the line content with a given `CodeLocation`
@@ -261,7 +266,7 @@ impl LogContext {
         log.build(self)
     }
 
-    pub fn add<L: Log>(&mut self, log: L) {
+    pub fn push<L: Log>(&mut self, log: L) {
         self.logs.push(self.build_log(log))
     }
 
@@ -271,19 +276,14 @@ impl LogContext {
     }
 
     pub fn format(&self, s: &mut StandardStream) -> Result<(), io::Error> {
-        let len = self.logs.len();
-        for (i, log) in self.logs.iter().enumerate() {
-            log.format(s)?;
-
-            if i != len - 1 {
-                writeln!(s)?;
-            }
-        }
-        Ok(())
+        self.stream().format(s)
     }
 
-    pub fn stream(&self) -> Vec<BuiltLog> {
-        self.logs.clone()
+    pub fn stream(&self) -> LogStream {
+        LogStream {
+            logs: self.logs.clone(),
+            color: self.color,
+        }
     }
 }
 
@@ -380,7 +380,6 @@ pub struct BuiltLog {
 
 impl BuiltLog {
     pub fn format(&self, s: &mut StandardStream) -> Result<(), io::Error> {
-        println!("{:?}\n", self);
         s.set_color(&BOLD_STYLE)?;
         write!(
             s,
@@ -404,7 +403,7 @@ impl BuiltLog {
         if let Some(note) = &self.note {
             write!(s, " {note}")?;
         }
-        writeln!(s, "")?;
+        writeln!(s)?;
         s.reset()?;
         Ok(())
     }
@@ -432,6 +431,32 @@ impl LogLevel {
 }
 
 pub enum FinalRes<T> {
-    Ok(T, Vec<BuiltLog>),
-    Err(Vec<BuiltLog>),
+    Ok(T, LogContext),
+    Err(LogStream),
+}
+
+pub struct LogStream {
+    logs: Vec<BuiltLog>,
+    color: ColorChoice,
+}
+
+impl LogStream {
+    pub fn print(&self) {
+        let mut stdout = StandardStream::stdout(self.color);
+        self.format(&mut stdout).expect("error formating failed.");
+    }
+
+    pub fn format(&self, s: &mut StandardStream) -> Result<(), io::Error> {
+        let len = self.logs.len();
+        for (i, log) in self.logs.iter().enumerate() {
+            log.format(s)?;
+
+            if i != len - 1 {
+                writeln!(s)?;
+            }
+        }
+        s.reset()?;
+        s.flush()?;
+        Ok(())
+    }
 }
