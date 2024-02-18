@@ -221,7 +221,7 @@ impl LogContext {
     }
 
     /// Add a BuildLog to the error stream
-    pub fn push_raw(&mut self, blog: BuiltLog) {
+    pub fn push_built(&mut self, blog: BuiltLog) {
         self.logs.push(blog);
     }
 
@@ -262,12 +262,16 @@ impl LogContext {
     }
 
     /// Build a `Log` into a `BuiltLog`
-    pub fn build_log<L: Log>(&self, log: L) -> BuiltLog {
+    pub fn build<L: Log>(&self, log: L) -> BuiltLog {
         log.build(self)
     }
 
     pub fn push<L: Log>(&mut self, log: L) {
-        self.logs.push(self.build_log(log))
+        self.logs.push(self.build(log))
+    }
+
+    pub fn push_many(&mut self, logs: Vec<BuiltLog>) {
+        self.logs.extend(logs);
     }
 
     pub fn print(&self) {
