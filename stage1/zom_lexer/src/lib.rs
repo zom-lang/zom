@@ -50,7 +50,13 @@ pub enum PartTokenResult {
     /// used when the lexing failed and it cannot lex anymore the content
     ///
     /// In this case, we assume the error doesn't have a position
-    Error,
+    Error(BuiltLog),
+
+    /// used when the lexing failed but it can ignore the error and keep lexing
+    /// and make result to a TokenType but with multiple errors.
+    ///
+    /// Using PartSuccess is prefered when possible.
+    PartSuccess(TokenType, Vec<BuiltLog>),
 
     /// used when the lexing result to a comment.
     Comment,
@@ -142,7 +148,20 @@ impl<'a> Lexer<'a> {
                         break;
                     }
                 }
-                Comment | Whitespace | Error => {}
+                Error(err) => {
+                    self.log.push_built(err);
+                }
+                PartSuccess(tt, errs) => {
+                    debug_assert!(!errs.is_empty());
+
+                    self.log.push_many(errs);
+
+                    if self.push_token(&mut tokens, tt) {
+                        // Reached EOF, breaking out of the loop
+                        break;
+                    }
+                }
+                Comment | Whitespace => {}
             }
         }
 
@@ -216,11 +235,10 @@ impl<'a> Lexer<'a> {
                     return Tok(Oper(op));
                 }
                 self.pop();
-                self.log.push(err::UnknownToken {
+                return Error(self.log.build(err::UnknownToken {
                     found: c,
                     location: self.get_pos(),
-                });
-                return Error;
+                }));
             }
             None => EOF,
         };
@@ -257,8 +275,8 @@ impl<'a> Lexer<'a> {
 
         if is_numeric {
             match self.lex_int(word) {
-                Some(tt) => Tok(tt),
-                None => Error,
+                Ok(tt) => Tok(tt),
+                Err(err) => Error(err),
             }
         } else {
             Tok(self.lex_keyword(word))
@@ -296,18 +314,15 @@ impl<'a> Lexer<'a> {
 
     /// Take the string containing the integer (num argument), parses it,
     /// returns the corresponding TokenType or an error if the parsing failed.
-    pub fn lex_int(&mut self, num: String) -> Option<TokenType> {
+    pub fn lex_int(&mut self, num: String) -> Result<TokenType, BuiltLog> {
         match num.parse() {
-            Ok(i) => Some(Int(i)),
-            Err(err) => {
-                self.log.push(SimpleLog {
-                    level: LogLevel::Error,
-                    msg: "failed to lex integer literal".to_string(),
-                    note: Some(err.to_string()),
-                    location: self.get_pos(),
-                });
-                None
-            }
+            Ok(i) => Ok(Int(i)),
+            Err(err) => Err(self.log.build(SimpleLog {
+                level: LogLevel::Error,
+                msg: "failed to lex integer literal".to_string(),
+                note: Some(err.to_string()),
+                location: self.get_pos(),
+            })),
         }
     }
 
@@ -329,8 +344,8 @@ impl<'a> Lexer<'a> {
 
     /// Takes a char and maps it to the corresponding escape sequence
     /// The argument 'is_string' is used to generate the error message.
-    pub fn make_escape_sequence(&mut self, es: char, is_string: bool) -> Option<char> {
-        Some(match es {
+    pub fn make_escape_sequence(&mut self, es: char, is_string: bool) -> Result<char, BuiltLog> {
+        Ok(match es {
             '0' => 0x00,
             'n' => 0x0A,
             'r' => 0x0D,
@@ -338,14 +353,13 @@ impl<'a> Lexer<'a> {
             'x' => todo!(
                 "this escape sequence will be supported but it's not actually implemented yet"
             ),
-            '\\' => return Some('\\'),
+            '\\' => return Ok('\\'),
             es => {
-                self.log.push(err::UnknownEscape {
+                return Err(self.log.build(err::UnknownEscape {
                     escape: es,
                     is_string,
                     location: self.index - 2..self.index,
-                });
-                return None;
+                }));
             }
         } as u8 as char)
     }
@@ -358,6 +372,7 @@ impl<'a> Lexer<'a> {
     pub fn lex_string_literal(&mut self) -> PartTokenResult {
         pop_expect!(self => Some('"'));
         let mut str = String::new();
+        let mut errs = Vec::new();
 
         loop {
             match self.peek() {
@@ -376,8 +391,11 @@ impl<'a> Lexer<'a> {
                         continue;
                     }
                     match self.make_escape_sequence(es, true) {
-                        Some(res) => str.push(res),
-                        None => continue,
+                        Ok(res) => str.push(res),
+                        Err(err) => {
+                            errs.push(err);
+                            continue;
+                        }
                     }
                 }
                 Some(c) => {
@@ -385,20 +403,20 @@ impl<'a> Lexer<'a> {
                     pop_expect!(self => Some(c));
                 }
                 None => {
-                    self.log.push(err::UnterminatedQuoteLit {
+                    return Error(self.log.build(err::UnterminatedQuoteLit {
                         is_char: false,
                         location: self.prev_idx..self.index - 1,
-                    });
-                    return Error;
+                    }));
                 }
             }
         }
         let tt = Str(str);
-        if self.log.failed() {
-            return Tok(tt);
-        }
 
-        Tok(tt)
+        if errs.is_empty() {
+            Tok(tt)
+        } else {
+            PartSuccess(tt, errs)
+        }
     }
 
     /// Lexe a char literal, and return it.
@@ -417,62 +435,54 @@ impl<'a> Lexer<'a> {
                             break 'a es;
                         }
                         match self.make_escape_sequence(es, false) {
-                            Some(c) => c,
-                            None => return Error,
+                            Ok(c) => c,
+                            Err(err) => return Error(err),
                         }
                     }
                     None => {
-                        self.log.push(err::UnterminatedQuoteLit {
+                        return Error(self.log.build(err::UnterminatedQuoteLit {
                             is_char: true,
                             location: self.get_pos(),
-                        });
-                        return Error;
+                        }));
                     }
                 };
-                pop_expect!(self => Some('\''); {
-                    self.log.push(err::UnterminatedQuoteLit {
+                pop_expect!(self => Some('\'');
+                    return Error(self.log.build(err::UnterminatedQuoteLit {
                         is_char: true,
                         location: self.prev_idx..self.index - 1,
-                    });
-                    return Error;
-                });
+                    }))
+                );
             }
             Some('\'') => {
                 pop_expect!(self => Some('\''));
                 if let Some('\'') = self.peek() {
                     pop_expect!(self => Some('\''));
-                    self.log.push(SimpleLog {
+                    return Error(self.log.build(SimpleLog {
                         level: LogLevel::Error,
                         msg: "char literal must be escaped `'`".to_string(),
                         note: None,
                         location: self.get_pos(),
-                    });
-                    return Error;
+                    }));
                 }
-                self.log.push(SimpleLog {
+                return Error(self.log.build(SimpleLog {
                     level: LogLevel::Error,
                     msg: "empty char literal".to_string(),
                     note: None,
                     location: self.get_pos(),
-                });
-                return Error;
+                }));
             }
             Some(c) => {
                 pop_expect!(self => Some(c));
 
                 content = c;
-                pop_expect!(self => Some('\''); {
-                    self.log.push(err::UnterminatedQuoteLit {
+                pop_expect!(self => Some('\'');
+                    return Error(self.log.build(err::UnterminatedQuoteLit {
                         is_char: true,
                         location: self.prev_idx..self.index - 1,
-                    });
-                    return Error;
-                });
+                    }))
+                );
             }
-            None => {
-                self.log.push(UnexpectedEOF(self.get_pos()));
-                return Error;
-            }
+            None => return Error(self.log.build(UnexpectedEOF(self.get_pos()))),
         }
 
         Tok(Char(content))
