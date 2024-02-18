@@ -1,5 +1,8 @@
 use std::fmt;
-use std::{ops::Range, path::PathBuf};
+use std::{
+    ops::Range,
+    path::{Path, PathBuf},
+};
 
 use std::io::{self, Write};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
@@ -189,15 +192,15 @@ impl fmt::Display for FmtToken {
 pub type CodeSpan = Range<usize>;
 
 #[derive(Debug, Clone)]
-pub struct LogContext {
-    file: String,
-    file_path: PathBuf,
+pub struct LogContext<'a> {
+    file: &'a str,
+    file_path: &'a Path,
     logs: Vec<BuiltLog>,
     color: ColorChoice,
 }
 
-impl LogContext {
-    pub fn new(file: String, file_path: PathBuf, color: ColorChoice) -> LogContext {
+impl<'a> LogContext<'a> {
+    pub fn new(file: &'a str, file_path: &'a Path, color: ColorChoice) -> LogContext<'a> {
         LogContext {
             file,
             file_path,
@@ -207,11 +210,11 @@ impl LogContext {
     }
 
     pub fn with_stream(
-        file: String,
-        file_path: PathBuf,
+        file: &'a str,
+        file_path: &'a Path,
         color: ColorChoice,
         stream: LogStream,
-    ) -> LogContext {
+    ) -> LogContext<'a> {
         LogContext {
             file,
             file_path,
@@ -342,7 +345,7 @@ pub trait Log {
             "Doesn't yet support multiple line errors"
         );
         BuiltLog {
-            file_path: ctx.file_path.clone(),
+            file_path: ctx.file_path.to_path_buf(),
             loc: start.clone(),
             lvl: self.level(),
             msg: self.msg(),
@@ -434,8 +437,8 @@ impl LogLevel {
     }
 }
 
-pub enum FinalRes<T> {
-    Ok(T, LogContext),
+pub enum FinalRes<'a, T> {
+    Ok(T, LogContext<'a>),
     Err(LogStream),
 }
 

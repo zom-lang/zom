@@ -87,16 +87,16 @@ pub struct Lexer<'a> {
     file: ZomFile<'a>,
     prev_idx: usize,
     index: usize,
-    pub log: &'a mut LogContext,
+    pub lctx: LogContext<'a>,
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(text: &'a str, path: &'a Path, log: &'a mut LogContext) -> Lexer<'a> {
+    pub fn new(text: &'a str, path: &'a Path, lctx: LogContext<'a>) -> Lexer<'a> {
         Lexer {
             file: ZomFile::new(text, path),
             prev_idx: 0,
             index: 0,
-            log,
+            lctx,
         }
     }
 
@@ -149,12 +149,12 @@ impl<'a> Lexer<'a> {
                     }
                 }
                 Error(err) => {
-                    self.log.push_built(err);
+                    self.lctx.push_built(err);
                 }
                 PartSuccess(tt, errs) => {
                     debug_assert!(!errs.is_empty());
 
-                    self.log.push_many(errs);
+                    self.lctx.push_many(errs);
 
                     if self.push_token(&mut tokens, tt) {
                         // Reached EOF, breaking out of the loop
@@ -165,10 +165,10 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        if self.log.failed() {
-            return FinalRes::Err(self.log.stream());
+        if self.lctx.failed() {
+            return FinalRes::Err(self.lctx.stream());
         }
-        FinalRes::Ok(tokens, self.log.clone())
+        FinalRes::Ok(tokens, self.lctx.clone())
     }
 
     fn get_pos(&self) -> Range<usize> {
@@ -235,7 +235,7 @@ impl<'a> Lexer<'a> {
                     return Tok(Oper(op));
                 }
                 self.pop();
-                return Error(self.log.build(err::UnknownToken {
+                return Error(self.lctx.build(err::UnknownToken {
                     found: c,
                     location: self.get_pos(),
                 }));
@@ -276,7 +276,7 @@ impl<'a> Lexer<'a> {
         if is_numeric {
             match self.lex_int(word) {
                 Ok(tt) => Tok(tt),
-                Err(err) => Error(err),
+                Err(err) => Error(*err),
             }
         } else {
             Tok(self.lex_keyword(word))
@@ -314,15 +314,15 @@ impl<'a> Lexer<'a> {
 
     /// Take the string containing the integer (num argument), parses it,
     /// returns the corresponding TokenType or an error if the parsing failed.
-    pub fn lex_int(&mut self, num: String) -> Result<TokenType, BuiltLog> {
+    pub fn lex_int(&mut self, num: String) -> Result<TokenType, Box<BuiltLog>> {
         match num.parse() {
             Ok(i) => Ok(Int(i)),
-            Err(err) => Err(self.log.build(SimpleLog {
+            Err(err) => Err(Box::new(self.lctx.build(SimpleLog {
                 level: LogLevel::Error,
                 msg: "failed to lex integer literal".to_string(),
                 note: Some(err.to_string()),
                 location: self.get_pos(),
-            })),
+            }))),
         }
     }
 
@@ -344,7 +344,11 @@ impl<'a> Lexer<'a> {
 
     /// Takes a char and maps it to the corresponding escape sequence
     /// The argument 'is_string' is used to generate the error message.
-    pub fn make_escape_sequence(&mut self, es: char, is_string: bool) -> Result<char, BuiltLog> {
+    pub fn make_escape_sequence(
+        &mut self,
+        es: char,
+        is_string: bool,
+    ) -> Result<char, Box<BuiltLog>> {
         Ok(match es {
             '0' => 0x00,
             'n' => 0x0A,
@@ -355,11 +359,11 @@ impl<'a> Lexer<'a> {
             ),
             '\\' => return Ok('\\'),
             es => {
-                return Err(self.log.build(err::UnknownEscape {
+                return Err(Box::new(self.lctx.build(err::UnknownEscape {
                     escape: es,
                     is_string,
                     location: self.index - 2..self.index,
-                }));
+                })));
             }
         } as u8 as char)
     }
@@ -393,7 +397,7 @@ impl<'a> Lexer<'a> {
                     match self.make_escape_sequence(es, true) {
                         Ok(res) => str.push(res),
                         Err(err) => {
-                            errs.push(err);
+                            errs.push(*err);
                             continue;
                         }
                     }
@@ -403,7 +407,7 @@ impl<'a> Lexer<'a> {
                     pop_expect!(self => Some(c));
                 }
                 None => {
-                    return Error(self.log.build(err::UnterminatedQuoteLit {
+                    return Error(self.lctx.build(err::UnterminatedQuoteLit {
                         is_char: false,
                         location: self.prev_idx..self.index - 1,
                     }));
@@ -436,18 +440,18 @@ impl<'a> Lexer<'a> {
                         }
                         match self.make_escape_sequence(es, false) {
                             Ok(c) => c,
-                            Err(err) => return Error(err),
+                            Err(err) => return Error(*err),
                         }
                     }
                     None => {
-                        return Error(self.log.build(err::UnterminatedQuoteLit {
+                        return Error(self.lctx.build(err::UnterminatedQuoteLit {
                             is_char: true,
                             location: self.get_pos(),
                         }));
                     }
                 };
                 pop_expect!(self => Some('\'');
-                    return Error(self.log.build(err::UnterminatedQuoteLit {
+                    return Error(self.lctx.build(err::UnterminatedQuoteLit {
                         is_char: true,
                         location: self.prev_idx..self.index - 1,
                     }))
@@ -457,14 +461,14 @@ impl<'a> Lexer<'a> {
                 pop_expect!(self => Some('\''));
                 if let Some('\'') = self.peek() {
                     pop_expect!(self => Some('\''));
-                    return Error(self.log.build(SimpleLog {
+                    return Error(self.lctx.build(SimpleLog {
                         level: LogLevel::Error,
                         msg: "char literal must be escaped `'`".to_string(),
                         note: None,
                         location: self.get_pos(),
                     }));
                 }
-                return Error(self.log.build(SimpleLog {
+                return Error(self.lctx.build(SimpleLog {
                     level: LogLevel::Error,
                     msg: "empty char literal".to_string(),
                     note: None,
@@ -476,13 +480,13 @@ impl<'a> Lexer<'a> {
 
                 content = c;
                 pop_expect!(self => Some('\'');
-                    return Error(self.log.build(err::UnterminatedQuoteLit {
+                    return Error(self.lctx.build(err::UnterminatedQuoteLit {
                         is_char: true,
                         location: self.prev_idx..self.index - 1,
                     }))
                 );
             }
-            None => return Error(self.log.build(UnexpectedEOF(self.get_pos()))),
+            None => return Error(self.lctx.build(UnexpectedEOF(self.get_pos()))),
         }
 
         Tok(Char(content))

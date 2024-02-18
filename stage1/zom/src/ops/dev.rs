@@ -35,15 +35,15 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     println!("file path = {}", path.display());
     println!("buffer = \\\n{}\n\\-> {}\n", buffer, buffer.len());
 
-    let mut lctx = LogContext::new(buffer.clone(), path.clone(), ColorChoice::Always);
+    let lctx = LogContext::new(&buffer, &path, ColorChoice::Always);
 
-    let mut lexer = Lexer::new(&buffer, &path, &mut lctx);
+    let mut lexer = Lexer::new(&buffer, &path, lctx);
 
-    let tokens = match lexer.lex() {
-        FinalRes::Ok(t, _) => t,
-        FinalRes::Err(_) => {
-            lctx.print();
-            return err!(fmt "");
+    let (tokens, lctx) = match lexer.lex() {
+        FinalRes::Ok(t, lctx) => (t, lctx),
+        FinalRes::Err(logs) => {
+            logs.print();
+            return err!("");
         }
     };
 
@@ -57,9 +57,9 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
 
     let (ast, lctx) = match parser.parse() {
         FinalRes::Ok(ast, lctx) => (ast, lctx),
-        FinalRes::Err(stream) => {
-            stream.print();
-            todo!()
+        FinalRes::Err(logs) => {
+            logs.print();
+            return err!("");
         }
     };
 

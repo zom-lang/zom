@@ -5,14 +5,14 @@ use zom_errors::FmtToken::*;
 
 pub(crate) mod err;
 
-pub struct Parser {
+pub struct Parser<'a> {
     /// Reversed list of token
     tokens: Vec<Token>,
-    lctx: LogContext,
+    lctx: LogContext<'a>,
 }
 
-impl Parser {
-    pub fn new(tokens: &[Token], lctx: LogContext) -> Parser {
+impl<'a> Parser<'a> {
+    pub fn new(tokens: &'a [Token], lctx: LogContext<'a>) -> Parser<'a> {
         let mut rest = tokens.to_vec();
         rest.reverse();
         Parser { tokens: rest, lctx }
