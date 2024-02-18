@@ -317,12 +317,12 @@ impl<'a> Lexer<'a> {
     pub fn lex_int(&mut self, num: String) -> Result<TokenType, Box<BuiltLog>> {
         match num.parse() {
             Ok(i) => Ok(Int(i)),
-            Err(err) => Err(Box::new(self.lctx.build(SimpleLog {
+            Err(err) => Err(self.lctx.build_boxed(SimpleLog {
                 level: LogLevel::Error,
                 msg: "failed to lex integer literal".to_string(),
                 note: Some(err.to_string()),
                 location: self.get_pos(),
-            }))),
+            })),
         }
     }
 
@@ -359,11 +359,11 @@ impl<'a> Lexer<'a> {
             ),
             '\\' => return Ok('\\'),
             es => {
-                return Err(Box::new(self.lctx.build(err::UnknownEscape {
+                return Err(self.lctx.build_boxed(err::UnknownEscape {
                     escape: es,
                     is_string,
                     location: self.index - 2..self.index,
-                })));
+                }))
             }
         } as u8 as char)
     }

@@ -269,6 +269,11 @@ impl<'a> LogContext<'a> {
         log.build(self)
     }
 
+    /// Build a `Log` and returns it into a box
+    pub fn build_boxed<L: Log>(&self, log: L) -> Box<BuiltLog> {
+        Box::new(self.build(log))
+    }
+
     pub fn push<L: Log>(&mut self, log: L) {
         self.logs.push(self.build(log))
     }
