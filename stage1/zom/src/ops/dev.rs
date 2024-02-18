@@ -4,6 +4,7 @@ use std::io::{self, stdout, Write};
 use std::path::PathBuf;
 use termcolor::ColorChoice;
 use zom_lexer::Lexer;
+use zom_parser::*;
 
 use zom_errors::prelude::*;
 
@@ -52,6 +53,15 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     }
 
     println!("\n~~~  SEPARTOR  ~~~");
+    let mut parser = Parser::new(&tokens, lctx);
+
+    let (ast, lctx) = match parser.parse() {
+        FinalRes::Ok(ast, lctx) => (ast, lctx),
+        FinalRes::Err(stream) => {
+            stream.print();
+            todo!()
+        }
+    };
 
     lctx.print();
     Ok(ExitStatus::Success)
