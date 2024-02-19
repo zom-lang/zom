@@ -1,7 +1,7 @@
-package main
+package hello.main
 
-import fmt.println from "std" // <- NEW better import item! ;)
-import fmt from "std"
+import std.fmt.println // <- NEW better import item! ;)
+import std.fn
 
 fn add(a,b: u32) u32 {
     println("Hello world!")
