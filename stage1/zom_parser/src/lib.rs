@@ -71,7 +71,7 @@ macro_rules! expect_token {
 #[macro_export]
 macro_rules! parse_try {
     ($parser:expr, $ast_type:ty, $parsed_tokens:expr) => {
-        match <$ast_type>::parse($parser) {
+        match <$ast_type as Parse>::parse($parser) {
             Good(ast, tokens) => {
                 $parsed_tokens.extend(tokens);
                 ast
