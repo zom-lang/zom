@@ -53,7 +53,7 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     }
 
     println!("\n~~~  SEPARTOR  ~~~");
-    let mut parser = Parser::new(&tokens, lctx);
+    let parser = Parser::new(&tokens, lctx);
 
     let (ast, lctx) = match parser.parse() {
         FinalRes::Ok(ast, lctx) => (ast, lctx),
@@ -62,6 +62,8 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
             return err!("");
         }
     };
+
+    dbg!(ast);
 
     lctx.print();
     Ok(ExitStatus::Success)

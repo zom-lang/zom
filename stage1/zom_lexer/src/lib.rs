@@ -308,6 +308,9 @@ impl<'a> Lexer<'a> {
             KW_UNDEFINED => Undefined,
             KW_BREAK => Break,
             KW_CONTINUE => Continue,
+            KW_PACKAGE => Package,
+            KW_IMPORT => Import,
+            KW_AS => As,
             _ => Ident(kw),
         }
     }

@@ -247,6 +247,15 @@ pub const KW_BREAK: &str = "break";
 /// const for the keyword `continue`
 pub const KW_CONTINUE: &str = "continue";
 
+/// const for the keyword `package`
+pub const KW_PACKAGE: &str = "package";
+
+/// const for the keyword `import`
+pub const KW_IMPORT: &str = "import";
+
+/// const for the keyword `as`
+pub const KW_AS: &str = "as";
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     /// `tt` means token type.
@@ -311,6 +320,9 @@ pub enum TokenType {
     Undefined,
     Break,
     Continue,
+    Package,
+    Import,
+    As,
 
     // Identifier
     Ident(String), // Identifier is a alphanumeric with `_` string
@@ -376,6 +388,9 @@ impl Display for TokenType {
             Undefined => write!(f, "keyword `undefined`"),
             Break => write!(f, "keyword `break`"),
             Continue => write!(f, "keyword `continue`"),
+            Package => write!(f, "keyword `package`"),
+            Import => write!(f, "keyword `import`"),
+            As => write!(f, "keyword `as`"),
 
             Ident(_) => write!(f, "identifier"),
 

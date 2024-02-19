@@ -9,6 +9,7 @@ use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 use lazy_static::lazy_static;
 
+use zom_common::token::Operator;
 use zom_common::token::Token;
 
 pub mod err;
@@ -30,6 +31,7 @@ lazy_static! {
         .clone();
 }
 
+#[derive(Debug)]
 pub enum FmtToken {
     Operator,
 
@@ -48,6 +50,7 @@ pub enum FmtToken {
     SemiColon,
     Comma,
     At,
+    Dot,
 
     // Literals
     IntLit,
@@ -77,6 +80,9 @@ pub enum FmtToken {
     Undefined,
     Break,
     Continue,
+    Package,
+    Import,
+    As,
 
     Ident,
 
@@ -86,11 +92,13 @@ pub enum FmtToken {
 impl FmtToken {
     pub fn from_token(token: &Token) -> Self {
         use crate::FmtToken::*;
+        use zom_common::token::Operator;
         use zom_common::token::TokenType as TT;
-
         let tt = &token.tt;
         match tt {
+            TT::Oper(Operator::Dot) => Dot,
             TT::Oper(_) => Operator,
+
             TT::OpenParen => OpenParen,
             TT::CloseParen => CloseParen,
 
@@ -131,6 +139,9 @@ impl FmtToken {
             TT::Undefined => Undefined,
             TT::Break => Break,
             TT::Continue => Continue,
+            TT::Package => Package,
+            TT::Import => Import,
+            TT::As => As,
 
             TT::Ident(_) => Ident,
 
@@ -147,42 +158,54 @@ impl fmt::Display for FmtToken {
             "{}",
             match self {
                 Operator => "operator",
+
                 OpenParen => "(",
                 CloseParen => ")",
+
                 OpenBracket => "[",
                 CloseBracket => "]",
+
                 OpenBrace => "{",
                 CloseBrace => "}",
+
                 Colon => ",",
                 SemiColon => ";",
                 Comma => ",",
                 At => "@",
+                Dot => ".",
+
                 IntLit => "integer literal",
                 FloatLit => "float literal",
                 StrLit => "string literal",
                 CharLit => "char literal",
-                Fn => "'fn'",
-                Extern => "'extern'",
-                Var => "'var'",
-                Const => "'const'",
-                Struct => "'struct'",
-                Enum => "'enum'",
-                Return => "'return'",
-                If => "'if'",
-                Else => "'else'",
-                While => "'while'",
-                For => "'for'",
-                Pub => "'pub'",
-                Async => "'async'",
-                Await => "'await'",
-                Match => "'match'",
-                Impl => "'impl'",
-                True => "'true'",
-                False => "'false'",
-                Undefined => "'undefined'",
-                Break => "'break'",
-                Continue => "'continue'",
+
+                Fn => "keyword `fn`",
+                Extern => "keyword `extern`",
+                Var => "keyword `var`",
+                Const => "keyword `const`",
+                Struct => "keyword `struct`",
+                Enum => "keyword `enum`",
+                Return => "keyword `return`",
+                If => "keyword `if`",
+                Else => "keyword `else`",
+                While => "keyword `while`",
+                For => "keyword `for`",
+                Pub => "keyword `pub`",
+                Async => "keyword `async`",
+                Await => "keyword `await`",
+                Match => "keyword `match`",
+                Impl => "keyword `impl`",
+                True => "keyword `true`",
+                False => "keyword `false`",
+                Undefined => "keyword `undefined`",
+                Break => "keyword `break`",
+                Continue => "keyword `continue`",
+                Package => "keyword `package`",
+                Import => "keyword `import`",
+                As => "keyword `as`",
+
                 Ident => "identifier",
+
                 EOF => "end of file",
             }
         )
@@ -226,6 +249,10 @@ impl<'a> LogContext<'a> {
     /// Add a BuildLog to the error stream
     pub fn push_built(&mut self, blog: BuiltLog) {
         self.logs.push(blog);
+    }
+
+    pub fn push_boxed(&mut self, boxed_log: Box<dyn Log>) {
+        self.logs.push(boxed_log.build(self));
     }
 
     /// Returns true if their is at least one `Log` with `LogLevel` of `Error`, instead false.
