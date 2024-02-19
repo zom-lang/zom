@@ -32,11 +32,7 @@ impl<E: ExpectArg> Log for ExpectedToken<E> {
     }
 
     fn msg(&self) -> String {
-        format!(
-            "unexpected token '{}', expected {}",
-            self.found,
-            self.expected.fmt()
-        )
+        format!("expected {}, found {}", self.expected.fmt(), self.found)
     }
 }
 
