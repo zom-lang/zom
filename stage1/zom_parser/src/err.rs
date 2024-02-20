@@ -49,6 +49,12 @@ impl ExpectArg for FmtToken {
     }
 }
 
+impl ExpectArg for PartAST {
+    fn try_fmt(&self) -> Option<String> {
+        Some(self.to_string())
+    }
+}
+
 impl<T: ExpectArg, const N: usize> ExpectArg for [T; N] {
     fn try_fmt(&self) -> Option<String> {
         if self.len() == 1 {

@@ -9,7 +9,6 @@ use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 use lazy_static::lazy_static;
 
-use zom_common::token::Operator;
 use zom_common::token::Token;
 
 pub mod err;
@@ -207,6 +206,33 @@ impl fmt::Display for FmtToken {
                 Ident => "identifier",
 
                 EOF => "end of file",
+            }
+        )
+    }
+}
+
+#[derive(Debug)]
+pub enum PartAST {
+    PackageClause,
+    ImportDecl,
+    Declaration,
+    Expression,
+    Statement,
+    Type,
+}
+
+impl fmt::Display for PartAST {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                PartAST::PackageClause => "package clause",
+                PartAST::ImportDecl => "import declaration",
+                PartAST::Declaration => "top level declaration",
+                PartAST::Expression => "expression",
+                PartAST::Statement => "statement",
+                PartAST::Type => "type",
             }
         )
     }
