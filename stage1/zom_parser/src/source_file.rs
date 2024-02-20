@@ -18,11 +18,11 @@ impl Parse for SourceFile {
 
         let start = span_toks!(start parsed_tokens);
 
-        let pkg_path = parse_try!(parser, QualifiedIdentifier, parsed_tokens);
+        let pkg_path = parse_try!(parser => QualifiedIdentifier, parsed_tokens);
 
         let mut import_decls = Vec::new();
         while token_parteq!(parser.last(), T::Import) {
-            import_decls.push(parse_try!(continue; parser, ImportDecl, parsed_tokens));
+            import_decls.push(parse_try!(continue; parser => ImportDecl, parsed_tokens));
         }
 
         // TODO(Larsouille25): add top level declaration parsing
@@ -92,7 +92,7 @@ impl Parse for ImportDecl {
 
         let start = span_toks!(start parsed_tokens);
 
-        let path = parse_try!(parser, QualifiedIdentifier, parsed_tokens);
+        let path = parse_try!(parser => QualifiedIdentifier, parsed_tokens);
 
         let alias = if token_parteq!(parser.last(), T::As) {
             expect_token!(parser => [T::As, ()], As, parsed_tokens);

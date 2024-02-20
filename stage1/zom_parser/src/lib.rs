@@ -70,7 +70,7 @@ macro_rules! expect_token {
 
 #[macro_export]
 macro_rules! parse_try {
-    ($parser:expr, $ast_type:ty, $parsed_tokens:expr) => {
+    ($parser:expr => $ast_type:ty, $parsed_tokens:expr) => {
         match <$ast_type as Parse>::parse($parser) {
             Good(ast, tokens) => {
                 $parsed_tokens.extend(tokens);
@@ -79,7 +79,7 @@ macro_rules! parse_try {
             Error(err) => return Error(err),
         }
     };
-    (continue; $parser:expr, $ast_type:ty, $parsed_tokens:expr) => {
+    (continue; $parser:expr => $ast_type:ty, $parsed_tokens:expr) => {
         match <$ast_type>::parse($parser) {
             Good(ast, tokens) => {
                 $parsed_tokens.extend(tokens);
