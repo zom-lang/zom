@@ -159,20 +159,20 @@ impl fmt::Display for FmtToken {
             match self {
                 Operator => "operator",
 
-                OpenParen => "(",
-                CloseParen => ")",
+                OpenParen => "`(`",
+                CloseParen => "`)`",
 
-                OpenBracket => "[",
-                CloseBracket => "]",
+                OpenBracket => "`[`",
+                CloseBracket => "`]`",
 
-                OpenBrace => "{",
-                CloseBrace => "}",
+                OpenBrace => "`{`",
+                CloseBrace => "`}`",
 
-                Colon => ",",
-                SemiColon => ";",
-                Comma => ",",
-                At => "@",
-                Dot => ".",
+                Colon => "`,`",
+                SemiColon => "`;`",
+                Comma => "`,`",
+                At => "`@`",
+                Dot => "`.`",
 
                 IntLit => "integer literal",
                 FloatLit => "float literal",
