@@ -1,10 +1,11 @@
 //! Module responsible for parsing the top level source file.
-use crate::prelude::*;
+use crate::{declaration::TopLevelDeclaration, prelude::*};
 
 #[derive(Debug)]
 pub struct SourceFile {
     pub pkg_path: QualifiedIdentifier,
     pub import_decls: Vec<ImportDecl>,
+    pub decls: Vec<TopLevelDeclaration>,
     pub span: Range<usize>,
 }
 
@@ -25,7 +26,11 @@ impl Parse for SourceFile {
             import_decls.push(parse_try!(continue; parser => ImportDecl, parsed_tokens));
         }
 
-        // TODO(Larsouille25): add top level declaration parsing
+        let mut decls = Vec::new();
+        while !parser.reached_eof() {
+            // TODO: Try to use the 'continue' version of parse_try! here.
+            decls.push(parse_try!(parser => TopLevelDeclaration, parsed_tokens));
+        }
 
         let end = span_toks!(end parsed_tokens);
 
@@ -33,6 +38,7 @@ impl Parse for SourceFile {
             SourceFile {
                 pkg_path,
                 import_decls,
+                decls,
                 span: start..end,
             },
             parsed_tokens,

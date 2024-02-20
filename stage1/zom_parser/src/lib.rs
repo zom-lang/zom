@@ -1,9 +1,11 @@
 use crate::prelude::*;
 use crate::source_file::SourceFile;
 
+pub mod declaration;
 pub(crate) mod err;
 pub(crate) mod prelude;
 pub mod source_file;
+pub mod types;
 
 pub struct Parser<'a> {
     /// Reversed list of token
@@ -64,6 +66,18 @@ macro_rules! expect_token {
                 let found = $parser.pop();
                 return Error(Box::new(ExpectedToken::from(&found, $expected)))
             }
+        }
+    };
+    ($parser:expr => [ $($token:pat, $result:expr);+ ] else $unmatched:block, $parsed_tokens:expr ) => {
+        match $parser.last() {
+            $(
+                Token { tt: $token, .. } => {
+                    let res = $result;
+                    $parsed_tokens.push($parser.pop());
+                    res
+                },
+            )+
+            _ => $unmatched
         }
     };
 }

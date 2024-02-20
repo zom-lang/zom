@@ -1,19 +1,18 @@
 package hello.main
 
 import std.fmt.println // <- NEW better import item! ;)
-import std.fn
+import std.fmt as f
 
-fn add(a,b: u32) u32 {
+fn add(a: u32,b: u32) u32 {
     println("Hello world!")
     return a + b
 }
 
-fn max(a, b: u32) u32 {
-    if (a > b) {
+fn max(a: u32, b: u32) u32 {
+    if (a > b)
         return a
-    } else {
+    else
         return b
-    }
     // ^ a conditional stmt
 }
 
