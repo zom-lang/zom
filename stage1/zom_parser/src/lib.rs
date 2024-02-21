@@ -39,7 +39,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Returns the last tokens without removing it from the reversed token stream
-    fn last(&mut self) -> &Token {
+    fn last(&self) -> &Token {
         self.tokens.last().unwrap()
     }
 
@@ -47,7 +47,7 @@ impl<'a> Parser<'a> {
     pub fn reached_eof(&self) -> bool {
         // if the vector of token is empty, without the EOF token,
         // that means we reached EOF
-        self.tokens.is_empty()
+        self.tokens.is_empty() || token_parteq!(self.last(), T::EOF)
     }
 }
 
