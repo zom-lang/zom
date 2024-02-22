@@ -1,10 +1,12 @@
 use crate::prelude::*;
 use crate::source_file::SourceFile;
 
+pub mod block;
 pub mod declaration;
 pub(crate) mod err;
 pub(crate) mod prelude;
 pub mod source_file;
+pub mod stmt;
 pub mod types;
 
 pub struct Parser<'a> {

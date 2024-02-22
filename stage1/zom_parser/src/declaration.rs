@@ -1,5 +1,5 @@
 //! Module responsible for parsing top level declarations.
-use crate::{prelude::*, types::Type};
+use crate::{block::Block, prelude::*, types::Type};
 
 #[derive(Debug)]
 pub struct TopLevelDeclaration {
@@ -41,6 +41,7 @@ pub enum Declaration {
         name: String,
         args: Vec<Arg>,
         ret_ty: Type,
+        block: Block,
     },
 }
 
@@ -73,9 +74,17 @@ pub fn parse_fn_decl(parser: &mut Parser) -> ParsingResult<Declaration> {
 
     let ret_ty = parse_try!(parser => Type, parsed_tokens);
 
-    // TODO(Larsouille25): Add parsing for the block.
+    let block = parse_try!(parser => Block, parsed_tokens);
 
-    Good(Declaration::Function { name, args, ret_ty }, parsed_tokens)
+    Good(
+        Declaration::Function {
+            name,
+            args,
+            ret_ty,
+            block,
+        },
+        parsed_tokens,
+    )
 }
 
 #[derive(Debug)]
