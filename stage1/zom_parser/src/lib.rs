@@ -56,6 +56,8 @@ macro_rules! expect_token {
     ($parser:expr => [ $($token:pat, $result:expr);+ ], $expected:expr, $parsed_tokens:expr ) => {
         match $parser.last() {
             $(
+                // used, because if $result is a no return expression, it will throw those 2 warnings
+                #[allow(unreachable_code, unused_variables)]
                 Token { tt: $token, .. } => {
                     let res = $result;
                     $parsed_tokens.push($parser.pop());
@@ -71,6 +73,8 @@ macro_rules! expect_token {
     ($parser:expr => [ $($token:pat, $result:expr);+ ] else $unmatched:block, $parsed_tokens:expr ) => {
         match $parser.last() {
             $(
+                // used, because if $result is a no return expression, it will throw those 2 warnings
+                #[allow(unreachable_code, unused_variables)]
                 Token { tt: $token, .. } => {
                     let res = $result;
                     $parsed_tokens.push($parser.pop());
@@ -94,7 +98,7 @@ macro_rules! parse_try {
         }
     };
     (continue; $parser:expr => $ast_type:ty, $parsed_tokens:expr) => {
-        match <$ast_type>::parse($parser) {
+        match <$ast_type as Parse>::parse($parser) {
             Good(ast, tokens) => {
                 $parsed_tokens.extend(tokens);
                 ast
