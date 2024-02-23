@@ -4,6 +4,7 @@ use crate::source_file::SourceFile;
 pub mod block;
 pub mod declaration;
 pub(crate) mod err;
+pub mod expr;
 pub(crate) mod prelude;
 pub mod source_file;
 pub mod stmt;
@@ -56,6 +57,7 @@ impl<'a> Parser<'a> {
 #[macro_export]
 macro_rules! expect_token {
     ($parser:expr => [ $($token:pat, $result:expr);+ ], $expected:expr, $parsed_tokens:expr ) => {
+        // TODO(Larsouille25): try to DRY
         match $parser.last() {
             $(
                 // used, because if $result is a no return expression, it will throw those 2 warnings
@@ -91,7 +93,17 @@ macro_rules! expect_token {
 #[macro_export]
 macro_rules! parse_try {
     ($parser:expr => $ast_type:ty, $parsed_tokens:expr) => {
-        match <$ast_type as Parse>::parse($parser) {
+        // match <$ast_type as Parse>::parse($parser) {
+        //     Good(ast, tokens) => {
+        //         $parsed_tokens.extend(tokens);
+        //         ast
+        //     }
+        //     Error(err) => return Error(err),
+        // }
+        parse_try!(fn; $parser => <$ast_type as Parse>::parse, $parsed_tokens)
+    };
+    (fn; $parser:expr => $parsing_func:expr, $parsed_tokens:expr $(, $arg:expr)* ) => {
+        match $parsing_func($parser, $($arg),*) {
             Good(ast, tokens) => {
                 $parsed_tokens.extend(tokens);
                 ast
