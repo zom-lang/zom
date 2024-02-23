@@ -161,26 +161,22 @@ impl FromStr for Operator {
     }
 }
 
-/// Operator Precedence Value for Unary operators
-pub const PR_UNARY: i32 = 12;
 /// Operator Precedence Value for Mul Div Rem
-pub const PR_MUL_DIV_REM: i32 = 11;
+pub const PR_MUL_DIV_REM: u16 = 7;
 /// Operator Precedence Value for Add Sub
-pub const PR_ADD_SUB: i32 = 10;
+pub const PR_ADD_SUB: u16 = 6;
 /// Operator Precedence Value for Right and Left shifts
-pub const PR_SHIFT: i32 = 9;
+pub const PR_SHIFT: u16 = 5;
 /// Operator Precedence Value for Less than, Greater than, Less than or equal to and greater than or equal to
-pub const PR_COMP: i32 = 8;
+pub const PR_COMP: u16 = 4;
 /// Operator Precedence Value for Eq Ne
-pub const PR_COMP_EQ_NE: i32 = 7;
-/// Operator Precedence Value for Xor
-pub const PR_XOR: i32 = 5;
+pub const PR_COMP_EQ_NE: u16 = 3;
 /// Operator Precedence Value for And
-pub const PR_AND: i32 = 3;
+pub const PR_AND: u16 = 2;
+/// Operator Precedence Value for Xor
+pub const PR_XOR: u16 = 1;
 /// Operator Precedence Value for Or
-pub const PR_OR: i32 = 2;
-/// Operator Precedence Value for Equal
-pub const PR_EQ: i32 = 1;
+pub const PR_OR: u16 = 0;
 
 // KEYWORDS
 
