@@ -4,6 +4,8 @@ pub use crate::{
     ParsingResult::*,
 };
 
+pub use crate::expr::{Associativity, BinOperation};
+
 pub use std::ops::Range;
 
 pub use zom_common::token::Operator;

@@ -676,6 +676,7 @@ dependencies = [
 name = "zom_parser"
 version = "0.0.0"
 dependencies = [
+ "lazy_static",
  "zom_common",
  "zom_errors",
 ]

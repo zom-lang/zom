@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+
+use lazy_static::lazy_static;
+
 use crate::prelude::*;
 use crate::source_file::SourceFile;
 
@@ -9,6 +13,39 @@ pub(crate) mod prelude;
 pub mod source_file;
 pub mod stmt;
 pub mod types;
+
+lazy_static! {
+    static ref PR_TABLE: HashMap<BinOperation, (Associativity, u16)> = {
+        use zom_common::token::{
+            PR_ADD_SUB, PR_AND, PR_COMP, PR_COMP_EQ_NE, PR_MUL_DIV_REM, PR_OR, PR_SHIFT, PR_XOR,
+        };
+        use Associativity::*;
+        use BinOperation::*;
+        HashMap::from([
+            (Mul, (L2R, PR_MUL_DIV_REM)),
+            (Div, (L2R, PR_MUL_DIV_REM)),
+            (Rem, (L2R, PR_MUL_DIV_REM)),
+            // ..
+            (Add, (L2R, PR_ADD_SUB)),
+            (Sub, (L2R, PR_ADD_SUB)),
+            // ..
+            (RShift, (L2R, PR_SHIFT)),
+            (LShift, (L2R, PR_SHIFT)),
+            // ..
+            (CompLT, (L2R, PR_COMP)),
+            (CompGT, (L2R, PR_COMP)),
+            (CompLTE, (L2R, PR_COMP)),
+            (CompGTE, (L2R, PR_COMP)),
+            // ..
+            (CompEq, (L2R, PR_COMP_EQ_NE)),
+            (CompNe, (L2R, PR_COMP_EQ_NE)),
+            // ..
+            (And, (L2R, PR_AND)),
+            (Xor, (L2R, PR_XOR)),
+            (Or, (L2R, PR_OR)),
+        ])
+    };
+}
 
 pub struct Parser<'a> {
     /// Reversed list of token
@@ -51,6 +88,13 @@ impl<'a> Parser<'a> {
         // if the vector of token is empty, without the EOF token,
         // that means we reached EOF
         self.tokens.is_empty() || token_parteq!(self.last(), T::EOF)
+    }
+
+    pub fn pr_get(&self, op: BinOperation) -> (Associativity, u16) {
+        PR_TABLE
+            .get(&op)
+            .cloned()
+            .expect("Binary operator not in binary table of precedence, impossible in theory")
     }
 }
 

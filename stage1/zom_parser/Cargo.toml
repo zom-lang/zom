@@ -11,5 +11,6 @@ authors.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+lazy_static.workspace = true
 zom_common.workspace = true
 zom_errors.workspace = true

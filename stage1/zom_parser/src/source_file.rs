@@ -62,6 +62,8 @@ impl Parse for QualifiedIdentifier {
         path.push(expect_token!(parser => [T::Ident(name), name.clone()], Ident, parsed_tokens));
         let start = span_toks!(start parsed_tokens);
 
+        // TODO: maybe possible to use a loop and use the 'else' case of the
+        // expect_token! macro to exit the loop.
         while token_parteq!(parser.last(), T::Oper(Operator::Dot)) {
             expect_token!(parser => [T::Oper(Operator::Dot), ()], Dot, parsed_tokens);
             path.push(
