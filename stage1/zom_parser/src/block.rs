@@ -17,14 +17,21 @@ impl Parse for Block {
         expect_token!(parser => [T::OpenBrace, ()], OpenBrace, parsed_tokens);
         let start = span_toks!(start parsed_tokens);
 
-        // TODO(Larsouille25): Statments parsing here
+        let mut stmts = Vec::new();
+        while !token_parteq!(parser.last(), T::CloseBrace) {
+            // parse and push the stmt
+            stmts.push(parse_try!(parser => Statement, parsed_tokens));
+
+            // maybe expect a semicolon
+            expect_token!(parser => [T::SemiColon, ()] else {}, parsed_tokens);
+        }
 
         expect_token!(parser => [T::CloseBrace, ()], CloseBrace, parsed_tokens);
         let end = span_toks!(end parsed_tokens);
 
         Good(
             Block {
-                stmts: Vec::new(),
+                stmts,
                 span: start..end,
             },
             parsed_tokens,
