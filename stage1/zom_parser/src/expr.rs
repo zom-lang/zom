@@ -283,8 +283,8 @@ pub fn parse_call_expr(parser: &mut Parser, lhs: &Expression) -> ParsingResult<E
 
     let mut args = Vec::new();
     loop {
-        args.push(parse_try!(parser => Expression, parsed_tokens));
         expect_token!(parser => [T::Comma, (); T::CloseParen, break], Comma, parsed_tokens);
+        args.push(parse_try!(parser => Expression, parsed_tokens));
     }
 
     expect_token!(parser => [T::CloseParen, ()], CloseParen, parsed_tokens);
