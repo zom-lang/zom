@@ -30,6 +30,10 @@ pub enum Stmt {
         ctrling_expr: Expression,
         loop_body: Block,
     },
+    BreakStmt {
+        label: Option<String>,
+        expr: Option<Expression>,
+    },
 }
 
 impl Parse for Stmt {
@@ -42,6 +46,7 @@ impl Parse for Stmt {
             T::Return => parse_return_stmt(parser),
             T::Ident(_) if is_labeled_stmt(parser) => parse_labeled_stmt(parser),
             T::While => parse_while_stmt(parser),
+            T::Break => parse_break_stmt(parser),
             _ => parse_expr_stmt(parser),
         }
     }
@@ -174,6 +179,35 @@ pub fn parse_while_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
                 ctrling_expr,
                 loop_body,
             },
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_break_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
+    let mut parsed_tokens = Vec::new();
+
+    expect_token!(parser => [T::Break, ()], Break, parsed_tokens);
+    let start = span_toks!(start parsed_tokens);
+
+    let label = if token_parteq!(parser.last(), T::Colon) {
+        expect_token!(parser => [T::Colon, ()], Colon, parsed_tokens);
+        expect_token!(parser => [T::Ident(lab), Some(lab.clone())], Ident, parsed_tokens)
+    } else {
+        None
+    };
+
+    let expr = if !parser.expr_end() {
+        Some(parse_try!(parser => Expression, parsed_tokens))
+    } else {
+        None
+    };
+    let end = span_toks!(end parsed_tokens);
+
+    Good(
+        Statement {
+            stmt: Stmt::BreakStmt { label, expr },
             span: start..end,
         },
         parsed_tokens,
