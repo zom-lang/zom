@@ -345,7 +345,7 @@ impl TokenType {
 impl Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Oper(op) => write!(f, "`{}`", op),
+            Oper(op) => write!(f, "operator `{}`", op),
             OpenParen => write!(f, "`(`"),
             CloseParen => write!(f, "`)`"),
             OpenBracket => write!(f, "`[`"),
@@ -388,7 +388,7 @@ impl Display for TokenType {
             Import => write!(f, "keyword `import`"),
             As => write!(f, "keyword `as`"),
 
-            Ident(_) => write!(f, "identifier"),
+            Ident(name) => write!(f, "identifier {name}"),
 
             EOF => write!(f, "End of File"),
         }

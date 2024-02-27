@@ -1,5 +1,5 @@
 use std::fmt::Write;
-use zom_common::token::Token;
+use zom_common::token::{Token, TokenType};
 use zom_errors::prelude::*;
 
 /// unknown token lexing error
@@ -71,5 +71,11 @@ impl<T: ExpectArg, const N: usize> ExpectArg for [T; N] {
             }
         }
         Some(s)
+    }
+}
+
+impl ExpectArg for TokenType {
+    fn try_fmt(&self) -> Option<String> {
+        Some(self.to_string())
     }
 }

@@ -1,5 +1,9 @@
 //! Module responsible for parsing statement.
-use crate::{block::Block, expr::Expression, prelude::*};
+use crate::{
+    block::Block,
+    expr::{Expression, ExpressionList},
+    prelude::*,
+};
 
 #[derive(Debug)]
 pub struct Statement {
@@ -40,6 +44,10 @@ pub enum Stmt {
     ContinueStmt {
         label: Option<String>,
     },
+    AssignementStmt {
+        lhs: ExpressionList,
+        rhs: ExpressionList,
+    },
 }
 
 impl Parse for Stmt {
@@ -63,12 +71,19 @@ pub fn parse_expr_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
     let mut parsed_tokens = Vec::new();
 
     let expr = parse_try!(parser => Expression, parsed_tokens);
-    let span = expr.span.clone();
+    let start = span_toks!(start first parsed_tokens);
+    if token_parteq!(parser.last(), T::Comma | T::Oper(Operator::Equal)) {
+        let expr_list = parse_try!(fn; parser => ExpressionList::parse_with, parsed_tokens, expr);
+
+        return parse_assignement_stmt(parser, expr_list, start);
+    }
+
+    let end = span_toks!(end parsed_tokens);
 
     Good(
         Statement {
             stmt: Stmt::ExprStmt(expr),
-            span,
+            span: start..end,
         },
         parsed_tokens,
     )
@@ -249,6 +264,30 @@ pub fn parse_continue_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
     Good(
         Statement {
             stmt: Stmt::ContinueStmt { label },
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_assignement_stmt(
+    parser: &mut Parser,
+    lhs: ExpressionList,
+    start: usize,
+) -> ParsingResult<Statement> {
+    // TODO(Larsouille25): Add ability to use +=, etc..
+    //                     a += 1
+    let mut parsed_tokens = Vec::new();
+
+    expect_token!(parser => [T::Oper(Operator::Equal), ()], T::Oper(Operator::Equal), parsed_tokens);
+
+    let rhs = parse_try!(parser => ExpressionList, parsed_tokens);
+
+    let end = span_toks!(end parsed_tokens);
+
+    Good(
+        Statement {
+            stmt: Stmt::AssignementStmt { lhs, rhs },
             span: start..end,
         },
         parsed_tokens,

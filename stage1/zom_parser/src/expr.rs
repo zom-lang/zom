@@ -342,3 +342,48 @@ pub fn parse_member_access_expr(
         parsed_tokens,
     )
 }
+
+#[derive(Debug)]
+pub struct ExpressionList(pub Vec<Expression>);
+
+impl ExpressionList {
+    pub fn parse(parser: &mut Parser) -> ParsingResult<ExpressionList> {
+        let mut parsed_tokens = Vec::new();
+
+        let mut exprs = Vec::new();
+        loop {
+            exprs.push(parse_try!(parser => Expression, parsed_tokens));
+            expect_token!(parser => [T::Comma, ()] else { break }, parsed_tokens);
+        }
+
+        Good(ExpressionList(exprs), parsed_tokens)
+    }
+
+    pub fn parse_with(parser: &mut Parser, first: Expression) -> ParsingResult<ExpressionList> {
+        let mut parsed_tokens = Vec::new();
+
+        let mut exprs = vec![first];
+        loop {
+            expect_token!(parser => [T::Comma, ()] else { break }, parsed_tokens);
+            exprs.push(parse_try!(parser => Expression, parsed_tokens));
+        }
+
+        Good(ExpressionList(exprs), parsed_tokens)
+    }
+}
+
+impl Parse for ExpressionList {
+    type Output = Self;
+
+    fn parse(parser: &mut Parser) -> ParsingResult<ExpressionList> {
+        let mut parsed_tokens = Vec::new();
+
+        let mut exprs = Vec::new();
+        loop {
+            exprs.push(parse_try!(parser => Expression, parsed_tokens));
+            expect_token!(parser => [T::Comma, ()] else { break }, parsed_tokens);
+        }
+
+        Good(ExpressionList(exprs), parsed_tokens)
+    }
+}
