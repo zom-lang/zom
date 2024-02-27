@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 
 use lazy_static::lazy_static;
 
@@ -174,6 +175,15 @@ macro_rules! span_toks {
 pub enum ParsingResult<T> {
     Good(T, Vec<Token>),
     Error(Box<dyn Log>),
+}
+
+impl<T: fmt::Debug> fmt::Debug for ParsingResult<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Good(v, toks) => f.debug_tuple("Good").field(v).field(toks).finish(),
+            Error(_) => f.debug_tuple("Error").field(&"...").finish(),
+        }
+    }
 }
 
 pub trait Parse {
