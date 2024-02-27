@@ -167,7 +167,7 @@ impl fmt::Display for FmtToken {
                 OpenBrace => "`{`",
                 CloseBrace => "`}`",
 
-                Colon => "`,`",
+                Colon => "`:`",
                 SemiColon => "`;`",
                 Comma => "`,`",
                 At => "`@`",
