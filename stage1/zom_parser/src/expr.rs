@@ -45,6 +45,7 @@ pub enum Expr {
     StrLitExpr(String),
     BoolLitExpr(bool),
     IdentifierExpr(String),
+    ParenthesizedExpr(Box<Expression>),
 }
 
 impl Parse for Expr {
@@ -58,6 +59,7 @@ impl Parse for Expr {
             T::Str(_) => parse_strlit_expr(parser),
             T::True | T::False => parse_boollit_expr(parser),
             T::Ident(_) => parse_identifier_expr(parser),
+            T::OpenParen => parse_parenthesized_expr(parser),
             _ => Error(Box::new(ExpectedToken::from(
                 parser.last(),
                 PartAST::Expression,
@@ -285,6 +287,26 @@ pub fn parse_call_expr(parser: &mut Parser, lhs: &Expression) -> ParsingResult<E
     Good(
         Expression {
             expr: Expr::CallExpr { fn_op, args },
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_parenthesized_expr(parser: &mut Parser) -> ParsingResult<Expression> {
+    let mut parsed_tokens = Vec::new();
+
+    expect_token!(parser => [T::OpenParen, ()], OpenParen, parsed_tokens);
+    let start = span_toks!(start parsed_tokens);
+
+    let expr = parse_try!(parser => Expression, parsed_tokens);
+
+    expect_token!(parser => [T::CloseParen, ()], CloseParen, parsed_tokens);
+    let end = span_toks!(end parsed_tokens);
+
+    Good(
+        Expression {
+            expr: Expr::ParenthesizedExpr(Box::new(expr)),
             span: start..end,
         },
         parsed_tokens,
