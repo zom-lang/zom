@@ -84,7 +84,7 @@ impl<'a> Parser<'a> {
         self.tokens.last().unwrap()
     }
 
-    /// Did the EOF token has been poped?
+    /// Did the EOF token has been reached?
     pub fn reached_eof(&self) -> bool {
         // if the vector of token is empty, without the EOF token,
         // that means we reached EOF
@@ -104,6 +104,21 @@ impl<'a> Parser<'a> {
             .get(&op)
             .cloned()
             .expect("Binary operator not in binary table of precedence, impossible in theory")
+    }
+
+    /// Get the nth starting at the end.
+    ///
+    /// It may panic, if:
+    /// - the offset is greater than the amount of tokens
+    /// - the index is not in range of the tokens list
+    ///
+    /// **e.g:**
+    /// ```text
+    ///    fn test
+    ///    ^1 ^2 offset of end_nth
+    /// ```
+    pub fn end_nth(&self, offset: usize) -> &Token {
+        self.tokens.get(self.tokens.len() - offset).unwrap()
     }
 }
 
@@ -168,7 +183,10 @@ macro_rules! span_toks {
         $toks.last().unwrap().span.clone()
     };
     ($id:ident $toks:expr) => {
-        $toks.last().unwrap().span.$id
+        span_toks!($id last $toks)
+    };
+    ($id:ident $tip:ident $toks:expr) => {
+        $toks.$tip().unwrap().span.$id
     };
 }
 

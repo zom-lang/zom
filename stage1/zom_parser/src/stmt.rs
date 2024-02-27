@@ -25,6 +25,11 @@ pub enum Stmt {
     },
     BlockStmt(Block),
     ReturnStmt(Option<Expression>),
+    WhileStmt {
+        label: Option<String>,
+        ctrling_expr: Expression,
+        loop_body: Block,
+    },
 }
 
 impl Parse for Stmt {
@@ -35,6 +40,8 @@ impl Parse for Stmt {
             T::If => parse_if_else_stmt(parser),
             T::OpenBrace => parse_block_stmt(parser),
             T::Return => parse_return_stmt(parser),
+            T::Ident(_) if is_labeled_stmt(parser) => parse_labeled_stmt(parser),
+            T::While => parse_while_stmt(parser),
             _ => parse_expr_stmt(parser),
         }
     }
@@ -119,6 +126,54 @@ pub fn parse_return_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
     Good(
         Statement {
             stmt: Stmt::ReturnStmt(expr),
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn is_labeled_stmt(parser: &Parser) -> bool {
+    matches!(parser.end_nth(1).tt, T::Ident(_)) && matches!(parser.end_nth(2).tt, T::Colon)
+}
+
+pub fn parse_labeled_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
+    match &parser.end_nth(3).tt {
+        T::While => parse_while_stmt(parser),
+        _ => Error(Box::new(ExpectedToken::from(
+            parser.end_nth(3),
+            PartAST::LabeledStmt,
+        ))),
+    }
+}
+
+pub fn parse_while_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
+    let mut parsed_tokens = Vec::new();
+
+    let label = if token_parteq!(parser.last(), T::Ident(_)) {
+        let l = expect_token!(parser => [T::Ident(label), label.clone()], Ident, parsed_tokens);
+        expect_token!(parser => [T::Colon, ()], Colon, parsed_tokens);
+        Some(l)
+    } else {
+        None
+    };
+
+    expect_token!(parser => [T::While, ()], While, parsed_tokens);
+    let start = span_toks!(start first parsed_tokens);
+
+    expect_token!(parser => [T::OpenParen, ()], OpenParen, parsed_tokens);
+    let ctrling_expr = parse_try!(parser => Expression, parsed_tokens);
+    expect_token!(parser => [T::CloseParen, ()], CloseParen, parsed_tokens);
+
+    let loop_body = parse_try!(parser => Block, parsed_tokens);
+
+    let end = span_toks!(end parsed_tokens);
+    Good(
+        Statement {
+            stmt: Stmt::WhileStmt {
+                label,
+                ctrling_expr,
+                loop_body,
+            },
             span: start..end,
         },
         parsed_tokens,

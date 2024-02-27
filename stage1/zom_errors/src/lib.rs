@@ -218,6 +218,7 @@ pub enum PartAST {
     Declaration,
     Expression,
     Statement,
+    LabeledStmt,
     Type,
 }
 
@@ -232,6 +233,7 @@ impl fmt::Display for PartAST {
                 PartAST::Declaration => "top level declaration",
                 PartAST::Expression => "expression",
                 PartAST::Statement => "statement",
+                PartAST::LabeledStmt => "labeled statement",
                 PartAST::Type => "type",
             }
         )
