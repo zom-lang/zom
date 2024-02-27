@@ -48,6 +48,10 @@ pub enum Stmt {
         lhs: ExpressionList,
         rhs: ExpressionList,
     },
+    ShortVarDecl {
+        names: Vec<String>,
+        exprs: Vec<Expression>,
+    },
 }
 
 impl Parse for Stmt {
@@ -62,6 +66,7 @@ impl Parse for Stmt {
             T::While => parse_while_stmt(parser),
             T::Break => parse_break_stmt(parser),
             T::Continue => parse_continue_stmt(parser),
+            T::Ident(_) if is_short_var_decl(parser) => parse_short_var_decl(parser),
             _ => parse_expr_stmt(parser),
         }
     }
@@ -288,6 +293,52 @@ pub fn parse_assignement_stmt(
     Good(
         Statement {
             stmt: Stmt::AssignementStmt { lhs, rhs },
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn is_short_var_decl(parser: &Parser) -> bool {
+    let mut i = 1;
+    loop {
+        if !token_parteq!(parser.end_nth(i), T::Ident(_)) {
+            return false;
+        }
+        i += 1;
+        match parser.end_nth(i).tt {
+            T::Comma => {}
+            T::Colon => return true,
+            _ => return false,
+        }
+        i += 1;
+    }
+}
+
+pub fn parse_short_var_decl(parser: &mut Parser) -> ParsingResult<Statement> {
+    let mut parsed_tokens = Vec::new();
+
+    let mut names = Vec::new();
+    loop {
+        names.push(expect_token!(parser => [T::Ident(name), name.clone()], Ident, parsed_tokens));
+        expect_token!(parser => [T::Comma, ()] else { break }, parsed_tokens);
+    }
+    let start = span_toks!(start first parsed_tokens);
+
+    expect_token!(parser => [T::Colon, ()], Colon, parsed_tokens);
+    expect_token!(parser => [T::Oper(Operator::Equal), ()], T::Oper(Operator::Equal), parsed_tokens);
+    // Do we wanna make `:=` an operator?
+
+    let mut exprs = Vec::new();
+    loop {
+        exprs.push(parse_try!(parser => Expression, parsed_tokens));
+        expect_token!(parser => [T::Comma, ()] else { break }, parsed_tokens);
+    }
+    let end = span_toks!(end parsed_tokens);
+
+    Good(
+        Statement {
+            stmt: Stmt::ShortVarDecl { names, exprs },
             span: start..end,
         },
         parsed_tokens,
