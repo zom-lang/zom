@@ -19,6 +19,7 @@ impl Parse for Expression {
             T::Oper(op) if BinOperation::try_from(op.clone()).is_ok() => {
                 parse_try!(fn; parser => parse_binary_expr, parsed_tokens, 0, &lhs)
             }
+            T::OpenParen => parse_try!(fn; parser => parse_call_expr, parsed_tokens, &lhs),
             _ => lhs,
         };
 
@@ -32,6 +33,10 @@ pub enum Expr {
         lhs: Box<Expression>,
         op: BinOperation,
         rhs: Box<Expression>,
+    },
+    CallExpr {
+        fn_op: Box<Expression>,
+        args: Vec<Expression>,
     },
 
     // Primary Expression
@@ -257,4 +262,31 @@ pub fn parse_binary_expr(
     }
 
     Good(lhs, parsed_tokens)
+}
+
+pub fn parse_call_expr(parser: &mut Parser, lhs: &Expression) -> ParsingResult<Expression> {
+    let mut parsed_tokens = Vec::new();
+    let fn_op = Box::new(lhs.clone());
+
+    let start = fn_op.span.start;
+
+    expect_token!(parser => [T::OpenParen, ()], OpenParen, parsed_tokens);
+
+    let mut args = Vec::new();
+    loop {
+        args.push(parse_try!(parser => Expression, parsed_tokens));
+        expect_token!(parser => [T::Comma, (); T::CloseParen, break], Comma, parsed_tokens);
+    }
+
+    expect_token!(parser => [T::CloseParen, ()], CloseParen, parsed_tokens);
+
+    let end = span_toks!(end parsed_tokens);
+
+    Good(
+        Expression {
+            expr: Expr::CallExpr { fn_op, args },
+            span: start..end,
+        },
+        parsed_tokens,
+    )
 }
