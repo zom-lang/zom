@@ -101,29 +101,17 @@ impl<'a> Parser<'a> {
 #[macro_export]
 macro_rules! expect_token {
     ($parser:expr => [ $($token:pat, $result:expr);+ ], $expected:expr, $parsed_tokens:expr ) => {
-        // TODO(Larsouille25): try to DRY
-        match $parser.last() {
-            $(
-                // used, because if $result is a no return expression, it will throw those 2 warnings
-                #[allow(unreachable_code, unused_variables)]
-                Token { tt: $token, .. } => {
-                    let res = $result;
-                    $parsed_tokens.push($parser.pop());
-                    res
-                },
-            )+
-            _ => {
-                let found = $parser.pop();
-                return Error(Box::new(ExpectedToken::from(&found, $expected)))
-            }
-        }
+        expect_token!($parser => [ $( $token, $result );+ ] else {
+            let found = $parser.pop();
+            return Error(Box::new(ExpectedToken::from(&found, $expected)))
+        }, $parsed_tokens)
     };
     ($parser:expr => [ $($token:pat, $result:expr);+ ] else $unmatched:block, $parsed_tokens:expr ) => {
-        match $parser.last() {
+        match &$parser.last().tt {
             $(
                 // used, because if $result is a no return expression, it will throw those 2 warnings
                 #[allow(unreachable_code, unused_variables)]
-                Token { tt: $token, .. } => {
+                $token => {
                     let res = $result;
                     $parsed_tokens.push($parser.pop());
                     res
@@ -137,13 +125,6 @@ macro_rules! expect_token {
 #[macro_export]
 macro_rules! parse_try {
     ($parser:expr => $ast_type:ty, $parsed_tokens:expr) => {
-        // match <$ast_type as Parse>::parse($parser) {
-        //     Good(ast, tokens) => {
-        //         $parsed_tokens.extend(tokens);
-        //         ast
-        //     }
-        //     Error(err) => return Error(err),
-        // }
         parse_try!(fn; $parser => <$ast_type as Parse>::parse, $parsed_tokens)
     };
     (fn; $parser:expr => $parsing_func:expr, $parsed_tokens:expr $(, $arg:expr)* ) => {
@@ -198,8 +179,8 @@ pub trait Parse {
 #[macro_export]
 macro_rules! token_parteq(
     ($left:expr, $right:pat) => (
-        match $left {
-            Token { tt: $right, ..} => true,
+        match $left.tt {
+            $right => true,
             _ => false
         }
     );

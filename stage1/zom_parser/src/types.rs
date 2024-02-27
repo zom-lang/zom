@@ -37,11 +37,9 @@ impl Parse for Ty {
     type Output = Self;
 
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
-        match parser.last() {
-            Token {
-                tt: T::Ident(name), ..
-            } if PRIM_TYPES.contains(&name.as_str()) => PrimitiveTy::parse(parser),
-            found => Error(Box::new(ExpectedToken::from(found, PartAST::Type))),
+        match &parser.last().tt {
+            T::Ident(name) if PRIM_TYPES.contains(&name.as_str()) => PrimitiveTy::parse(parser),
+            _ => Error(Box::new(ExpectedToken::from(parser.last(), PartAST::Type))),
         }
     }
 }

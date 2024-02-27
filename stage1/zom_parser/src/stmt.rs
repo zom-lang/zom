@@ -24,7 +24,7 @@ impl Parse for Stmt {
     type Output = Statement;
 
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
-        match parser.last() {
+        match &parser.last().tt {
             _ => parse_expr_stmt(parser),
         }
     }

@@ -15,10 +15,8 @@ impl Parse for Expression {
 
         let lhs = parse_try!(parser => Expr, parsed_tokens);
 
-        let result = match parser.last() {
-            Token {
-                tt: T::Oper(op), ..
-            } if BinOperation::try_from(op.clone()).is_ok() => {
+        let result = match &parser.last().tt {
+            T::Oper(op) if BinOperation::try_from(op.clone()).is_ok() => {
                 parse_try!(fn; parser => parse_binary_expr, parsed_tokens, 0, &lhs)
             }
             _ => lhs,
@@ -49,18 +47,16 @@ impl Parse for Expr {
 
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
         // Only parses Primary Expression, so not BinaryExpr and UnaryExpr
-        match parser.last() {
-            Token { tt: T::Int(_), .. } => parse_intlit_expr(parser),
-            Token { tt: T::Char(_), .. } => parse_charlit_expr(parser),
-            Token { tt: T::Str(_), .. } => parse_strlit_expr(parser),
-            Token {
-                tt: T::True | T::False,
-                ..
-            } => parse_boollit_expr(parser),
-            Token {
-                tt: T::Ident(_), ..
-            } => parse_identifier_expr(parser),
-            found => Error(Box::new(ExpectedToken::from(found, PartAST::Expression))),
+        match &parser.last().tt {
+            T::Int(_) => parse_intlit_expr(parser),
+            T::Char(_) => parse_charlit_expr(parser),
+            T::Str(_) => parse_strlit_expr(parser),
+            T::True | T::False => parse_boollit_expr(parser),
+            T::Ident(_) => parse_identifier_expr(parser),
+            _ => Error(Box::new(ExpectedToken::from(
+                parser.last(),
+                PartAST::Expression,
+            ))),
         }
     }
 }

@@ -49,9 +49,12 @@ impl Parse for Declaration {
     type Output = Self;
 
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
-        match parser.last() {
-            Token { tt: T::Fn, .. } => parse_fn_decl(parser),
-            found => Error(Box::new(ExpectedToken::from(found, PartAST::Declaration))),
+        match &parser.last().tt {
+            T::Fn => parse_fn_decl(parser),
+            _ => Error(Box::new(ExpectedToken::from(
+                parser.last(),
+                PartAST::Declaration,
+            ))),
         }
     }
 }
