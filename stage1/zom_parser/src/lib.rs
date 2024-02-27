@@ -90,6 +90,14 @@ impl<'a> Parser<'a> {
         self.tokens.is_empty() || token_parteq!(self.last(), T::EOF)
     }
 
+    /// Did the next token mark the end of the expression?
+    pub fn expr_end(&self) -> bool {
+        matches!(
+            self.last().tt,
+            T::SemiColon | T::Comma | T::CloseParen | T::CloseBracket | T::CloseBrace | T::Else
+        )
+    }
+
     pub fn pr_get(&self, op: BinOperation) -> (Associativity, u16) {
         PR_TABLE
             .get(&op)

@@ -24,6 +24,7 @@ pub enum Stmt {
         stmt_false: Option<Box<Statement>>,
     },
     BlockStmt(Block),
+    ReturnStmt(Option<Expression>),
 }
 
 impl Parse for Stmt {
@@ -33,6 +34,7 @@ impl Parse for Stmt {
         match &parser.last().tt {
             T::If => parse_if_else_stmt(parser),
             T::OpenBrace => parse_block_stmt(parser),
+            T::Return => parse_return_stmt(parser),
             _ => parse_expr_stmt(parser),
         }
     }
@@ -95,6 +97,29 @@ pub fn parse_block_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
         Statement {
             stmt: Stmt::BlockStmt(block),
             span,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_return_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
+    let mut parsed_tokens = Vec::new();
+
+    expect_token!(parser => [T::Return, ()], Return, parsed_tokens);
+    let start = span_toks!(start parsed_tokens);
+
+    let expr = if !parser.expr_end() {
+        Some(parse_try!(parser => Expression, parsed_tokens))
+    } else {
+        None
+    };
+
+    let end = span_toks!(end parsed_tokens);
+
+    Good(
+        Statement {
+            stmt: Stmt::ReturnStmt(expr),
+            span: start..end,
         },
         parsed_tokens,
     )
