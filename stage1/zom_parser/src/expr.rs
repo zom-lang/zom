@@ -20,6 +20,9 @@ impl Parse for Expression {
                 parse_try!(fn; parser => parse_binary_expr, parsed_tokens, 0, &lhs)
             }
             T::OpenParen => parse_try!(fn; parser => parse_call_expr, parsed_tokens, &lhs),
+            T::Oper(Operator::Dot) => {
+                parse_try!(fn; parser => parse_member_access_expr, parsed_tokens, &lhs)
+            }
             _ => lhs,
         };
 
@@ -37,6 +40,10 @@ pub enum Expr {
     CallExpr {
         fn_op: Box<Expression>,
         args: Vec<Expression>,
+    },
+    MemberAccess {
+        expr: Box<Expression>,
+        member_name: String,
     },
 
     // Primary Expression
@@ -307,6 +314,29 @@ pub fn parse_parenthesized_expr(parser: &mut Parser) -> ParsingResult<Expression
     Good(
         Expression {
             expr: Expr::ParenthesizedExpr(Box::new(expr)),
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_member_access_expr(
+    parser: &mut Parser,
+    lhs: &Expression,
+) -> ParsingResult<Expression> {
+    let mut parsed_tokens = Vec::new();
+
+    let expr = Box::new(lhs.clone());
+    let start = expr.span.start;
+
+    expect_token!(parser => [T::Oper(Operator::Dot), ()], Dot, parsed_tokens);
+
+    let member_name = expect_token!(parser => [T::Ident(name), name.clone()], Ident, parsed_tokens);
+    let end = span_toks!(end parsed_tokens);
+
+    Good(
+        Expression {
+            expr: Expr::MemberAccess { expr, member_name },
             span: start..end,
         },
         parsed_tokens,
