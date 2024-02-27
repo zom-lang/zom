@@ -15,16 +15,19 @@ impl Parse for Expression {
 
         let lhs = parse_try!(parser => Expr, parsed_tokens);
 
-        let result = match &parser.last().tt {
-            T::Oper(op) if BinOperation::try_from(op.clone()).is_ok() => {
-                parse_try!(fn; parser => parse_binary_expr, parsed_tokens, 0, &lhs)
-            }
-            T::OpenParen => parse_try!(fn; parser => parse_call_expr, parsed_tokens, &lhs),
-            T::Oper(Operator::Dot) => {
-                parse_try!(fn; parser => parse_member_access_expr, parsed_tokens, &lhs)
-            }
-            _ => lhs,
-        };
+        let mut result = lhs;
+        loop {
+            result = match &parser.last().tt {
+                T::Oper(op) if BinOperation::try_from(op.clone()).is_ok() => {
+                    parse_try!(fn; parser => parse_binary_expr, parsed_tokens, 0, &result)
+                }
+                T::OpenParen => parse_try!(fn; parser => parse_call_expr, parsed_tokens, &result),
+                T::Oper(Operator::Dot) => {
+                    parse_try!(fn; parser => parse_member_access_expr, parsed_tokens, &result)
+                }
+                _ => break,
+            };
+        }
 
         Good(result, parsed_tokens)
     }
