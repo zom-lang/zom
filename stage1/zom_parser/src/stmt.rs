@@ -23,7 +23,10 @@ pub enum Stmt {
         stmt_true: Box<Statement>,
         stmt_false: Option<Box<Statement>>,
     },
-    BlockStmt(Block),
+    BlockStmt {
+        label: Option<String>,
+        block: Block,
+    },
     ReturnStmt(Option<Expression>),
     WhileStmt {
         label: Option<String>,
@@ -102,13 +105,22 @@ pub fn parse_if_else_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
 pub fn parse_block_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
     let mut parsed_tokens = Vec::new();
 
+    let label = if token_parteq!(parser.last(), T::Ident(_)) {
+        let l = expect_token!(parser => [T::Ident(label), label.clone()], Ident, parsed_tokens);
+        expect_token!(parser => [T::Colon, ()], Colon, parsed_tokens);
+        Some(l)
+    } else {
+        None
+    };
+
     let block = parse_try!(parser => Block, parsed_tokens);
-    let span = block.span.clone();
+    let start = span_toks!(start first parsed_tokens);
+    let end = block.span.end;
 
     Good(
         Statement {
-            stmt: Stmt::BlockStmt(block),
-            span,
+            stmt: Stmt::BlockStmt { label, block },
+            span: start..end,
         },
         parsed_tokens,
     )
@@ -144,6 +156,7 @@ pub fn is_labeled_stmt(parser: &Parser) -> bool {
 pub fn parse_labeled_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
     match &parser.end_nth(3).tt {
         T::While => parse_while_stmt(parser),
+        T::OpenBrace => parse_block_stmt(parser),
         _ => Error(Box::new(ExpectedToken::from(
             parser.end_nth(3),
             PartAST::LabeledStmt,
