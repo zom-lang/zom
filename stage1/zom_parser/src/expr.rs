@@ -28,6 +28,9 @@ impl Parse for Expression {
                 T::Oper(Operator::Dot) => {
                     parse_try!(fn; parser => parse_member_access_expr, parsed_tokens, &result)
                 }
+                T::Oper(op) if UnaryOperation::from_op(op.clone(), true).is_some() => {
+                    parse_try!(fn; parser => parse_post_unary_expr, parsed_tokens, &result)
+                }
                 _ => break,
             };
             if already_bin >= 2 {
@@ -80,8 +83,8 @@ impl Parse for Expr {
             T::True | T::False => parse_boollit_expr(parser),
             T::Ident(_) => parse_identifier_expr(parser),
             T::OpenParen => parse_parenthesized_expr(parser),
-            T::Oper(op) if UnaryOperation::try_from(op.clone()).is_ok() => {
-                parse_right_unary_expr(parser)
+            T::Oper(op) if UnaryOperation::from_op(op.clone(), false).is_some() => {
+                parse_pre_unary_expr(parser)
             }
             _ => Error(Box::new(ExpectedToken::from(
                 parser.last(),
@@ -223,7 +226,6 @@ pub fn parse_binary_expr(
     min_precedence: u16,
     lhs: &Expression,
 ) -> ParsingResult<Expression> {
-    // TODO: handle post & pre unary expr in the same parsing function
     let mut parsed_tokens = Vec::new();
     let mut lhs = lhs.clone();
 
@@ -414,17 +416,17 @@ pub enum UnaryOperation {
     Dereference,
 }
 
-impl TryFrom<Operator> for UnaryOperation {
-    type Error = ();
-
-    fn try_from(op: Operator) -> Result<Self, Self::Error> {
+impl UnaryOperation {
+    /// the `right` arg is used to distinguish between left and right unary operator
+    pub fn from_op(op: Operator, right: bool) -> Option<UnaryOperation> {
         use UnaryOperation::*;
+        let left = !right;
         match op {
-            Operator::Ampersand => Ok(AddressOf),
-            Operator::Minus => Ok(Negation),
-            Operator::Exclamationmark => Ok(Not),
-            Operator::DotAsterisk => Ok(Dereference),
-            _ => Err(()),
+            Operator::Ampersand if left => Some(AddressOf),
+            Operator::Minus if left => Some(Negation),
+            Operator::Exclamationmark if left => Some(Not),
+            Operator::DotAsterisk if right => Some(Dereference),
+            _ => None,
         }
     }
 }
@@ -447,15 +449,15 @@ impl From<UnaryOperation> for Operation {
     }
 }
 
-pub fn parse_right_unary_expr(parser: &mut Parser) -> ParsingResult<Expression> {
+pub fn parse_pre_unary_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
     let op = expect_token!(parser => [T::Oper(op), op.clone()], Operator, parsed_tokens);
     let start = span_toks!(start parsed_tokens);
 
-    let op = match UnaryOperation::try_from(op.clone()) {
-        Ok(v) => v,
-        Err(()) => {
+    let op = match UnaryOperation::from_op(op.clone(), false) {
+        Some(v) => v,
+        None => {
             return Error(Box::new(ExpectedToken::from(
                 parsed_tokens.first().unwrap(),
                 Operator,
@@ -465,6 +467,34 @@ pub fn parse_right_unary_expr(parser: &mut Parser) -> ParsingResult<Expression> 
 
     parser.default_precedence = parser.pr_get(op.clone()).1;
     let expr = Box::new(parse_try!(parser => Expression, parsed_tokens));
+    let end = span_toks!(end parsed_tokens);
+
+    Good(
+        Expression {
+            expr: Expr::UnaryExpr { op, expr },
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_post_unary_expr(parser: &mut Parser, lhs: &Expression) -> ParsingResult<Expression> {
+    let mut parsed_tokens = Vec::new();
+
+    let expr = Box::new(lhs.clone());
+    let start = expr.span.start;
+
+    let op = expect_token!(parser => [T::Oper(op), op.clone()], Operator, parsed_tokens);
+
+    let op = match UnaryOperation::from_op(op.clone(), true) {
+        Some(v) => v,
+        None => {
+            return Error(Box::new(ExpectedToken::from(
+                parsed_tokens.first().unwrap(),
+                Operator,
+            )))
+        }
+    };
     let end = span_toks!(end parsed_tokens);
 
     Good(
