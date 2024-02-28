@@ -48,6 +48,10 @@ pub enum Expr {
         expr: Box<Expression>,
         member_name: String,
     },
+    UnaryExpr {
+        op: UnaryOperation,
+        expr: Box<Expression>,
+    },
 
     // Primary Expression
     IntLitExpr(u64),
@@ -388,5 +392,30 @@ impl Parse for ExpressionList {
         }
 
         Good(ExpressionList(exprs), parsed_tokens)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub enum UnaryOperation {
+    // LEFT: &a, -a, !a
+    AddressOf,
+    Negation,
+    Not,
+    // RIGHT: a.*
+    Dereference,
+}
+
+impl TryFrom<Operator> for UnaryOperation {
+    type Error = ();
+
+    fn try_from(op: Operator) -> Result<Self, Self::Error> {
+        use UnaryOperation::*;
+        match op {
+            Operator::Ampersand => Ok(AddressOf),
+            Operator::Minus => Ok(Negation),
+            Operator::Exclamationmark => Ok(Not),
+            Operator::DotAsterisk => Ok(Dereference),
+            _ => Err(()),
+        }
     }
 }
