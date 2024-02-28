@@ -14,6 +14,7 @@ pub(crate) mod prelude;
 pub mod source_file;
 pub mod stmt;
 pub mod types;
+pub mod var_decl;
 
 lazy_static! {
     static ref PR_TABLE: HashMap<BinOperation, (Associativity, u16)> = {

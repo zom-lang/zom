@@ -3,6 +3,7 @@ use crate::{
     block::Block,
     expr::{Expression, ExpressionList},
     prelude::*,
+    var_decl::VarDecl,
 };
 
 #[derive(Debug)]
@@ -48,10 +49,11 @@ pub enum Stmt {
         lhs: ExpressionList,
         rhs: ExpressionList,
     },
-    ShortVarDecl {
+    ShortVarDeclStmt {
         names: Vec<String>,
         exprs: Vec<Expression>,
     },
+    VariableDeclStmt(VarDecl),
 }
 
 impl Parse for Stmt {
@@ -67,6 +69,7 @@ impl Parse for Stmt {
             T::Break => parse_break_stmt(parser),
             T::Continue => parse_continue_stmt(parser),
             T::Ident(_) if is_short_var_decl(parser) => parse_short_var_decl(parser),
+            T::Var | T::Const => parse_var_decl_stmt(parser),
             _ => parse_expr_stmt(parser),
         }
     }
@@ -338,8 +341,23 @@ pub fn parse_short_var_decl(parser: &mut Parser) -> ParsingResult<Statement> {
 
     Good(
         Statement {
-            stmt: Stmt::ShortVarDecl { names, exprs },
+            stmt: Stmt::ShortVarDeclStmt { names, exprs },
             span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_var_decl_stmt(parser: &mut Parser) -> ParsingResult<Statement> {
+    let mut parsed_tokens = Vec::new();
+
+    let variable_decl = parse_try!(parser => VarDecl, parsed_tokens);
+    let span = variable_decl.span.clone();
+
+    Good(
+        Statement {
+            stmt: Stmt::VariableDeclStmt(variable_decl),
+            span,
         },
         parsed_tokens,
     )

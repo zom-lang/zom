@@ -1,5 +1,5 @@
 //! Module responsible for parsing top level declarations.
-use crate::{block::Block, prelude::*, types::Type};
+use crate::{block::Block, prelude::*, types::Type, var_decl::VarDecl};
 
 #[derive(Debug)]
 pub struct TopLevelDeclaration {
@@ -43,6 +43,7 @@ pub enum Declaration {
         ret_ty: Type,
         block: Block,
     },
+    GlobalVarDecl(VarDecl),
 }
 
 impl Parse for Declaration {
@@ -51,6 +52,7 @@ impl Parse for Declaration {
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
         match &parser.last().tt {
             T::Fn => parse_fn_decl(parser),
+            T::Const | T::Var => parse_global_var_decl(parser),
             _ => Error(Box::new(ExpectedToken::from(
                 parser.last(),
                 PartAST::Declaration,
@@ -120,4 +122,12 @@ impl Parse for Arg {
             parsed_tokens,
         )
     }
+}
+
+pub fn parse_global_var_decl(parser: &mut Parser) -> ParsingResult<Declaration> {
+    let mut parsed_tokens = Vec::new();
+
+    let var_decl = parse_try!(parser => VarDecl, parsed_tokens);
+
+    Good(Declaration::GlobalVarDecl(var_decl), parsed_tokens)
 }
