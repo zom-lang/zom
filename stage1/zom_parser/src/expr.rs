@@ -44,7 +44,7 @@ pub enum Expr {
         fn_op: Box<Expression>,
         args: Vec<Expression>,
     },
-    MemberAccess {
+    MemberAccessExpr {
         expr: Box<Expression>,
         member_name: String,
     },
@@ -339,7 +339,7 @@ pub fn parse_member_access_expr(
 
     Good(
         Expression {
-            expr: Expr::MemberAccess { expr, member_name },
+            expr: Expr::MemberAccessExpr { expr, member_name },
             span: start..end,
         },
         parsed_tokens,
