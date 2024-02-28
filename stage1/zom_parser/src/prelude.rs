@@ -4,7 +4,7 @@ pub use crate::{
     ParsingResult::*,
 };
 
-pub use crate::expr::{Associativity, BinOperation};
+pub use crate::expr::{Associativity, BinOperation, UnaryOperation};
 
 pub use std::ops::Range;
 

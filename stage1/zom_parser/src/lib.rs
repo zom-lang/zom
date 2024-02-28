@@ -3,6 +3,7 @@ use std::fmt;
 
 use lazy_static::lazy_static;
 
+use crate::expr::Operation;
 use crate::prelude::*;
 use crate::source_file::SourceFile;
 
@@ -17,34 +18,42 @@ pub mod types;
 pub mod var_decl;
 
 lazy_static! {
-    static ref PR_TABLE: HashMap<BinOperation, (Associativity, u16)> = {
+    static ref PR_TABLE: HashMap<Operation, (Associativity, u16)> = {
         use zom_common::token::{
-            PR_ADD_SUB, PR_AND, PR_COMP, PR_COMP_EQ_NE, PR_MUL_DIV_REM, PR_OR, PR_SHIFT, PR_XOR,
+            PR_DEREFERENCE, PR_UNARY, PR_ADD_SUB, PR_AND, PR_COMP, PR_COMP_EQ_NE, PR_MUL_DIV_REM, PR_OR, PR_SHIFT, PR_XOR,
         };
         use Associativity::*;
         use BinOperation::*;
+        use UnaryOperation::*;
+        use crate::expr::Operation::*;
         HashMap::from([
-            (Mul, (L2R, PR_MUL_DIV_REM)),
-            (Div, (L2R, PR_MUL_DIV_REM)),
-            (Rem, (L2R, PR_MUL_DIV_REM)),
+            (Unary(Dereference), (L2R, PR_DEREFERENCE)),
             // ..
-            (Add, (L2R, PR_ADD_SUB)),
-            (Sub, (L2R, PR_ADD_SUB)),
+            (Unary(AddressOf), (R2L, PR_UNARY)),
+            (Unary(Negation), (R2L, PR_UNARY)),
+            (Unary(Not), (R2L, PR_UNARY)),
             // ..
-            (RShift, (L2R, PR_SHIFT)),
-            (LShift, (L2R, PR_SHIFT)),
+            (Binary(Mul), (L2R, PR_MUL_DIV_REM)),
+            (Binary(Div), (L2R, PR_MUL_DIV_REM)),
+            (Binary(Rem), (L2R, PR_MUL_DIV_REM)),
             // ..
-            (CompLT, (L2R, PR_COMP)),
-            (CompGT, (L2R, PR_COMP)),
-            (CompLTE, (L2R, PR_COMP)),
-            (CompGTE, (L2R, PR_COMP)),
+            (Binary(Add), (L2R, PR_ADD_SUB)),
+            (Binary(Sub), (L2R, PR_ADD_SUB)),
             // ..
-            (CompEq, (L2R, PR_COMP_EQ_NE)),
-            (CompNe, (L2R, PR_COMP_EQ_NE)),
+            (Binary(RShift), (L2R, PR_SHIFT)),
+            (Binary(LShift), (L2R, PR_SHIFT)),
             // ..
-            (And, (L2R, PR_AND)),
-            (Xor, (L2R, PR_XOR)),
-            (Or, (L2R, PR_OR)),
+            (Binary(CompLT), (L2R, PR_COMP)),
+            (Binary(CompGT), (L2R, PR_COMP)),
+            (Binary(CompLTE), (L2R, PR_COMP)),
+            (Binary(CompGTE), (L2R, PR_COMP)),
+            // ..
+            (Binary(CompEq), (L2R, PR_COMP_EQ_NE)),
+            (Binary(CompNe), (L2R, PR_COMP_EQ_NE)),
+            // ..
+            (Binary(And), (L2R, PR_AND)),
+            (Binary(Xor), (L2R, PR_XOR)),
+            (Binary(Or), (L2R, PR_OR)),
         ])
     };
 }
@@ -53,13 +62,18 @@ pub struct Parser<'a> {
     /// Reversed list of token
     tokens: Vec<Token>,
     lctx: LogContext<'a>,
+    pub default_precedence: u16,
 }
 
 impl<'a> Parser<'a> {
     pub fn new(tokens: &'a [Token], lctx: LogContext<'a>) -> Parser<'a> {
         let mut rest = tokens.to_vec();
         rest.reverse();
-        Parser { tokens: rest, lctx }
+        Parser {
+            tokens: rest,
+            lctx,
+            default_precedence: 0,
+        }
     }
 
     pub fn parse(mut self) -> FinalRes<'a, SourceFile> {
@@ -100,9 +114,9 @@ impl<'a> Parser<'a> {
         )
     }
 
-    pub fn pr_get(&self, op: BinOperation) -> (Associativity, u16) {
+    pub fn pr_get<O: Into<Operation>>(&self, op: O) -> (Associativity, u16) {
         PR_TABLE
-            .get(&op)
+            .get(&op.into())
             .cloned()
             .expect("Binary operator not in binary table of precedence, impossible in theory")
     }
@@ -149,13 +163,14 @@ macro_rules! expect_token {
 
 #[macro_export]
 macro_rules! parse_try {
-    ($parser:expr => $ast_type:ty, $parsed_tokens:expr) => {
-        parse_try!(fn; $parser => <$ast_type as Parse>::parse, $parsed_tokens)
+    ($parser:expr => $ast_type:ty, $parsed_tokens:expr $(,in $in_between:expr)?) => {
+        parse_try!(fn; $parser => <$ast_type as Parse>::parse, $parsed_tokens $($in_between)?)
     };
-    (fn; $parser:expr => $parsing_func:expr, $parsed_tokens:expr $(, $arg:expr)* ) => {
+    (fn; $parser:expr => $parsing_func:expr, $parsed_tokens:expr $(,in $in_between:expr)? $(, $arg:expr)* ) => {
         match $parsing_func($parser, $($arg),*) {
             Good(ast, tokens) => {
                 $parsed_tokens.extend(tokens);
+                $($in_between;)?
                 ast
             }
             Error(err) => return Error(err),

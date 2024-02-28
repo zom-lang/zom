@@ -16,10 +16,13 @@ impl Parse for Expression {
         let lhs = parse_try!(parser => Expr, parsed_tokens);
 
         let mut result = lhs;
+
+        // This variable is used to control how many times in row a binary expression has been enterred
+        let mut already_bin: i8 = 0;
         loop {
             result = match &parser.last().tt {
-                T::Oper(op) if BinOperation::try_from(op.clone()).is_ok() => {
-                    parse_try!(fn; parser => parse_binary_expr, parsed_tokens, 0, &result)
+                T::Oper(op) if BinOperation::try_from(op.clone()).is_ok() && already_bin != 1 => {
+                    parse_try!(fn; parser => parse_binary_expr, parsed_tokens, in {parser.default_precedence = 0; already_bin += 1},parser.default_precedence, &result)
                 }
                 T::OpenParen => parse_try!(fn; parser => parse_call_expr, parsed_tokens, &result),
                 T::Oper(Operator::Dot) => {
@@ -27,6 +30,9 @@ impl Parse for Expression {
                 }
                 _ => break,
             };
+            if already_bin >= 2 {
+                already_bin = 0;
+            }
         }
 
         Good(result, parsed_tokens)
@@ -74,6 +80,9 @@ impl Parse for Expr {
             T::True | T::False => parse_boollit_expr(parser),
             T::Ident(_) => parse_identifier_expr(parser),
             T::OpenParen => parse_parenthesized_expr(parser),
+            T::Oper(op) if UnaryOperation::try_from(op.clone()).is_ok() => {
+                parse_right_unary_expr(parser)
+            }
             _ => Error(Box::new(ExpectedToken::from(
                 parser.last(),
                 PartAST::Expression,
@@ -395,7 +404,7 @@ impl Parse for ExpressionList {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub enum UnaryOperation {
     // LEFT: &a, -a, !a
     AddressOf,
@@ -418,4 +427,51 @@ impl TryFrom<Operator> for UnaryOperation {
             _ => Err(()),
         }
     }
+}
+
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+pub enum Operation {
+    Binary(BinOperation),
+    Unary(UnaryOperation),
+}
+
+impl From<BinOperation> for Operation {
+    fn from(bop: BinOperation) -> Self {
+        Self::Binary(bop)
+    }
+}
+
+impl From<UnaryOperation> for Operation {
+    fn from(uop: UnaryOperation) -> Self {
+        Self::Unary(uop)
+    }
+}
+
+pub fn parse_right_unary_expr(parser: &mut Parser) -> ParsingResult<Expression> {
+    let mut parsed_tokens = Vec::new();
+
+    let op = expect_token!(parser => [T::Oper(op), op.clone()], Operator, parsed_tokens);
+    let start = span_toks!(start parsed_tokens);
+
+    let op = match UnaryOperation::try_from(op.clone()) {
+        Ok(v) => v,
+        Err(()) => {
+            return Error(Box::new(ExpectedToken::from(
+                parsed_tokens.first().unwrap(),
+                Operator,
+            )))
+        }
+    };
+
+    parser.default_precedence = parser.pr_get(op.clone()).1;
+    let expr = Box::new(parse_try!(parser => Expression, parsed_tokens));
+    let end = span_toks!(end parsed_tokens);
+
+    Good(
+        Expression {
+            expr: Expr::UnaryExpr { op, expr },
+            span: start..end,
+        },
+        parsed_tokens,
+    )
 }

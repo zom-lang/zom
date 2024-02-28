@@ -161,6 +161,10 @@ impl FromStr for Operator {
     }
 }
 
+/// Operator Precedence Value for Unary Dereference
+pub const PR_DEREFERENCE: u16 = 9;
+/// Operator Precedence Value for Unary Operations: AddressOf, Negation, Not, but not Dereference
+pub const PR_UNARY: u16 = 8;
 /// Operator Precedence Value for Mul Div Rem
 pub const PR_MUL_DIV_REM: u16 = 7;
 /// Operator Precedence Value for Add Sub
