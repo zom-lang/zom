@@ -1,3 +1,15 @@
+//! This crate is responsible for the parsing of the Token Stream into
+//! an Abstract Syntax Tree.
+//!
+//! The parser is implemented with a [Recursive descent parser][1] and
+//! an [Operator-precedence parser][2] for parsing of arithmetic
+//! expressions for ally the convenience of the recursive parser with
+//! the speed of the operator-precedence for parsing arithmetic
+//! expressions.
+//!
+//! [1]: https://en.wikipedia.org/wiki/Recursive_descent_parser
+//! [2]: https://en.wikipedia.org/wiki/Operator-precedence_parser
+
 use std::collections::HashMap;
 use std::fmt;
 
