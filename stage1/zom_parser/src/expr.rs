@@ -10,6 +10,7 @@ pub struct Expression {
 impl Parse for Expression {
     type Output = Self;
 
+    /// Parsing for Expressions
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
         let mut parsed_tokens = Vec::new();
 
@@ -80,6 +81,7 @@ pub enum Expr {
 impl Parse for Expr {
     type Output = Expression;
 
+    /// Parsing for Primary Expressions
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
         // Only parses Primary Expression, so not BinaryExpr and UnaryExpr
         match &parser.last().tt {
@@ -100,6 +102,7 @@ impl Parse for Expr {
     }
 }
 
+/// Parsing for `INT_LITERAL` expression
 pub fn parse_intlit_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
@@ -114,6 +117,7 @@ pub fn parse_intlit_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     )
 }
 
+/// Parsing for `CHAR_LITERAL` expression
 pub fn parse_charlit_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
@@ -128,6 +132,7 @@ pub fn parse_charlit_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     )
 }
 
+/// Parsing for `STRING_LITERAL` expression
 pub fn parse_strlit_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
@@ -142,6 +147,7 @@ pub fn parse_strlit_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     )
 }
 
+/// Parsing for `KW_true` / `KW_false` expression
 pub fn parse_boollit_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
@@ -156,6 +162,7 @@ pub fn parse_boollit_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     )
 }
 
+/// Parsing for `IDENT` expression
 pub fn parse_identifier_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
@@ -227,6 +234,7 @@ pub enum Associativity {
     R2L,
 }
 
+/// Parsing for `EXPR op EXPR`
 pub fn parse_binary_expr(
     parser: &mut Parser,
     min_precedence: u16,
@@ -297,6 +305,7 @@ pub fn parse_binary_expr(
     Good(lhs, parsed_tokens)
 }
 
+/// Parsing for `EXPR ( EXPR, EXPR, .. )`
 pub fn parse_call_expr(parser: &mut Parser, lhs: &Expression) -> ParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
     let fn_op = Box::new(lhs.clone());
@@ -324,6 +333,7 @@ pub fn parse_call_expr(parser: &mut Parser, lhs: &Expression) -> ParsingResult<E
     )
 }
 
+/// Parsing for `( EXPR )`
 pub fn parse_parenthesized_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
@@ -344,6 +354,7 @@ pub fn parse_parenthesized_expr(parser: &mut Parser) -> ParsingResult<Expression
     )
 }
 
+/// Parsing for `EXPR . IDENT`
 pub fn parse_member_access_expr(
     parser: &mut Parser,
     lhs: &Expression,
@@ -371,6 +382,7 @@ pub fn parse_member_access_expr(
 pub struct ExpressionList(pub Vec<Expression>);
 
 impl ExpressionList {
+    /// Parsing for `EXPR, EXPR, EXPR, ...`
     pub fn parse(parser: &mut Parser) -> ParsingResult<ExpressionList> {
         let mut parsed_tokens = Vec::new();
 
@@ -455,6 +467,7 @@ impl From<UnaryOperation> for Operation {
     }
 }
 
+/// Parsing for `op EXPR`
 pub fn parse_pre_unary_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
@@ -484,6 +497,7 @@ pub fn parse_pre_unary_expr(parser: &mut Parser) -> ParsingResult<Expression> {
     )
 }
 
+/// Parsing for `EXPR op`
 pub fn parse_post_unary_expr(parser: &mut Parser, lhs: &Expression) -> ParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
@@ -512,6 +526,7 @@ pub fn parse_post_unary_expr(parser: &mut Parser, lhs: &Expression) -> ParsingRe
     )
 }
 
+/// Parsing for `EXPR if EXPR else EXPR`
 pub fn parse_if_else_expr(parser: &mut Parser, lhs: &Expression) -> ParsingResult<Expression> {
     let mut parsed_tokens = Vec::new();
 
