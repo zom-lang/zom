@@ -31,6 +31,7 @@ impl Parse for Expression {
                 T::Oper(op) if UnaryOperation::from_op(op.clone(), true).is_some() => {
                     parse_try!(fn; parser => parse_post_unary_expr, parsed_tokens, &result)
                 }
+                T::If => parse_try!(fn; parser => parse_if_else_expr, parsed_tokens, &result),
                 _ => break,
             };
             if already_bin >= 2 {
@@ -60,6 +61,11 @@ pub enum Expr {
     UnaryExpr {
         op: UnaryOperation,
         expr: Box<Expression>,
+    },
+    IfElseExpr {
+        true_expr: Box<Expression>,
+        predicate: Box<Expression>,
+        false_expr: Box<Expression>,
     },
 
     // Primary Expression
@@ -500,6 +506,34 @@ pub fn parse_post_unary_expr(parser: &mut Parser, lhs: &Expression) -> ParsingRe
     Good(
         Expression {
             expr: Expr::UnaryExpr { op, expr },
+            span: start..end,
+        },
+        parsed_tokens,
+    )
+}
+
+pub fn parse_if_else_expr(parser: &mut Parser, lhs: &Expression) -> ParsingResult<Expression> {
+    let mut parsed_tokens = Vec::new();
+
+    let true_expr = Box::new(lhs.clone());
+    let start = true_expr.span.start;
+
+    expect_token!(parser => [T::If, ()], If, parsed_tokens);
+
+    let predicate = Box::new(parse_try!(parser => Expression, parsed_tokens));
+
+    expect_token!(parser => [T::Else, ()], Else, parsed_tokens);
+
+    let false_expr = Box::new(parse_try!(parser => Expression, parsed_tokens));
+    let end = span_toks!(end parsed_tokens);
+
+    Good(
+        Expression {
+            expr: Expr::IfElseExpr {
+                true_expr,
+                predicate,
+                false_expr,
+            },
             span: start..end,
         },
         parsed_tokens,
