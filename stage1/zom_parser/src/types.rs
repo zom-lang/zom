@@ -14,8 +14,8 @@ impl Parse for Type {
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
         let mut parsed_tokens = Vec::new();
 
-        let start = span_toks!(start parser.tokens);
         let ty = parse_try!(parser => Ty, parsed_tokens);
+        let start = span_toks!(start first parsed_tokens);
         let end = span_toks!(end parsed_tokens);
 
         Good(
@@ -31,6 +31,10 @@ impl Parse for Type {
 #[derive(Debug)]
 pub enum Ty {
     PrimTy(PrimitiveTy),
+    PointerTy {
+        is_const: bool,
+        pointed_ty: Box<Type>,
+    },
 }
 
 impl Parse for Ty {
@@ -39,6 +43,7 @@ impl Parse for Ty {
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
         match &parser.last().tt {
             T::Ident(name) if PRIM_TYPES.contains(&name.as_str()) => PrimitiveTy::parse(parser),
+            T::Oper(Operator::Asterisk) => parse_pointer_ty(parser),
             _ => Error(Box::new(ExpectedToken::from(parser.last(), PartAST::Type))),
         }
     }
@@ -134,4 +139,22 @@ impl Parse for PrimitiveTy {
 
         Good(Ty::PrimTy(prim_ty), parsed_tokens)
     }
+}
+
+pub fn parse_pointer_ty(parser: &mut Parser) -> ParsingResult<Ty> {
+    let mut parsed_tokens = Vec::new();
+
+    expect_token!(parser => [T::Oper(Operator::Asterisk), ()], T::Oper(Operator::Asterisk), parsed_tokens);
+
+    let is_const = expect_token!(parser => [T::Const, true] else { false }, parsed_tokens);
+
+    let pointed_ty = Box::new(parse_try!(parser => Type, parsed_tokens));
+
+    Good(
+        Ty::PointerTy {
+            is_const,
+            pointed_ty,
+        },
+        parsed_tokens,
+    )
 }
