@@ -4,7 +4,7 @@ use crate::{block::Block, prelude::*, types::Type, var_decl::VarDecl};
 #[derive(Debug)]
 pub struct TopLevelDeclaration {
     pub public: bool,
-    pub decl: Declaration,
+    pub decl: TopLvlDecl,
     pub span: Range<usize>,
 }
 
@@ -20,7 +20,7 @@ impl Parse for TopLevelDeclaration {
         } else {
             (false, span_toks!(start parser.tokens))
         };
-        let decl = parse_try!(parser => Declaration, parsed_tokens);
+        let decl = parse_try!(parser => TopLvlDecl, parsed_tokens);
 
         let end = span_toks!(end parsed_tokens);
 
@@ -36,7 +36,7 @@ impl Parse for TopLevelDeclaration {
 }
 
 #[derive(Debug)]
-pub enum Declaration {
+pub enum TopLvlDecl {
     Function {
         name: String,
         args: Vec<Arg>,
@@ -46,7 +46,7 @@ pub enum Declaration {
     GlobalVarDecl(VarDecl),
 }
 
-impl Parse for Declaration {
+impl Parse for TopLvlDecl {
     type Output = Self;
 
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
@@ -61,7 +61,7 @@ impl Parse for Declaration {
     }
 }
 
-pub fn parse_fn_decl(parser: &mut Parser) -> ParsingResult<Declaration> {
+pub fn parse_fn_decl(parser: &mut Parser) -> ParsingResult<TopLvlDecl> {
     let mut parsed_tokens = Vec::new();
     expect_token!(parser => [T::Fn, ()], Fn, parsed_tokens);
 
@@ -82,7 +82,7 @@ pub fn parse_fn_decl(parser: &mut Parser) -> ParsingResult<Declaration> {
     let block = parse_try!(parser => Block, parsed_tokens);
 
     Good(
-        Declaration::Function {
+        TopLvlDecl::Function {
             name,
             args,
             ret_ty,
@@ -124,10 +124,10 @@ impl Parse for Arg {
     }
 }
 
-pub fn parse_global_var_decl(parser: &mut Parser) -> ParsingResult<Declaration> {
+pub fn parse_global_var_decl(parser: &mut Parser) -> ParsingResult<TopLvlDecl> {
     let mut parsed_tokens = Vec::new();
 
     let var_decl = parse_try!(parser => VarDecl, parsed_tokens);
 
-    Good(Declaration::GlobalVarDecl(var_decl), parsed_tokens)
+    Good(TopLvlDecl::GlobalVarDecl(var_decl), parsed_tokens)
 }

@@ -1,5 +1,5 @@
 //! Module responsible for parsing the top level source file.
-use crate::{declaration::TopLevelDeclaration, prelude::*};
+use crate::{prelude::*, toplvldecl::TopLevelDeclaration};
 
 #[derive(Debug)]
 pub struct SourceFile {

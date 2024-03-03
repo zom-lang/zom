@@ -20,12 +20,12 @@ use crate::prelude::*;
 use crate::source_file::SourceFile;
 
 pub mod block;
-pub mod declaration;
 pub(crate) mod err;
 pub mod expr;
 pub(crate) mod prelude;
 pub mod source_file;
 pub mod stmt;
+pub mod toplvldecl;
 pub mod types;
 pub mod var_decl;
 
