@@ -447,26 +447,43 @@ pub struct BuiltLog {
 
 impl BuiltLog {
     pub fn format(&self, s: &mut StandardStream) -> Result<(), io::Error> {
+        let lvl_color = self.lvl.format(s)?;
         s.set_color(&BOLD_STYLE)?;
-        write!(
+        writeln!(s, ": {}", self.msg)?;
+
+        s.set_color(&BLUE_STYLE)?;
+        write!(s, "  --> ")?;
+        s.set_color(&BOLD_STYLE)?;
+        writeln!(
             s,
-            "{}:{}:{}: ",
+            "{}:{}:{}",
             self.file_path.clone().into_os_string().to_str().unwrap(),
             self.loc.line,
             self.loc.col,
         )?;
-        self.lvl.format(s)?;
-        s.set_color(&BOLD_STYLE)?;
-        writeln!(s, ": {}", self.msg)?;
+        s.reset()?;
+
+        let mut line_str = format!("{:^3}", self.loc.line);
+
+        if line_str.len() > 3 {
+            line_str.push(' ');
+        }
+
+        let margin_str = spaces(line_str.len());
+
+        s.set_color(&BLUE_STYLE)?;
+        writeln!(s, "{margin_str}|")?;
+
+        write!(s, "{line_str}| ")?;
         s.reset()?;
         writeln!(s, "{}", self.code)?;
+
         s.set_color(&BLUE_STYLE)?;
-        write!(
-            s,
-            "{}{}",
-            spaces(self.loc.col - 1),
-            repeat('^', self.span.end - self.span.start),
-        )?;
+        write!(s, "{}| {}", margin_str, spaces(self.loc.col - 1),)?;
+
+        s.set_color(&lvl_color)?;
+        write!(s, "{}", repeat('^', self.span.end - self.span.start))?;
+
         if let Some(note) = &self.note {
             write!(s, " {note}")?;
         }
@@ -483,15 +500,17 @@ pub enum LogLevel {
 }
 
 impl LogLevel {
-    pub fn format(&self, s: &mut StandardStream) -> Result<(), io::Error> {
+    pub fn format(&self, s: &mut StandardStream) -> Result<ColorSpec, io::Error> {
         match self {
             Self::Warning => {
                 s.set_color(&MAGENTA_STYLE)?;
-                write!(s, "warning")
+                write!(s, "warning")?;
+                Ok(MAGENTA_STYLE.clone())
             }
             Self::Error => {
                 s.set_color(&RED_STYLE)?;
-                write!(s, "error")
+                write!(s, "error")?;
+                Ok(RED_STYLE.clone())
             }
         }
     }
