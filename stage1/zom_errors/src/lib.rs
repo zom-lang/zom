@@ -91,7 +91,7 @@ pub enum FmtToken {
 impl FmtToken {
     pub fn from_token(token: &Token) -> Self {
         use crate::FmtToken::*;
-        use zom_common::token::Operator;
+        use zom_common::operator::Operator;
         use zom_common::token::TokenType as TT;
         let tt = &token.tt;
         match tt {

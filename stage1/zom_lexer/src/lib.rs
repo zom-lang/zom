@@ -4,7 +4,8 @@ use std::path::Path;
 
 use zom_errors::prelude::*;
 
-use zom_common::token::{Operator, Token, TokenType, TokenType::*};
+use zom_common::operator::Operator;
+use zom_common::token::{Token, TokenType, TokenType::*};
 
 use zom_common::token::*;
 
@@ -497,7 +498,7 @@ impl<'a> Lexer<'a> {
 
     /// Lexes an operator if it matches an operators and return which operator was been lexed
     pub fn lex_operator(&mut self) -> Option<Operator> {
-        use zom_common::token::Operator::*;
+        use zom_common::operator::Operator::*;
         match (self.peek(), self.peek_nth(1)) {
             (Some(o1), wo2) => {
                 let o2 = wo2.unwrap_or(' ');

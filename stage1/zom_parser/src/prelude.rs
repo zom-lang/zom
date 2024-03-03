@@ -8,7 +8,7 @@ pub use crate::expr::{Associativity, BinOperation, UnaryOperation};
 
 pub use std::ops::Range;
 
-pub use zom_common::token::Operator;
+pub use zom_common::operator::Operator;
 pub use zom_common::token::Token;
 pub use zom_common::token::TokenType as T;
 

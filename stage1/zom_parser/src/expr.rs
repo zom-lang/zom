@@ -202,7 +202,7 @@ impl TryFrom<Operator> for BinOperation {
 
     fn try_from(op: Operator) -> Result<Self, Self::Error> {
         use self::BinOperation as BOp;
-        use zom_common::token::Operator::*;
+        use zom_common::operator::Operator::*;
         Ok(match op {
             Ampersand => BOp::And,
             Asterisk => BOp::Mul,

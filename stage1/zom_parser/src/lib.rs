@@ -31,7 +31,7 @@ pub mod var_decl;
 
 lazy_static! {
     static ref PR_TABLE: HashMap<Operation, (Associativity, u16)> = {
-        use zom_common::token::{
+        use zom_common::operator::{
             PR_DEREFERENCE, PR_UNARY, PR_ADD_SUB, PR_AND, PR_COMP, PR_COMP_EQ_NE, PR_MUL_DIV_REM, PR_OR, PR_SHIFT, PR_XOR,
         };
         use Associativity::*;
