@@ -38,10 +38,9 @@ impl Parse for TopLevelDeclaration {
 #[derive(Debug)]
 pub enum TopLvlDecl {
     Function {
-        name: String,
-        args: Vec<Arg>,
-        ret_ty: Type,
-        block: Block,
+        lib: Option<String>,
+        proto: Prototype,
+        body: Option<Block>,
     },
     GlobalVarDecl(VarDecl),
 }
@@ -52,6 +51,7 @@ impl Parse for TopLvlDecl {
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
         match &parser.last().tt {
             T::Fn => parse_fn_decl(parser),
+            T::Extern => parse_extern_decl(parser),
             T::Const | T::Var => parse_global_var_decl(parser),
             _ => Error(Box::new(ExpectedToken::from(
                 parser.last(),
@@ -61,32 +61,50 @@ impl Parse for TopLvlDecl {
     }
 }
 
+#[derive(Debug)]
+pub struct Prototype {
+    pub name: String,
+    pub args: Vec<Arg>,
+    pub ret_ty: Type,
+}
+
+impl Parse for Prototype {
+    type Output = Self;
+
+    fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
+        let mut parsed_tokens = Vec::new();
+
+        let name = expect_token!(parser => [T::Ident(name), name.clone()], Ident, parsed_tokens);
+
+        expect_token!(parser => [T::OpenParen, ()], OpenParen, parsed_tokens);
+
+        let mut args = Vec::new();
+        loop {
+            args.push(parse_try!(parser => Arg, parsed_tokens));
+            expect_token!(parser => [T::Comma, (); T::CloseParen, break], Comma, parsed_tokens);
+        }
+
+        expect_token!(parser => [T::CloseParen, ()], CloseParen, parsed_tokens);
+
+        let ret_ty = parse_try!(parser => Type, parsed_tokens);
+
+        Good(Prototype { name, args, ret_ty }, parsed_tokens)
+    }
+}
+
 pub fn parse_fn_decl(parser: &mut Parser) -> ParsingResult<TopLvlDecl> {
     let mut parsed_tokens = Vec::new();
     expect_token!(parser => [T::Fn, ()], Fn, parsed_tokens);
 
-    let name = expect_token!(parser => [T::Ident(name), name.clone()], Ident, parsed_tokens);
+    let proto = parse_try!(parser => Prototype, parsed_tokens);
 
-    expect_token!(parser => [T::OpenParen, ()], OpenParen, parsed_tokens);
-
-    let mut args = Vec::new();
-    loop {
-        args.push(parse_try!(parser => Arg, parsed_tokens));
-        expect_token!(parser => [T::Comma, (); T::CloseParen, break], Comma, parsed_tokens);
-    }
-
-    expect_token!(parser => [T::CloseParen, ()], CloseParen, parsed_tokens);
-
-    let ret_ty = parse_try!(parser => Type, parsed_tokens);
-
-    let block = parse_try!(parser => Block, parsed_tokens);
+    let body = Some(parse_try!(parser => Block, parsed_tokens));
 
     Good(
         TopLvlDecl::Function {
-            name,
-            args,
-            ret_ty,
-            block,
+            lib: None,
+            proto,
+            body,
         },
         parsed_tokens,
     )
@@ -130,4 +148,22 @@ pub fn parse_global_var_decl(parser: &mut Parser) -> ParsingResult<TopLvlDecl> {
     let var_decl = parse_try!(parser => VarDecl, parsed_tokens);
 
     Good(TopLvlDecl::GlobalVarDecl(var_decl), parsed_tokens)
+}
+
+pub fn parse_extern_decl(parser: &mut Parser) -> ParsingResult<TopLvlDecl> {
+    let mut parsed_tokens = Vec::new();
+
+    expect_token!(parser => [T::Extern, ()], Extern, parsed_tokens);
+    let lib = Some(expect_token!(parser => [T::Str(l), l.clone()], StrLit, parsed_tokens));
+
+    expect_token!(parser => [T::Fn, ()], Fn, parsed_tokens);
+    let proto = parse_try!(parser => Prototype, parsed_tokens);
+
+    let body = if token_parteq!(parser.last(), T::OpenBrace) {
+        Some(parse_try!(parser => Block, parsed_tokens))
+    } else {
+        None
+    };
+
+    Good(TopLvlDecl::Function { lib, proto, body }, parsed_tokens)
 }
