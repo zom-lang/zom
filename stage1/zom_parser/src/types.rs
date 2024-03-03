@@ -11,6 +11,7 @@ pub struct Type {
 impl Parse for Type {
     type Output = Self;
 
+    /// Parsing for Types
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
         let mut parsed_tokens = Vec::new();
 
@@ -107,6 +108,7 @@ pub enum PrimitiveTy {
 impl Parse for PrimitiveTy {
     type Output = Ty;
 
+    /// Parsing for primitive types
     fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
         let mut parsed_tokens = Vec::new();
         let name = expect_token!(parser => [T::Ident(name), name.clone()], Ident, parsed_tokens);
@@ -141,6 +143,7 @@ impl Parse for PrimitiveTy {
     }
 }
 
+/// Parsing for `* [ "const" ] TYPE` type
 pub fn parse_pointer_ty(parser: &mut Parser) -> ParsingResult<Ty> {
     let mut parsed_tokens = Vec::new();
 
