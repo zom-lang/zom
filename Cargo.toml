@@ -18,8 +18,11 @@ readme = "README.md"
 [workspace.dependencies]
 inkwell = { version = "0.2.0", default-features = false }
 criterion = "0.5.0"
+termcolor = "1.4.1"
+lazy_static = "1.4.0"
 zom_lexer = { path = "stage1/zom_lexer" }
 zom_parser = { path = "stage1/zom_parser" }
 zom_common = { path = "stage1/zom_common" }
 zom_compiler = { path = "stage1/zom_compiler" }
 zom_codegen = { path = "stage1/zom_codegen" }
+zom_errors = { path = "stage1/zom_errors" }

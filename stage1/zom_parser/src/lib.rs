@@ -1,283 +1,257 @@
-//! This is the parser of Zom
+//! This crate is responsible for the parsing of the Token Stream into
+//! an Abstract Syntax Tree.
 //!
-//! It is entirely made for Zom, without using dependencies.
+//! The parser is implemented with a [Recursive descent parser][1] and
+//! an [Operator-precedence parser][2] for parsing of arithmetic
+//! expressions for ally the convenience of the recursive parser with
+//! the speed of the operator-precedence for parsing arithmetic
+//! expressions.
+//!
+//! [1]: https://en.wikipedia.org/wiki/Recursive_descent_parser
+//! [2]: https://en.wikipedia.org/wiki/Operator-precedence_parser
 
 use std::collections::HashMap;
+use std::fmt;
 
-use crate::expr::BinOperation;
+use lazy_static::lazy_static;
+
+use crate::expr::Operation;
 use crate::prelude::*;
-
-use self::item::{parse_item, Item};
+use crate::source_file::SourceFile;
 
 pub mod block;
+pub(crate) mod err;
 pub mod expr;
-pub mod item;
 pub(crate) mod prelude;
-pub mod statement;
-pub mod symbol;
+pub mod source_file;
+pub mod stmt;
+pub mod toplvldecl;
 pub mod types;
+pub mod var_decl;
 
-pub type ParsingResult = Result<(Vec<Item>, Vec<Token>), Vec<ZomError>>;
-
-#[derive(Debug)]
-pub enum PartParsingResult<T> {
-    Good(T, Vec<Token>),
-    NotComplete,
-    Bad(ZomError),
+lazy_static! {
+    static ref PR_TABLE: HashMap<Operation, (Associativity, u16)> = {
+        use zom_common::operator::{
+            PR_DEREFERENCE, PR_UNARY, PR_ADD_SUB, PR_AND, PR_COMP, PR_COMP_EQ_NE, PR_MUL_DIV_REM, PR_OR, PR_SHIFT, PR_XOR,
+        };
+        use Associativity::*;
+        use BinOperation::*;
+        use UnaryOperation::*;
+        use crate::expr::Operation::*;
+        HashMap::from([
+            (Unary(Dereference), (L2R, PR_DEREFERENCE)),
+            // ..
+            (Unary(AddressOf), (R2L, PR_UNARY)),
+            (Unary(Negation), (R2L, PR_UNARY)),
+            (Unary(Not), (R2L, PR_UNARY)),
+            // ..
+            (Binary(Mul), (L2R, PR_MUL_DIV_REM)),
+            (Binary(Div), (L2R, PR_MUL_DIV_REM)),
+            (Binary(Rem), (L2R, PR_MUL_DIV_REM)),
+            // ..
+            (Binary(Add), (L2R, PR_ADD_SUB)),
+            (Binary(Sub), (L2R, PR_ADD_SUB)),
+            // ..
+            (Binary(RShift), (L2R, PR_SHIFT)),
+            (Binary(LShift), (L2R, PR_SHIFT)),
+            // ..
+            (Binary(CompLT), (L2R, PR_COMP)),
+            (Binary(CompGT), (L2R, PR_COMP)),
+            (Binary(CompLTE), (L2R, PR_COMP)),
+            (Binary(CompGTE), (L2R, PR_COMP)),
+            // ..
+            (Binary(CompEq), (L2R, PR_COMP_EQ_NE)),
+            (Binary(CompNe), (L2R, PR_COMP_EQ_NE)),
+            // ..
+            (Binary(And), (L2R, PR_AND)),
+            (Binary(Xor), (L2R, PR_XOR)),
+            (Binary(Or), (L2R, PR_OR)),
+        ])
+    };
 }
 
-#[derive(Debug)]
-pub struct ParsingContext {
-    pub pos: usize,
-    pub filename: String,
-    pub source_file: String,
-    errors: Vec<ZomError>,
+pub struct Parser<'a> {
+    /// Reversed list of token
+    tokens: Vec<Token>,
+    lctx: LogContext<'a>,
+    pub default_precedence: u16,
 }
 
-impl ParsingContext {
-    pub fn new(filename: String, source_file: String) -> ParsingContext {
-        ParsingContext {
-            pos: 0,
-            filename,
-            source_file,
-            errors: vec![],
+impl<'a> Parser<'a> {
+    pub fn new(tokens: &'a [Token], lctx: LogContext<'a>) -> Parser<'a> {
+        let mut rest = tokens.to_vec();
+        rest.reverse();
+        Parser {
+            tokens: rest,
+            lctx,
+            default_precedence: 0,
         }
     }
 
-    pub fn advance(&mut self) {
-        self.pos += 1;
-    }
-
-    pub fn push_err(&mut self, err: ZomError) {
-        self.errors.push(err);
-    }
-
-    pub fn push_errors(&mut self, errors: Vec<ZomError>) {
-        self.errors.extend(errors);
-    }
-}
-
-/// err_et mean `error expected token`
-#[macro_export]
-macro_rules! err_et(
-    ($context:expr, $last_token:expr, $expected:expr, $found:expr, $end:stmt) => (
-        {
-            use zom_common::error::{Position, ZomError};
-            use zom_common::token::TokenType;
-            if $expected.is_empty() {
-                panic!("One or more expected values are needed.");
-            }
-            $context.push_err(ZomError::new(
-                Position::try_from_range(
-                    $context.pos,
-                    $last_token.span.clone(),
-                    $context.source_file.clone(),
-                    $context.filename.clone().into()
-                ),
-                if $expected.len() == 1 {
-                    format!("expected {}, found {}", $expected[0], $found)
-                }else {
-                    format!("expected one of {}, found {}", TokenType::format_toks($expected), $found)
-                },
-                false,
-                None,
-                vec![]
-            ));
-            $end
-        }
-    );
-
-    ($context:expr, $last_token:expr, $expected:expr, $found:expr) => (
-        {
-            use zom_common::error::{Position, ZomError};
-            use zom_common::token::TokenType;
-            if $expected.is_empty() {
-                panic!("One or more expected values are needed.");
-            }
-            Bad(ZomError::new(
-                Position::try_from_range(
-                    $context.pos,
-                    $last_token.span.clone(),
-                    $context.source_file.clone(),
-                    $context.filename.clone().into()
-                ),
-                if $expected.len() == 1 {
-                    format!("expected {}, found {}", $expected[0], $found)
-                }else {
-                    format!("expected one of {}, found {}", TokenType::format_toks($expected), $found)
-                },
-                false,
-                None,
-                vec![]
-            ))
-        }
-    );
-);
-
-#[derive(Debug)]
-pub struct ParserSettings {
-    /// Binary operator precedence
-    bin_op_pr: HashMap<BinOperation, i32>,
-}
-
-impl Default for ParserSettings {
-    fn default() -> Self {
-        use crate::expr::BinOperation::*;
-        let mut bin_op_pr = HashMap::with_capacity(16);
-
-        bin_op_pr.insert(Mul, PR_MUL_DIV_REM);
-        bin_op_pr.insert(Div, PR_MUL_DIV_REM);
-        bin_op_pr.insert(Rem, PR_MUL_DIV_REM);
-
-        bin_op_pr.insert(Add, PR_ADD_SUB);
-        bin_op_pr.insert(Sub, PR_ADD_SUB);
-
-        bin_op_pr.insert(RShift, PR_SHIFT);
-        bin_op_pr.insert(LShift, PR_SHIFT);
-
-        bin_op_pr.insert(CompLT, PR_COMP);
-        bin_op_pr.insert(CompGT, PR_COMP);
-        bin_op_pr.insert(CompLTE, PR_COMP);
-        bin_op_pr.insert(CompGTE, PR_COMP);
-
-        bin_op_pr.insert(CompEq, PR_COMP_EQ_NE);
-        bin_op_pr.insert(CompNe, PR_COMP_EQ_NE);
-
-        bin_op_pr.insert(And, PR_AND);
-        bin_op_pr.insert(Or, PR_OR);
-        bin_op_pr.insert(Xor, PR_XOR);
-
-        bin_op_pr.insert(Equal, PR_EQ);
-
-        ParserSettings { bin_op_pr }
-    }
-}
-
-pub fn parse(
-    tokens: &[Token],
-    parsed_tree: &[Item],
-    settings: &mut ParserSettings,
-    mut context: ParsingContext,
-) -> ParsingResult {
-    let mut rest = tokens.to_vec();
-    // we read tokens from the end of the vector
-    // using it as a stack
-    rest.reverse();
-
-    // we will add new AST nodes to already parsed ones
-    let mut ast = parsed_tree.to_vec();
-
-    while let Some(item) = parse_item(&mut rest, settings, &mut context) {
-        match item {
-            Good(ast_node, _) => ast.push(ast_node),
-            NotComplete => break,
-            Bad(err) => {
-                context.push_err(err);
-                return Err(context.errors); // TODO: try to not return here and keep parsing items.
+    pub fn parse(mut self) -> FinalRes<'a, SourceFile> {
+        match SourceFile::parse(&mut self) {
+            Good(ast, ..) => FinalRes::Ok(ast, self.lctx.clone()),
+            Error(err) => {
+                self.lctx.push_boxed(err);
+                FinalRes::Err(self.lctx.stream())
             }
         }
     }
 
-    if !context.errors.is_empty() {
-        return Err(context.errors);
+    /// Returns and removes the last token of the reverse token stream
+    fn pop(&mut self) -> Token {
+        // here we unwrap because when the EOF token comes, we stop pop token
+        self.tokens
+            .pop()
+            .expect("another token has been poped after the EOF token")
     }
 
-    // unparsed tokens
-    rest.reverse();
-    Ok((ast, rest))
+    /// Returns the last tokens without removing it from the reversed token stream
+    fn last(&self) -> &Token {
+        self.tokens.last().unwrap()
+    }
+
+    /// Did the EOF token has been reached?
+    pub fn reached_eof(&self) -> bool {
+        // if the vector of token is empty, without the EOF token,
+        // that means we reached EOF
+        self.tokens.is_empty() || token_parteq!(self.last(), T::EOF)
+    }
+
+    /// Did the next token mark the end of the expression?
+    pub fn expr_end(&self) -> bool {
+        matches!(
+            self.last().tt,
+            T::SemiColon | T::Comma | T::CloseParen | T::CloseBracket | T::CloseBrace | T::Else
+        )
+    }
+
+    pub fn pr_get<O: Into<Operation>>(&self, op: O) -> (Associativity, u16) {
+        PR_TABLE
+            .get(&op.into())
+            .cloned()
+            .expect("Binary operator not in binary table of precedence, impossible in theory")
+    }
+
+    /// Get the nth starting at the end.
+    ///
+    /// It may panic, if:
+    /// - the offset is greater than the amount of tokens
+    /// - the index is not in range of the tokens list
+    ///
+    /// **e.g:**
+    /// ```text
+    ///    fn test
+    ///    ^1 ^2 offset of end_nth
+    /// ```
+    pub fn end_nth(&self, offset: usize) -> &Token {
+        self.tokens.get(self.tokens.len() - offset).unwrap()
+    }
 }
 
 #[macro_export]
-macro_rules! parse_try(
-    ($function:ident, $tokens:ident, $settings:ident, $context:ident, $parsed_tokens:ident) => (
-        parse_try!($function, $tokens, $settings, $context, $parsed_tokens,)
-    );
+macro_rules! expect_token {
+    ($parser:expr => [ $($token:pat, $result:expr);+ ] -> $error:expr, $parsed_tokens:expr) => {
+        expect_token!($parser => [ $( $token, $result );+ ] else {
+            return Error(Box::new($error))
+        }, $parsed_tokens)
+    };
+    ($parser:expr => [ $($token:pat, $result:expr);+ ], $expected:expr, $parsed_tokens:expr ) => {
+        expect_token!($parser => [ $( $token, $result );+ ] else {
+            let found = $parser.pop();
+            return Error(Box::new(ExpectedToken::from(&found, $expected)))
+        }, $parsed_tokens)
+        // expect_token!($parser => [ $( $token, $result );+ ] -> ExpectToken::from($parser.pop(), $expected), parsed_tokens)
+    };
+    ($parser:expr => [ $($token:pat, $result:expr);+ ] else $unmatched:block, $parsed_tokens:expr ) => {
+        match &$parser.last().tt {
+            $(
+                // used, because if $result is a no return expression, it will throw those 2 warnings
+                #[allow(unreachable_code, unused_variables)]
+                $token => {
+                    let res = $result;
+                    $parsed_tokens.push($parser.pop());
+                    res
+                },
+            )+
+            _ => $unmatched
+        }
+    };
+}
 
-    ($function:ident, $tokens:ident, $settings:ident, $context:ident, $parsed_tokens:ident, $($arg:expr),*) => (
-        match $function($tokens, $settings, $context, $($arg),*) {
-            Good(ast, toks) => {
-                $parsed_tokens.extend(toks.into_iter());
+#[macro_export]
+macro_rules! parse_try {
+    ($parser:expr => $ast_type:ty, $parsed_tokens:expr $(,in $in_between:expr)?) => {
+        parse_try!(fn; $parser => <$ast_type as Parse>::parse, $parsed_tokens $($in_between)?)
+    };
+    (fn; $parser:expr => $parsing_func:expr, $parsed_tokens:expr $(,in $in_between:expr)? $(, $arg:expr)* ) => {
+        match $parsing_func($parser, $($arg),*) {
+            Good(ast, tokens) => {
+                $parsed_tokens.extend(tokens);
+                $($in_between;)?
                 ast
             }
-            NotComplete => {
-                $parsed_tokens.reverse();
-                $tokens.extend($parsed_tokens.into_iter());
-                return NotComplete;
-            }
-            Bad(error) => return Bad(error)
+            Error(err) => return Error(err),
         }
-    )
-);
+    };
+    (continue; $parser:expr => $ast_type:ty, $parsed_tokens:expr) => {
+        match <$ast_type as Parse>::parse($parser) {
+            Good(ast, tokens) => {
+                $parsed_tokens.extend(tokens);
+                ast
+            }
+            Error(err) => {
+                if $parser.reached_eof() {
+                    return Error(err);
+                }
+                $parser.lctx.push_boxed(err);
+                continue;
+            }
+        }
+    };
+}
 
 #[macro_export]
-macro_rules! expect_token (
-    ($context:ident, [ $($token:pat, $value:expr, $result:stmt);+ ] <= $tokens:ident, $parsed_tokens:ident, $error:expr) => (
-        match $tokens.pop() { // Where instead if .pop() use .last()
-            $(
-                Some(Token { tt: $token, span }) => { // And .pop()
-                    $context.advance();
-                    $parsed_tokens.push(Token { tt: $value, span });
-                    $result
-                },
-             )+
-             None => { // or here, like that in the err_et!() we can use .last() to have the token that hasn't been matched.
-                $context.advance();
-                $parsed_tokens.reverse();
-                $tokens.extend($parsed_tokens.into_iter());
-                return NotComplete;
-             },
-            _ => { $context.advance(); return $error } // TODO: try to move err_et!(..) here.
-        }
-    );
+macro_rules! span_toks {
+    ($toks:expr) => {
+        $toks.last().unwrap().span.clone()
+    };
+    ($id:ident $toks:expr) => {
+        span_toks!($id last $toks)
+    };
+    ($id:ident $tip:ident $toks:expr) => {
+        $toks.$tip().unwrap().span.$id
+    };
+}
 
-    ($context:ident, [ $($token:pat, $value:expr, $result:stmt);+ ] else $not_matched:block <= $tokens:ident, $parsed_tokens:ident) => (
-        $context.advance();
-        match $tokens.last().map(|i| {i.clone()}) {
-            $(
-                Some(Token { tt: $token, span}) => {
-                    $tokens.pop();
-                    $parsed_tokens.push(Token { tt: $value, span });
-                    $result
-                },
-             )+
-            _ => {$not_matched}
+pub enum ParsingResult<T> {
+    Good(T, Vec<Token>),
+    Error(Box<dyn Log>),
+}
+
+impl<T: fmt::Debug> fmt::Debug for ParsingResult<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Good(v, toks) => f.debug_tuple("Good").field(v).field(toks).finish(),
+            Error(_) => f.debug_tuple("Error").field(&"...").finish(),
         }
-    )
-);
+    }
+}
+
+pub trait Parse {
+    type Output;
+
+    fn parse(parser: &mut Parser) -> ParsingResult<Self::Output>;
+}
 
 /// This macro is to test the equality of a token but without checking the span.
 /// return true if it's equal or false if it's not.
 #[macro_export]
 macro_rules! token_parteq(
     ($left:expr, $right:pat) => (
-        match $left {
-            Some(Token { tt: $right, span: _}) => true,
+        match $left.tt {
+            $right => true,
             _ => false
         }
     );
-
-    (no_opt $left:expr, $right:expr) => (
-        match $left {
-            Token { ref tt, span: _} if *tt == $right => true,
-            _ => false
-        }
-    );
-);
-
-pub trait CodeLocation {
-    fn span(&self) -> Range<usize>;
-}
-
-#[macro_export]
-macro_rules! impl_span(
-    ($ast:ident) => (
-        impl_span!($ast, span);
-    );
-    ($ast:ident, $span_field:ident) => (
-        impl $crate::CodeLocation for $ast {
-            fn span(&self) -> Range<usize> {
-                self.$span_field.clone()
-            }
-        }
-    )
 );

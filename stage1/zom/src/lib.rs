@@ -42,7 +42,7 @@ macro_rules! err {
         Err(err!(raw $msg))
     );
 
-    (fmt $msg:tt, $($arg:expr)*) => ({
+    (fmt $msg:tt $(, $arg:expr)*) => ({
         use $crate::SError;
         Err(Box::new(SError::new(format!($msg, $( $arg ),* ))))
     });

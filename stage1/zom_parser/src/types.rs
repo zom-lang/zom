@@ -1,43 +1,84 @@
-//! This module is responsible for the parsing of types.
-
+//! Module responsible for parsing types.
 use crate::prelude::*;
-use zom_common::token::Operator;
+use PrimitiveTy::*;
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(Debug)]
 pub struct Type {
-    pub type_kind: TypeKind,
+    pub ty: Ty,
     pub span: Range<usize>,
 }
 
-impl_span!(Type);
+impl Parse for Type {
+    type Output = Self;
 
-#[derive(PartialEq, Clone, Debug)]
-pub enum TypeKind {
-    PrimitiveType(PrimitiveType),
-    Pointer { is_const: bool, pointed: Box<Type> },
+    /// Parsing for Types
+    fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
+        let mut parsed_tokens = Vec::new();
+
+        let ty = parse_try!(parser => Ty, parsed_tokens);
+        let start = span_toks!(start first parsed_tokens);
+        let end = span_toks!(end parsed_tokens);
+
+        Good(
+            Type {
+                ty,
+                span: start..end,
+            },
+            parsed_tokens,
+        )
+    }
 }
 
-/// A macro to facilitate the match in the `parse_primitive_type` function.
-macro_rules! match_primitype {
-    ( $name:expr, $ptoken:expr, $([$typename:pat => $primitive_type:expr]),* ) => (
-        match $name {
-            $(
-                $typename => Good(
-                    Type {
-                        type_kind: TypeKind::PrimitiveType($primitive_type),
-                        span: $ptoken.last().unwrap().span.clone()
-                    },
-                    $ptoken
-                ),
-            )*
-            _ => panic!("NEED TO REMAKE THE ERROR SYSTEM #4")
+#[derive(Debug)]
+pub enum Ty {
+    PrimTy(PrimitiveTy),
+    PointerTy {
+        is_const: bool,
+        pointed_ty: Box<Type>,
+    },
+}
+
+impl Parse for Ty {
+    type Output = Self;
+
+    fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
+        match &parser.last().tt {
+            T::Ident(name) if PRIM_TYPES.contains(&name.as_str()) => PrimitiveTy::parse(parser),
+            T::Oper(Operator::Asterisk) => parse_pointer_ty(parser),
+            _ => Error(Box::new(ExpectedToken::from(parser.last(), PartAST::Type))),
         }
-    );
+    }
 }
 
-// For now, PrimitiveType doesn't store the span because no error requires it to.
-#[derive(PartialEq, Clone, Debug)]
-pub enum PrimitiveType {
+pub const VOID_TYPE: &str = "void";
+pub const BOOL_TYPE: &str = "bool";
+
+pub const U8_TYPE: &str = "u8";
+pub const U16_TYPE: &str = "u16";
+pub const U32_TYPE: &str = "u32";
+pub const U64_TYPE: &str = "u64";
+pub const U128_TYPE: &str = "u128";
+pub const USIZE_TYPE: &str = "usize";
+
+pub const I8_TYPE: &str = "i8";
+pub const I16_TYPE: &str = "i16";
+pub const I32_TYPE: &str = "i32";
+pub const I64_TYPE: &str = "i64";
+pub const I128_TYPE: &str = "i128";
+pub const ISIZE_TYPE: &str = "isize";
+
+pub const F16_TYPE: &str = "f16";
+pub const F32_TYPE: &str = "f32";
+pub const F64_TYPE: &str = "f64";
+pub const F128_TYPE: &str = "f128";
+
+pub const PRIM_TYPES: &[&str] = &[
+    VOID_TYPE, BOOL_TYPE, U8_TYPE, U16_TYPE, U32_TYPE, U64_TYPE, U128_TYPE, USIZE_TYPE, I8_TYPE,
+    I16_TYPE, I32_TYPE, I64_TYPE, I128_TYPE, ISIZE_TYPE, F16_TYPE, F32_TYPE, F64_TYPE, F128_TYPE,
+];
+
+#[derive(Debug)]
+pub enum PrimitiveTy {
     Void,
     Bool,
 
@@ -62,156 +103,60 @@ pub enum PrimitiveType {
     F32,
     F64,
     F128,
-
-    // Char
-    Char,
-
-    // String slice
-    Str,
 }
 
-pub const VOID_TYPE_NAME: &str = "void";
-pub const BOOL_TYPE_NAME: &str = "bool";
+impl Parse for PrimitiveTy {
+    type Output = Ty;
 
-pub const U8_TYPE_NAME: &str = "u8";
-pub const U16_TYPE_NAME: &str = "u16";
-pub const U32_TYPE_NAME: &str = "u32";
-pub const U64_TYPE_NAME: &str = "u64";
-pub const U128_TYPE_NAME: &str = "u128";
-pub const USIZE_TYPE_NAME: &str = "usize";
+    /// Parsing for primitive types
+    fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
+        let mut parsed_tokens = Vec::new();
+        let name = expect_token!(parser => [T::Ident(name), name.clone()], Ident, parsed_tokens);
 
-pub const I8_TYPE_NAME: &str = "i8";
-pub const I16_TYPE_NAME: &str = "i16";
-pub const I32_TYPE_NAME: &str = "i32";
-pub const I64_TYPE_NAME: &str = "i64";
-pub const I128_TYPE_NAME: &str = "i128";
-pub const ISIZE_TYPE_NAME: &str = "isize";
+        let prim_ty = match name.as_str() {
+            VOID_TYPE => Void,
+            BOOL_TYPE => Bool,
 
-pub const F16_TYPE_NAME: &str = "f16";
-pub const F32_TYPE_NAME: &str = "f32";
-pub const F64_TYPE_NAME: &str = "f64";
-pub const F128_TYPE_NAME: &str = "f128";
+            U8_TYPE => U8,
+            U16_TYPE => U16,
+            U32_TYPE => U32,
+            U64_TYPE => U64,
+            U128_TYPE => U128,
+            USIZE_TYPE => USize,
 
-pub const CHAR_TYPE_NAME: &str = "char";
-pub const STR_TYPE_NAME: &str = "str";
+            I8_TYPE => I8,
+            I16_TYPE => I16,
+            I32_TYPE => I32,
+            I64_TYPE => I64,
+            I128_TYPE => I128,
+            ISIZE_TYPE => ISize,
 
-pub fn parse_type(
-    tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
-    context: &mut ParsingContext,
-) -> PartParsingResult<Type> {
-    match tokens.last() {
-        Some(Token { tt: Ident(_), .. }) => parse_primitive_type(tokens, settings, context),
-        Some(Token {
-            tt: Oper(Operator::Asterisk),
-            ..
-        }) => parse_ptr_type(tokens, settings, context),
-        None => NotComplete,
-        _ => err_et!(
-            context,
-            tokens.last().unwrap(),
-            vec![Ident(String::new())],
-            tokens.last().unwrap().tt
-        ),
+            F16_TYPE => F16,
+            F32_TYPE => F32,
+            F64_TYPE => F64,
+            F128_TYPE => F128,
+
+            _ => unreachable!(),
+        };
+
+        Good(Ty::PrimTy(prim_ty), parsed_tokens)
     }
 }
 
-fn parse_primitive_type(
-    tokens: &mut Vec<Token>,
-    _settings: &mut ParserSettings,
-    context: &mut ParsingContext,
-) -> PartParsingResult<Type> {
+/// Parsing for `* [ "const" ] TYPE` type
+pub fn parse_pointer_ty(parser: &mut Parser) -> ParsingResult<Ty> {
     let mut parsed_tokens = Vec::new();
-    let t = tokens.last().unwrap().clone();
 
-    let name: String = expect_token!(
-        context,
-        [Ident(name), Ident(name.clone()), name] <= tokens,
-        parsed_tokens,
-        err_et!(context, t, vec![OpenParen], t.tt)
-    );
+    expect_token!(parser => [T::Oper(Operator::Asterisk), ()], T::Oper(Operator::Asterisk), parsed_tokens);
 
-    use PrimitiveType::*;
+    let is_const = expect_token!(parser => [T::Const, true] else { false }, parsed_tokens);
 
-    match_primitype!(
-        name.as_str(),
-        parsed_tokens,
-        [BOOL_TYPE_NAME => Bool],
-        [VOID_TYPE_NAME => Void],
-
-        [U8_TYPE_NAME => U8],
-        [U16_TYPE_NAME => U16],
-        [U32_TYPE_NAME => U32],
-        [U64_TYPE_NAME => U64],
-        [U128_TYPE_NAME => U128],
-        [USIZE_TYPE_NAME => USize],
-
-        [I8_TYPE_NAME => I8],
-        [I16_TYPE_NAME => I16],
-        [I32_TYPE_NAME => I32],
-        [I64_TYPE_NAME => I64],
-        [I128_TYPE_NAME => I128],
-        [ISIZE_TYPE_NAME => ISize],
-
-        [F16_TYPE_NAME => F16],
-        [F32_TYPE_NAME => F32],
-        [F64_TYPE_NAME => F64],
-        [F128_TYPE_NAME => F128],
-
-        [CHAR_TYPE_NAME => Char],
-        [STR_TYPE_NAME => Str]
-    )
-}
-
-pub fn parse_ptr_type(
-    tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
-    context: &mut ParsingContext,
-) -> PartParsingResult<Type> {
-    let mut parsed_tokens = Vec::new();
-    expect_token!(
-        context,
-        [Oper(Operator::Asterisk), Oper(Operator::Asterisk), ()] <= tokens,
-        parsed_tokens,
-        err_et!(
-            context,
-            tokens.last().unwrap(),
-            vec![Oper(Operator::Asterisk)],
-            tokens.last().unwrap().tt
-        )
-    );
-
-    let start = parsed_tokens.last().unwrap().span.start;
-
-    let mut is_const = false;
-    if let Some(Token { tt: Const, .. }) = tokens.last() {
-        is_const = expect_token!(
-            context,
-            [Const, Const, true] <= tokens,
-            parsed_tokens,
-            err_et!(
-                context,
-                tokens.last().unwrap(),
-                vec![Const],
-                tokens.last().unwrap().tt
-            )
-        );
-    }
-
-    let pointed = Box::new(parse_try!(
-        parse_type,
-        tokens,
-        settings,
-        context,
-        parsed_tokens
-    ));
-
-    let end = parsed_tokens.last().unwrap().span.end;
+    let pointed_ty = Box::new(parse_try!(parser => Type, parsed_tokens));
 
     Good(
-        Type {
-            type_kind: TypeKind::Pointer { is_const, pointed },
-            span: start..end,
+        Ty::PointerTy {
+            is_const,
+            pointed_ty,
         },
         parsed_tokens,
     )

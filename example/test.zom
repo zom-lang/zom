@@ -1,16 +1,28 @@
-pub const test2 = 123 * 12 + 1;
+package hello.main
 
-fn fourteen(ptr: *const u8) u8 {
-    const test1 = undefined;
-    const test2 = 't';
-    var hello_world = "Hello world!".len;
-    return a.*(12, 144);
+import std.fmt.println // <- NEW better import item! ;)
+import std.fmt as f
+
+fn add(a: u32,b: u32) u32 {
+    var demo: u32
+    f.println("Hello world!")
+    a, b = 123, 456
+    return a + b
 }
 
-extern "c" fn c_function() void;
+const test: u32 = 2
 
-
-extern "c" fn c_function2() void {
-
+fn max(a: u32, b: u32) u32 {
+    if (a > b)
+        return a
+    else
+        return b
+    // ^ a conditional stmt
 }
 
+// or with only one return stmt
+
+fn maxSimple(a: u32, b: u32) u32 {
+    return a if a > b else b
+    //     ^ a conditional expression
+}
