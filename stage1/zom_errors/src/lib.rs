@@ -1,8 +1,5 @@
 use std::fmt;
-use std::{
-    ops::Range,
-    path::{Path, PathBuf},
-};
+use std::{ops::Range, path::Path};
 
 use std::io::{self, Write};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
@@ -27,6 +24,10 @@ lazy_static! {
     static ref BLUE_STYLE: ColorSpec = ColorSpec::new()
         .set_bold(true)
         .set_fg(Some(Color::Blue))
+        .clone();
+    static ref BLACK_STYLE: ColorSpec = ColorSpec::new()
+        .set_bold(true)
+        .set_fg(Some(Color::Black))
         .clone();
 }
 
@@ -286,7 +287,7 @@ impl<'a> LogContext<'a> {
     /// Returns true if their is at least one `Log` with `LogLevel` of `Error`, instead false.
     pub fn failed(&self) -> bool {
         for log in &self.logs {
-            if let LogLevel::Error = log.lvl {
+            if let LogLevel::Error = log.level() {
                 return true;
             }
         }
@@ -315,8 +316,8 @@ impl<'a> LogContext<'a> {
     }
 
     /// Get the line content with a given `CodeLocation`
-    pub fn get_line(&self, loc: CodeLocation) -> String {
-        self.file.lines().nth(loc.line - 1).unwrap().to_string()
+    pub fn get_line(&self, loc: CodeLocation) -> Box<str> {
+        self.file.lines().nth(loc.line - 1).unwrap().into()
     }
 
     /// Build a `Log` into a `BuiltLog`
@@ -387,11 +388,15 @@ pub trait Log {
     fn level(&self) -> LogLevel;
 
     /// message of the log
-    fn msg(&self) -> String;
+    fn msg(&self) -> Box<str>;
 
     /// note message
-    fn note(&self) -> Option<String> {
+    fn cursor_msg(&self) -> Option<Box<str>> {
         None
+    }
+
+    fn other_parts(&self) -> Vec<LogPart> {
+        Vec::new()
     }
 
     /// build the log using a LogContext.
@@ -404,14 +409,21 @@ pub trait Log {
             start.line, end.line,
             "Doesn't yet support multiple line errors"
         );
-        BuiltLog {
-            file_path: ctx.file_path.to_path_buf(),
-            loc: start.clone(),
+        let mut parts = vec![BuiltLogPart {
             lvl: self.level(),
             msg: self.msg(),
-            note: self.note(),
-            code: ctx.get_line(start.clone()),
-            span: start.col..end.col,
+            snippet: Some(CodeSnippet {
+                code: ctx.get_line(start.clone()),
+                cursor: LogCursor::new(start.col..end.col, self.cursor_msg()),
+                path: ctx.file_path.into(),
+                loc: start.clone(),
+            }),
+        }];
+
+        parts.extend(self.other_parts().iter().map(|l| l.build(ctx)));
+
+        BuiltLog {
+            parts: parts.into(),
         }
     }
 }
@@ -432,64 +444,22 @@ fn spaces(n: usize) -> String {
 
 #[derive(Debug, Clone)]
 pub struct BuiltLog {
-    file_path: PathBuf,
-    /// location of the log inside the file
-    loc: CodeLocation,
-    lvl: LogLevel,
-    /// log message
-    msg: String,
-    /// note message to specify the log message
-    note: Option<String>,
-    /// code at the line of the log
-    code: String,
-    span: CodeSpan,
+    parts: Box<[BuiltLogPart]>,
 }
 
 impl BuiltLog {
     pub fn format(&self, s: &mut StandardStream) -> Result<(), io::Error> {
-        let lvl_color = self.lvl.format(s)?;
-        s.set_color(&BOLD_STYLE)?;
-        writeln!(s, ": {}", self.msg)?;
-
-        s.set_color(&BLUE_STYLE)?;
-        write!(s, "  --> ")?;
-        s.set_color(&BOLD_STYLE)?;
-        writeln!(
-            s,
-            "{}:{}:{}",
-            self.file_path.clone().into_os_string().to_str().unwrap(),
-            self.loc.line,
-            self.loc.col,
-        )?;
-        s.reset()?;
-
-        let mut line_str = format!("{:^3}", self.loc.line);
-
-        if line_str.len() > 3 {
-            line_str.push(' ');
+        for part in self.parts.into_iter() {
+            part.format(s)?;
+            writeln!(s)?;
+            s.reset()?;
         }
 
-        let margin_str = spaces(line_str.len());
-
-        s.set_color(&BLUE_STYLE)?;
-        writeln!(s, "{margin_str}|")?;
-
-        write!(s, "{line_str}| ")?;
-        s.reset()?;
-        writeln!(s, "{}", self.code)?;
-
-        s.set_color(&BLUE_STYLE)?;
-        write!(s, "{}| {}", margin_str, spaces(self.loc.col - 1),)?;
-
-        s.set_color(&lvl_color)?;
-        write!(s, "{}", repeat('^', self.span.end - self.span.start))?;
-
-        if let Some(note) = &self.note {
-            write!(s, " {note}")?;
-        }
-        writeln!(s)?;
-        s.reset()?;
         Ok(())
+    }
+
+    pub fn level(&self) -> LogLevel {
+        self.parts[0].lvl.clone()
     }
 }
 
@@ -497,6 +467,7 @@ impl BuiltLog {
 pub enum LogLevel {
     Warning,
     Error,
+    Note,
 }
 
 impl LogLevel {
@@ -511,6 +482,11 @@ impl LogLevel {
                 s.set_color(&RED_STYLE)?;
                 write!(s, "error")?;
                 Ok(RED_STYLE.clone())
+            }
+            Self::Note => {
+                s.set_color(&BLACK_STYLE)?;
+                write!(s, "note")?;
+                Ok(BLACK_STYLE.clone())
             }
         }
     }
@@ -544,5 +520,150 @@ impl LogStream {
         s.reset()?;
         s.flush()?;
         Ok(())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LogCursor {
+    loc: CodeSpan,
+    msg: Option<Box<str>>,
+}
+
+impl LogCursor {
+    pub fn new(loc: CodeSpan, msg: Option<Box<str>>) -> LogCursor {
+        LogCursor { loc, msg }
+    }
+
+    pub fn cursor_loc(&self) -> &CodeSpan {
+        &self.loc
+    }
+    pub fn msg(&self) -> Option<Box<str>> {
+        self.msg.clone()
+    }
+
+    pub fn start(&self) -> usize {
+        self.loc.start
+    }
+
+    pub fn end(&self) -> usize {
+        self.loc.end
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct CodeSnippet {
+    pub loc: CodeLocation,
+    pub code: Box<str>,
+    pub path: Box<Path>,
+    pub cursor: LogCursor,
+}
+
+impl CodeSnippet {
+    pub fn format(&self, s: &mut StandardStream, lvl_color: &ColorSpec) -> Result<(), io::Error> {
+        s.set_color(&BLUE_STYLE)?;
+        write!(s, "  --> ")?;
+        s.set_color(&BOLD_STYLE)?;
+        writeln!(
+            s,
+            "{}:{}:{}",
+            self.path.display(),
+            self.loc.line,
+            self.loc.col,
+        )?;
+        s.reset()?;
+        let mut line_str = format!("{:^3}", self.loc.line);
+
+        if line_str.len() > 3 {
+            line_str.push(' ');
+        }
+
+        let margin_str = spaces(line_str.len());
+
+        s.set_color(&BLUE_STYLE)?;
+        writeln!(s, "{margin_str}|")?;
+
+        write!(s, "{line_str}| ")?;
+        s.reset()?;
+        writeln!(s, "{}", self.code)?;
+
+        s.set_color(&BLUE_STYLE)?;
+        write!(s, "{}| {}", margin_str, spaces(self.loc.col - 1),)?;
+
+        s.set_color(&lvl_color)?;
+        write!(
+            s,
+            "{}",
+            repeat('^', self.cursor.end() - self.cursor.start())
+        )?;
+
+        if let Some(note) = self.cursor.msg() {
+            write!(s, " {note}")?;
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct BuiltLogPart {
+    lvl: LogLevel,
+    msg: Box<str>,
+    snippet: Option<CodeSnippet>,
+}
+
+impl BuiltLogPart {
+    pub fn new(lvl: LogLevel, msg: Box<str>, snippet: Option<CodeSnippet>) -> BuiltLogPart {
+        BuiltLogPart { lvl, msg, snippet }
+    }
+
+    pub fn loc(&self) -> CodeLocation {
+        self.snippet.clone().unwrap().loc
+    }
+
+    pub fn code(&self) -> Box<str> {
+        self.snippet.clone().unwrap().clone().code
+    }
+
+    pub fn format(&self, s: &mut StandardStream) -> Result<(), io::Error> {
+        let lvl_color = self.lvl.format(s)?;
+        s.set_color(&BOLD_STYLE)?;
+        writeln!(s, ": {}", self.msg)?;
+
+        if let Some(snip) = &self.snippet {
+            snip.format(s, &lvl_color)?;
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LogPart {
+    pub lvl: LogLevel,
+    pub msg: Box<str>,
+    pub loc: Option<CodeSpan>,
+}
+
+impl LogPart {
+    pub fn build(&self, ctx: &LogContext) -> BuiltLogPart {
+        let snippet = if let Some(location) = &self.loc {
+            let start = ctx.line_col(location.start);
+            let end = ctx.line_col(location.end);
+
+            Some(CodeSnippet {
+                loc: start.clone(),
+                code: ctx.get_line(start.clone()),
+                path: ctx.file_path.into(),
+                cursor: LogCursor::new(start.col..end.col, None),
+            })
+        } else {
+            None
+        };
+
+        BuiltLogPart {
+            lvl: self.lvl.clone(),
+            msg: self.msg.clone(),
+            snippet,
+        }
     }
 }

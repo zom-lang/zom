@@ -151,11 +151,17 @@ impl<'a> Parser<'a> {
 
 #[macro_export]
 macro_rules! expect_token {
+    ($parser:expr => [ $($token:pat, $result:expr);+ ] -> $error:expr, $parsed_tokens:expr) => {
+        expect_token!($parser => [ $( $token, $result );+ ] else {
+            return Error(Box::new($error))
+        }, $parsed_tokens)
+    };
     ($parser:expr => [ $($token:pat, $result:expr);+ ], $expected:expr, $parsed_tokens:expr ) => {
         expect_token!($parser => [ $( $token, $result );+ ] else {
             let found = $parser.pop();
             return Error(Box::new(ExpectedToken::from(&found, $expected)))
         }, $parsed_tokens)
+        // expect_token!($parser => [ $( $token, $result );+ ] -> ExpectToken::from($parser.pop(), $expected), parsed_tokens)
     };
     ($parser:expr => [ $($token:pat, $result:expr);+ ] else $unmatched:block, $parsed_tokens:expr ) => {
         match &$parser.last().tt {

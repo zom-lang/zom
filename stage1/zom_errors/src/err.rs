@@ -4,8 +4,8 @@ use crate::prelude::*;
 /// structure is irrelevant. Use instead custom error structs.
 pub struct SimpleLog {
     pub level: LogLevel,
-    pub msg: String,
-    pub note: Option<String>,
+    pub msg: Box<str>,
+    pub cursor_msg: Option<Box<str>>,
     pub location: CodeSpan,
 }
 
@@ -18,11 +18,11 @@ impl Log for SimpleLog {
         self.level.clone()
     }
 
-    fn note(&self) -> Option<String> {
-        self.note.clone()
+    fn cursor_msg(&self) -> Option<Box<str>> {
+        self.cursor_msg.clone()
     }
 
-    fn msg(&self) -> String {
+    fn msg(&self) -> Box<str> {
         self.msg.clone()
     }
 }
@@ -39,7 +39,7 @@ impl Log for UnexpectedEOF {
         LogLevel::Error
     }
 
-    fn msg(&self) -> String {
-        "unexpected end of file".to_string()
+    fn msg(&self) -> Box<str> {
+        "unexpected end of file".into()
     }
 }

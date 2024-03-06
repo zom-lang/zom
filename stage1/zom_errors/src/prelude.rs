@@ -1,3 +1,4 @@
 pub use super::{
-    err::*, BuiltLog, CodeSpan, FinalRes, FmtToken, Log, LogContext, LogLevel, LogStream, PartAST,
+    err::*, BuiltLog, CodeSnippet, CodeSpan, FinalRes, FmtToken, Log, LogContext, LogLevel,
+    LogPart, LogStream, PartAST,
 };

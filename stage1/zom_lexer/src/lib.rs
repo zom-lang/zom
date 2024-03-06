@@ -323,8 +323,8 @@ impl<'a> Lexer<'a> {
             Ok(i) => Ok(Int(i)),
             Err(err) => Err(self.lctx.build_boxed(SimpleLog {
                 level: LogLevel::Error,
-                msg: "failed to lex integer literal".to_string(),
-                note: Some(err.to_string()),
+                msg: "failed to lex integer literal".into(),
+                cursor_msg: Some(err.to_string().into()),
                 location: self.get_pos(),
             })),
         }
@@ -467,15 +467,15 @@ impl<'a> Lexer<'a> {
                     pop_expect!(self => Some('\''));
                     return Error(self.lctx.build(SimpleLog {
                         level: LogLevel::Error,
-                        msg: "char literal must be escaped `'`".to_string(),
-                        note: None,
+                        msg: "char literal must be escaped `'`".into(),
+                        cursor_msg: None,
                         location: self.get_pos(),
                     }));
                 }
                 return Error(self.lctx.build(SimpleLog {
                     level: LogLevel::Error,
-                    msg: "empty char literal".to_string(),
-                    note: None,
+                    msg: "empty char literal".into(),
+                    cursor_msg: None,
                     location: self.get_pos(),
                 }));
             }

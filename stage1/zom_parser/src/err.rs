@@ -2,6 +2,8 @@ use std::fmt::Write;
 use zom_common::token::{Token, TokenType};
 use zom_errors::prelude::*;
 
+use std::ops::Range;
+
 /// unknown token lexing error
 pub struct ExpectedToken<E: ExpectArg> {
     /// token found
@@ -10,6 +12,8 @@ pub struct ExpectedToken<E: ExpectArg> {
     pub expected: E,
     /// location of the found token
     pub location: CodeSpan,
+
+    pub other: Vec<LogPart>,
 }
 
 impl<E: ExpectArg> ExpectedToken<E> {
@@ -18,6 +22,20 @@ impl<E: ExpectArg> ExpectedToken<E> {
             found: FmtToken::from_token(found),
             expected,
             location: found.span.clone(),
+            other: Vec::new(),
+        }
+    }
+
+    pub fn with_note(found: &Token, expected: E, note: Box<str>, note_loc: Range<usize>) -> Self {
+        Self {
+            found: FmtToken::from_token(found),
+            expected,
+            location: found.span.clone(),
+            other: vec![LogPart {
+                loc: Some(note_loc),
+                lvl: LogLevel::Note,
+                msg: note,
+            }],
         }
     }
 }
@@ -31,8 +49,12 @@ impl<E: ExpectArg> Log for ExpectedToken<E> {
         LogLevel::Error
     }
 
-    fn msg(&self) -> String {
-        format!("expected {}, found {}", self.expected.fmt(), self.found)
+    fn msg(&self) -> Box<str> {
+        format!("expected {}, found {}", self.expected.fmt(), self.found).into()
+    }
+
+    fn other_parts(&self) -> Vec<LogPart> {
+        self.other.clone()
     }
 }
 

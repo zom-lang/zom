@@ -17,8 +17,8 @@ impl Log for UnknownToken {
         LogLevel::Error
     }
 
-    fn msg(&self) -> String {
-        format!("unknown start of token, '{}'", self.found)
+    fn msg(&self) -> Box<str> {
+        format!("unknown start of token, '{}'", self.found).into()
     }
 }
 
@@ -41,19 +41,19 @@ impl Log for UnknownEscape {
         LogLevel::Error
     }
 
-    fn msg(&self) -> String {
-        format!("unknown character escape: '{}'", self.escape)
+    fn msg(&self) -> Box<str> {
+        format!("unknown character escape: '{}'", self.escape).into()
     }
 
-    fn note(&self) -> Option<String> {
+    fn cursor_msg(&self) -> Option<Box<str>> {
         Some(
-            r"supported escapse sequence are, '\0', '\n', '\r', '\t', '\xNN' (not yet supported) "
-                .to_string()
-                + if self.is_string {
-                    r#"and '\"'."#
-                } else {
-                    r"and '\''"
-                },
+            (r"supported escapse sequence are, '\0', '\n', '\r', '\t', '\xNN' (not yet supported) "
+                .to_string() + if self.is_string {
+                r#"and '\"'."#
+            } else {
+                r"and '\''"
+            })
+            .into(),
         )
     }
 }
@@ -75,12 +75,12 @@ impl Log for UnterminatedQuoteLit {
         LogLevel::Error
     }
 
-    fn msg(&self) -> String {
+    fn msg(&self) -> Box<str> {
         if self.is_char {
             "unterminated char literal"
         } else {
             "unterminated string literal"
         }
-        .to_string()
+        .into()
     }
 }

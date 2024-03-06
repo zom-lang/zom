@@ -338,11 +338,12 @@ pub fn parse_parenthesized_expr(parser: &mut Parser) -> ParsingResult<Expression
     let mut parsed_tokens = Vec::new();
 
     expect_token!(parser => [T::OpenParen, ()], OpenParen, parsed_tokens);
+    let opening_span = span_toks!(parsed_tokens);
     let start = span_toks!(start parsed_tokens);
 
     let expr = parse_try!(parser => Expression, parsed_tokens);
 
-    expect_token!(parser => [T::CloseParen, ()], CloseParen, parsed_tokens);
+    expect_token!(parser => [T::CloseParen, ()] -> ExpectedToken::with_note(&parser.pop(), CloseParen, "opening parenthesis found here".into(), opening_span), parsed_tokens);
     let end = span_toks!(end parsed_tokens);
 
     Good(
