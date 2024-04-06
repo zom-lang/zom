@@ -11,13 +11,6 @@ authors.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+lazy_static.workspace = true
 zom_common.workspace = true
-
-[dev-dependencies]
-criterion.workspace = true
-zom_lexer.workspace = true
-
-[[bench]]
-name = "lexer_bench"
-harness = false
-
+zom_errors.workspace = true

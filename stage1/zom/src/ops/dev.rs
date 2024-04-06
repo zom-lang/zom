@@ -2,8 +2,11 @@ use std::error::Error;
 use std::fs;
 use std::io::{self, stdout, Write};
 use std::path::PathBuf;
+use termcolor::ColorChoice;
 use zom_lexer::Lexer;
-use zom_parser::{parse, ParserSettings, ParsingContext};
+use zom_parser::*;
+
+use zom_errors::prelude::*;
 
 use crate::{err, ExitStatus};
 
@@ -32,16 +35,15 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     println!("file path = {}", path.display());
     println!("buffer = \\\n{}\n\\-> {}\n", buffer, buffer.len());
 
-    let mut lexer = Lexer::new(&buffer, &path);
+    let lctx = LogContext::new(&buffer, &path, ColorChoice::Always);
 
-    let tokens = match lexer.lex() {
-        Ok(t) => t,
-        Err(errs) => {
-            let mut err = "".to_owned();
-            for error in errs {
-                err += format!("{}\n", error).as_str();
-            }
-            return err!(fmt "{}", err);
+    let mut lexer = Lexer::new(&buffer, &path, lctx);
+
+    let (tokens, lctx) = match lexer.lex() {
+        FinalRes::Ok(t, lctx) => (t, lctx),
+        FinalRes::Err(logs) => {
+            logs.print();
+            return err!("");
         }
     };
 
@@ -51,29 +53,18 @@ pub fn dev() -> Result<ExitStatus, Box<dyn Error>> {
     }
 
     println!("\n~~~  SEPARTOR  ~~~");
+    let parser = Parser::new(&tokens, lctx);
 
-    let parse_context = ParsingContext::new("<dev_cmd>.zom".to_owned(), buffer);
-
-    let ast_result = parse(
-        tokens.as_slice(),
-        &[],
-        &mut ParserSettings::default(),
-        parse_context,
-    );
-
-    match ast_result {
-        Ok((ast, rest_toks)) => {
-            println!("ast = {:#?}", ast);
-            println!("toks_rest = {:?}", rest_toks);
+    let (ast, lctx) = match parser.parse() {
+        FinalRes::Ok(ast, lctx) => (ast, lctx),
+        FinalRes::Err(logs) => {
+            logs.print();
+            return err!("");
         }
-        Err(errs) => {
-            let mut err = "".to_owned();
-            for error in errs {
-                err += format!("{}\n", error).as_str();
-            }
-            return err!(fmt "{}", err);
-        }
-    }
+    };
 
+    dbg!(ast);
+
+    lctx.print();
     Ok(ExitStatus::Success)
 }

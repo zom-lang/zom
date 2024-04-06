@@ -1,100 +1,40 @@
-//! Block statement parsing module.
-
+//! Module responsible for parsing blocks.
 use crate::prelude::*;
+use crate::stmt::Statement;
 
-use crate::statement::parse_statement;
-
-use super::{
-    expr::{Expr, Expression},
-    statement::Statement,
-};
-
-#[derive(PartialEq, Clone, Debug)]
+#[derive(Debug)]
 pub struct Block {
     pub stmts: Vec<Statement>,
     pub span: Range<usize>,
 }
 
-impl_span!(Block);
+impl Parse for Block {
+    type Output = Self;
 
-pub fn parse_block(
-    tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
-    context: &mut ParsingContext,
-) -> PartParsingResult<Block> {
-    let mut parsed_tokens = vec![];
-    let t = tokens.last().unwrap().clone();
-    expect_token!(
-        context,
-        [OpenBrace, OpenBrace, ()] <= tokens,
-        parsed_tokens,
-        err_et!(
-            context,
-            tokens.last().unwrap(),
-            vec![OpenBrace],
-            tokens.last().unwrap().tt
-        )
-    );
+    fn parse(parser: &mut Parser) -> ParsingResult<Self::Output> {
+        let mut parsed_tokens = Vec::new();
 
-    let start = parsed_tokens.last().unwrap().span.start;
+        expect_token!(parser => [T::OpenBrace, ()], OpenBrace, parsed_tokens);
+        let start = span_toks!(start parsed_tokens);
 
-    let mut stmts = vec![];
+        let mut stmts = Vec::new();
+        while !token_parteq!(parser.last(), T::CloseBrace) {
+            // parse and push the stmt
+            stmts.push(parse_try!(parser => Statement, parsed_tokens));
 
-    loop {
-        if token_parteq!(tokens.last(), CloseBrace | EOF) {
-            break;
+            // maybe expect a semicolon
+            expect_token!(parser => [T::SemiColon, ()] else {}, parsed_tokens);
         }
 
-        let stmt = parse_try!(parse_statement, tokens, settings, context, parsed_tokens);
-        stmts.push(stmt);
-    }
+        expect_token!(parser => [T::CloseBrace, ()], CloseBrace, parsed_tokens);
+        let end = span_toks!(end parsed_tokens);
 
-    expect_token!(
-        context,
-        [CloseBrace, CloseBrace, ()] <= tokens,
-        parsed_tokens,
-        {
-            use zom_common::error::{Position, ZomError};
-            Bad(ZomError::new(
-                Position::try_from_range(
-                    context.pos,
-                    t.span.clone(),
-                    context.source_file.clone(),
-                    context.filename.clone().into(),
-                ),
-                "unclosed delimiter `}`".to_owned(),
-                false,
-                None,
-                vec![],
-            ))
-        }
-    );
-
-    let end = parsed_tokens.last().unwrap().span.end;
-
-    Good(
-        Block {
-            stmts,
-            span: start..end,
-        },
-        parsed_tokens,
-    )
-}
-
-pub fn parse_block_expr(
-    tokens: &mut Vec<Token>,
-    settings: &mut ParserSettings,
-    context: &mut ParsingContext,
-) -> PartParsingResult<Expression> {
-    match parse_block(tokens, settings, context) {
-        Good(block, parsed_tokens) => Good(
-            Expression {
-                expr: Expr::BlockExpr(block.clone()),
-                span: block.span,
+        Good(
+            Block {
+                stmts,
+                span: start..end,
             },
             parsed_tokens,
-        ),
-        NotComplete => NotComplete,
-        Bad(err) => Bad(err),
+        )
     }
 }

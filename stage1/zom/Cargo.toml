@@ -21,7 +21,8 @@ zom_parser.workspace = true
 zom_common.workspace = true
 zom_codegen.workspace = true
 zom_compiler.workspace = true
-
+zom_errors.workspace = true
+termcolor.workspace = true
 
 [features]
 default = ["llvm15-0"]

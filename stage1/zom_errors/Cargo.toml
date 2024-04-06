@@ -1,7 +1,7 @@
 [package]
-name = "zom_lexer"
-description = "Zom Lexer, used to transform text into tokens"
-repository = "https://github.com/zom-lang/zom/tree/main/s1_compiler/zom_lexer"
+name = "zom_errors"
+description = "Crate for error handling in the Zom Compiler."
+repository = "https://github.com/zom-lang/zom/tree/main/zom_errors"
 
 version.workspace = true
 edition.workspace = true
@@ -12,5 +12,5 @@ authors.workspace = true
 
 [dependencies]
 zom_common.workspace = true
-zom_errors.workspace = true
 termcolor.workspace = true
+lazy_static.workspace = true
